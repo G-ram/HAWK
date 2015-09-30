@@ -1,0 +1,76 @@
+
+\documentclass[12pt]{article}
+
+\setlength{\oddsidemargin}{0pt}
+\setlength{\textwidth}{470pt}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{latexsym}
+\usepackage{epsfig}
+\usepackage[procnames]{listings}
+\usepackage{color}
+\usepackage{titling}
+\usepackage{hyperref}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\algrenewcommand\textproc{}
+
+\setlength{\droptitle}{-2cm}
+\setlength{\parskip}{1em} 
+
+\newtheorem*{mydef}{Definition}
+
+
+
+\newcommand{\setdocdata}{
+\title{HAWK (HTML is All We Know)\\
+Language Proposal}
+\author{Jonathan Adelson, Ethan Benjamin, Justin Chang,Graham Gobieski,George Yu\\
+jma2215,jc4137,eb2947,,gsg2120,gy2206}
+\date{}
+}
+
+
+\begin{document}
+
+\definecolor{keywords}{RGB}{255,0,90}
+\definecolor{comments}{RGB}{0,0,113}
+\definecolor{red}{RGB}{160,0,0}
+\definecolor{green}{RGB}{0,150,0}
+ 
+\lstset{language=Python, 
+        basicstyle=\ttfamily\small, 
+        keywordstyle=\color{keywords},
+        commentstyle=\color{comments},
+        stringstyle=\color{red},
+        showstringspaces=false,
+        identifierstyle=\color{green},
+        procnamekeys={def,class}}
+
+\setdocdata
+\maketitle
+
+\section*{Introduction}
+
+HAWK (HTML is All We Know) is a play on AWK, and strives to accomplish for HTML web scraping what AWK accomplished for text processing. Web scraping describes the process of automatically extracting data from websites. For instance, one could write a web scraping program to look at the menu for John Jay dining hall each day and determine if bacon is being served. As another example, one could scrape IMDB to determine how many degrees of separation a given actor has from Kevin Bacon. 
+
+Though no two web scraping tasks are the same, most web scraping programs employ a similar workflow. For the most part, this involves finding relevant parts of a web page and performing some action in response. In practice, the most typical ``relevant parts" are HTML elements that match some criteria, or certain strings in the raw HTML document. Typically, in order to find these parts you must combine various search mechanisms including XPath, CSS selector search, and regexes. Often, each of these mechanisms is implemented in separate libraries which each have distinct abstractions that don't play well together. Wouldn't it be nice if the notion of a ``search pattern", as it pertains to web scraping, were unified under a coherent language construct? Stay tuned!
+
+ Like AWK, HAWK mostly consists pattern-action pairs. In AWK, a text file is processed line by line. If a line matches a pattern you defined (typically a regex) an action is performed. 
+
+
+
+\section*{References}
+
+ \begin{thebibliography}{1}
+  
+   \bibitem{F} Vitaly Feldman  {\em Evolvability from Learning Algorithms.}  2008.
+
+
+  \end{thebibliography}
+
+\end{document}
+
+
