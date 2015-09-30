@@ -54,11 +54,14 @@ jma2215,jc4137,eb2947,,gsg2120,gy2206}
 
 \section*{Introduction}
 
-HAWK (HTML is All We Know) is a play on AWK, and strives to accomplish for HTML web scraping what AWK accomplished for text processing. Web scraping describes the process of automatically extracting data from websites. For instance, one could write a web scraping program to look at the menu for John Jay dining hall each day and determine if bacon is being served. As another example, one could scrape IMDB to determine how many degrees of separation a given actor has from Kevin Bacon. 
+HAWK (HTML is All We Know) is a play on Awk, and strives to accomplish for HTML web scraping what AWK accomplished for text processing. Web scraping describes the process of automatically extracting data from websites. For instance, one could write a web scraping program to look at the menu for John Jay dining hall each day and determine if bacon is being served. As another example, one could scrape IMDB to determine how many degrees of separation a given actor has from Kevin Bacon. 
 
-Though no two web scraping tasks are the same, most web scraping programs employ a similar workflow. For the most part, this involves finding relevant parts of a web page and performing some action in response. In practice, the most typical ``relevant parts" are HTML elements that match some criteria, or certain strings in the raw HTML document. Typically, in order to find these parts you must combine various search mechanisms including XPath, CSS selector search, and regexes. Often, each of these mechanisms is implemented in separate libraries which each have distinct abstractions that don't play well together. Wouldn't it be nice if the notion of a ``search pattern", as it pertains to web scraping, were unified under a coherent language construct? Stay tuned!
+Though no two web scraping tasks are the same, most web scraping programs employ a similar workflow. For the most part, this involves finding relevant parts of a web page and performing some action in response. In practice, the most typical ``relevant parts" are HTML elements that match some criteria or certain strings in the raw HTML document. Typically, in order to find these parts you must combine various search mechanisms including XPath, CSS selector search, and regexes. Often, these distinct search mechanisms are implemented in separate libraries which each have distinct abstractions that don't play well together. 
 
- Like AWK, HAWK mostly consists pattern-action pairs. In AWK, a text file is processed line by line. If a line matches a pattern you defined (typically a regex) an action is performed. 
+Like Awk, HAWK mostly consists pattern-action pairs. HAWK supports multiple types of patterns, and all are unified under one coherent language construct. For our project, we will support three types of search patterns for HTML documents: CSS selectors, regular expressions, and HAWK predicates. CSS selectors and HAWK predicates will allow users to match whole HTML elements. HAWK predicates are simply boolean expressions with the same syntax and semantics as HAWK's action language. Regular expressions will let users cut right to the chase and scrape raw string data. 
+
+HAWK's action syntax and semantics will be bare-bones and dynamic, in the spirit of Lua. We hope to provide just enough features to make the large majority of tasks straightforward, and enough flexibility to make hard tasks possible. Like Lua, we will provide only one built-in data structure, a table, which is essentially just a key-value hash table. 
+
 
 
 
