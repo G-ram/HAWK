@@ -110,7 +110,7 @@ table.wikitable > tr
 ]
 //Ending action for <tr>.
 //Print name of mountain if it is ranked highly enough and in Colorado
-END{
+{
 	if ($rank <= 50 and $state == "Colorado")
 		print($mountain)
 	end
@@ -136,6 +136,7 @@ table.wikitable > tr
 	}
 ]
 
+//end of program actions
 END{
 	for state in counts_by_state do
 		print("STATE: " + $state + ", COUNT: " + $counts_by_state[$state]);
@@ -161,12 +162,13 @@ table.wikitable > tr
 	
 	/(\d+,\d+) ft/ { $height = str2num($MATCH[1]);}
 ]
-
+{
 //Ending action for <tr>.
 //Print name of mountain if it is in the right height range
-if (height>=14000 and height<=15000)
-{
-	print($mountain);
+	if ($height>=14000 and $height<=15000)
+	{
+		print($mountain);
+	}
 }
 
 \end{lstlisting}
