@@ -74,11 +74,6 @@ No action taken in this case.*/
 
 BEGIN{}
 
-/*No beginning actions.
-Since its empty, the {} is optional here and could be ommited.*/
-
-{}
-
 /*table.wikitable > tr is a CSS selector and
 matches all <tr> elements within the mountain table.
 With the {...}  is the action to perform when finding a pattern.
@@ -151,6 +146,8 @@ END{
     basicstyle=\small
 ]
 
+BEGIN{}
+
 table.wikitable > tr
 [
 	//Fetch the name of the mountain
@@ -166,10 +163,11 @@ table.wikitable > tr
 //Ending action for <tr>.
 //Print name of mountain if it is in the right height range
 	if ($height>=14000 and $height<=15000)
-	{
 		print($mountain);
-	}
+	end
 }
+
+END{}
 
 \end{lstlisting}
 
