@@ -57,29 +57,24 @@ For all parts of this manual relating to syntax, the following conventions will 
 
 \textbf{Variables} are storage locations that contain values. Depending on where in a program variables are initialized, they are either \textbf{global} or \textbf{local} to a particular scope. See \textbf{Storage Scope} for more details.
 
-DYNAMICALLY TYPED VERSION:
-HAWK is dynamically typed, which means that the value stored by a variable has a type, but variables themselves have no type. 
-
-STATICALLY TYPED VERSION:
-
-HAWK is statically typed, which means that every variable has a type. The type of a variable determines the meaning and behavior of its values, and also the nature of storage needed for those values. 
+HAWK is statically typed, which means that every variable has a type. The type of a variable determines the behavior of its values, and also the nature of storage needed for those values. 
 
 
 \subsection*{Storage Scope}
 
 The visibility of an identifier and liftetime of a variable's storage depends on where a variable is initialized. If a variable is initialized within a \texttt{BEGIN} or \texttt{END} block, it is a \textbf{global} variable. A global variable can be accessed by any part of the program below the global variable's initialization. It's storage stays alive throughout the entire execution of the program.
 
-If a variable is initialized within any block other than a \texttt{BEGIN} or \texttt{END} block, it is a \textbf{local} variable. A local variable can be accessed within the scope it is initialized, at or below its initialization. It's storage will be destroyed at the end of the scope.
+If a variable is initialized within any block other than a \texttt{BEGIN} or \texttt{END} block, it is a \textbf{local} variable. A local variable can be accessed within the scope it is initialized in statements below its initialization. It's storage will be destroyed at the end of the scope.
 
 \subsection*{Basic Types}
 
-There are four basic types in HAWK: \textbf{integers}, \textbf{decimals}, \textbf{strings}, and \textbf{tables}. 
+There are four basic types in HAWK: \textbf{integers}, \textbf{doubles}, \textbf{strings}, and \textbf{tables}. 
 
-Integers are signed integer values which can span an unlimited range. Similarly, decimals are signed decimal values which can span an unlimited range and precision. We will refer to decimals and integers as \textbf{arithmetic} type. Because arithmetic types can encompass an infinite range of values, they necessarily require a flexible amount of storage space. HAWK language implementations have the freedom to allocate memory to these values however they see fit.
+Integers represent numbers in the range -2147483648 through 2147483647. Doubles represent double precision floating point numbers. We will refer to decimals and integers as \textbf{arithmetic} types.
 
 Strings are a sequence of 0 or more unicode characters. They are guaranteed to occupy $O(n)$ space in memory, where $n$ is the number of characters in the string.
 
-Both arithmetic types and strings are $\textbf{immutable}$, which means that their value cannot be changed once they are created. When a variable with an immutable type (NOTE TO SELF: CHANGE FOR DYNAMIC) is assigned a new value, the old value and underlying storage are destroyed. 
+Both arithmetic types and strings are $\textbf{immutable}$, which means that their value cannot be changed once they are created. When a variable with an immutable type is assigned a new value, the old value and underlying storage are destroyed. 
 
 Tables, unlike the immutable types, are \textbf{objects}. This means that variables do not contain tables, but rather contain \textbf{references} to tables. Assigning a table to a variable results in that variable storing a reference to that table. Similarly, when tables are passed as parameters to functions or returned from functions, the respective parameters and return values are references. In each of these operations, there is no copying of internal table data, only copying of references. 
 
@@ -89,12 +84,17 @@ HAWK uses reference counting to keep track of how many variables store reference
 
 \subsubsection*{Promotion of Integers in Mixed Arithmetic Expressions}
 
-In mathematical binary expressions where one operand is an integer and the other operand is a decimal, the integer will be automatically converted to a decimal value. The conversion will be performed using the the built-in function \texttt{int\_to\_string}.
+In mathematical binary expressions where one operand is an integer and the other operand is a decimal, the integer will be automatically converted to a double value. The conversion will be performed using the the built-in function \texttt{int\_to\_double}.
 
 \subsubsection*{String Conversion in String Concatentation Expressions}
 
 In binary addition expressions where one operand is a string, and the other operand is not a string, the non-string will be automatically converted to a string value. Tables will be converted using \texttt{table\_to\_string}, integers using \texttt{int\_to\_string}, and \texttt{decimal\_to\_string}.
 
+\section*{Statement Separators And Function Argument Separators}
+
+Every block in HAWK consists of a list of 0 or more statements. The end of each statement is denoted by a semi-colon character.
+
+Every function definition in HAWK contains an identifier for the function, 
 
 
 \end{document}
