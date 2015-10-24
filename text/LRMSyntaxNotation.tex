@@ -1,0 +1,97 @@
+
+\documentclass[12pt]{article}
+
+\setlength{\oddsidemargin}{0pt}
+\setlength{\textwidth}{470pt}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{latexsym}
+\usepackage{epsfig}
+\usepackage{courier}
+\usepackage[procnames]{listings}
+\usepackage{color}
+
+\setlength{\parskip}{1em}
+
+\newtheorem*{mydef}{Definition}
+
+
+
+\newcommand{\setdocdata}{
+\title{HAWK (HTML is All We Know)\\
+Language Proposal}
+\author{Jonathan Adelson, Ethan Benjamin, Justin Chang,Graham Gobieski, George Yu\\
+jma2215, jc4137, eb2947, gsg2120, gy2206}
+\date{}
+}
+
+
+\begin{document}
+
+\definecolor{keywords}{RGB}{255,0,90}
+\definecolor{comments}{RGB}{0,0,113}
+\definecolor{red}{RGB}{160,0,0}
+\definecolor{green}{RGB}{0,150,0}
+
+\lstset{language=AWK,
+        basicstyle=\ttfamily\small,
+        keywordstyle=\color{red},
+        commentstyle=\color{comments},
+        stringstyle=\color{red},
+        showstringspaces=false,
+        identifierstyle=\color{green},
+        procnamekeys={def,class}}
+
+\setdocdata
+\maketitle
+
+\section*{Syntax Notation}
+
+For all parts of this manual relating to syntax, the following conventions will be used. Syntactic categories will be shown in italic (e.g. \textit{expr} or \textit{stmt}) and literal characters and strings will be shown in Courier fornt (e.g. \texttt{if (1==1)\{a=b;\}}).
+
+\section*{Meaning of Identifiers}
+
+\textbf{Identifiers} are names which can refer to functions, variables, and table fields. Each identifier is a string consisting of digits, letters, and underscores which does not begin with a digit.
+
+\textbf{Variables} are storage locations that contain values. Depending on where in a program variables are initialized, they are either \textbf{global} or \textbf{local} to a particular scope. See \textbf{Storage Scope} for more details.
+
+DYNAMICALLY TYPED VERSION:
+HAWK is dynamically typed, which means that the value stored by a variable has a type, but variables themselves have no type. 
+
+STATICALLY TYPED VERSION:
+
+HAWK is statically typed, which means that every variable has a type. The type of a variable determines the meaning and behavior of its values, and also the nature of storage needed for those values. 
+
+
+\subsection*{Storage Scope}
+
+
+\subsection*{Basic Types}
+
+There are four basic types in HAWK: \textbf{integers}, \textbf{decimals}, \textbf{strings}, and \textbf{tables}. 
+
+Integers are signed integer values which can span an unlimited range. Similarly, decimals are signed decimal values which can span an unlimited range and precision. We will refer to decimals and integers as \textbf{arithmetic} type. Because arithmetic types can encompass an infinite range of values, they necessarily require a flexible amount of storage space. HAWK language implementations have the freedom to allocate memory to these values however they see fit.
+
+Strings are a sequence of 0 or more unicode characters. They are guaranteed to occupy $O(n)$ space in memory, where $n$ is the number of characters in the string.
+
+Both arithmetic types and strings are $\textbf{immutable}$, which means that their value cannot be changed once they are created. When a variable with an immutable type (NOTE TO SELF: CHANGE FOR DYNAMIC) is assigned a new value, the old value and underlying storage are destroyed. 
+
+Tables, unlike the immutable types, are \textbf{objects}. This means that variables do not contain tables, but rather contain \textbf{references} to tables. Assigning a table to a variable results in that variable storing a reference to that table. Similarly, when tables are passed as parameters to functions or returned from functions, the respective parameters and return values are references. In each of these operations, there is no copying of internal table data, only copying of references. 
+
+HAWK uses reference counting to keep track of how many variables store references to the same table. When a table no longer has any variables referencing it, the underlying storage for the table is destroyed.  
+
+\subsection*{Automatic Conversions}
+
+\subsubsection*{Promotion of Integers in Mixed Arithmetic Expressions}
+
+In mathematical binary expressions where one operand is an integer and the other operand is a decimal, the integer will be automatically converted to a decimal value. The conversion will be performed using the the built-in function \texttt{int\_to\_string}.
+
+\subsubsection*{String Conversion in String Concatentation Expressions}
+
+In binary addition expressions where one operand is a string, and the other operand is not a string, the non-string will be automatically converted to a string value. Tables will be converted using \texttt{table\_to\_string}, integers using \texttt{int\_to\_string}, and \texttt{decimal\_to\_string}.
+
+
+
+\end{document}
