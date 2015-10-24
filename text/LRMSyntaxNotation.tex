@@ -67,6 +67,9 @@ HAWK is statically typed, which means that every variable has a type. The type o
 
 \subsection*{Storage Scope}
 
+The visibility of an identifier and liftetime of a variable's storage depends on where a variable is initialized. If a variable is initialized within a \texttt{BEGIN} or \texttt{END} block, it is a \textbf{global} variable. A global variable can be accessed by any part of the program below the global variable's initialization. It's storage stays alive throughout the entire execution of the program.
+
+If a variable is initialized within any block other than a \texttt{BEGIN} or \texttt{END} block, it is a \textbf{local} variable. A local variable can be accessed within the scope it is initialized, at or below its initialization. It's storage will be destroyed at the end of the scope.
 
 \subsection*{Basic Types}
 
