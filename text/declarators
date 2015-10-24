@@ -13,36 +13,25 @@ Declarations give a specific meaning to each identifier.
 
 	declarator:
 		identifier = expression
-		identifier(arg-list) = statement
+		identifier(arg-list) compound-statement
 
 For identifier = expression, the type of identifier is the result of the
 expression on the RHS. If this identifier is later used in an expression,
 it yields a type that is the same as when it was created. You must initialize
 a variable when you create it.
 
-Table Declarators:
-
-When declaring a table, you can use the special form: 	
-	identifier = [| x1, x2, ..., xn |]
-	
-	which is equivalent to:
-		
-	identifier = [| 0:x1, 1:x2, ..., (xn-1):xn |]
-
 Functions Declarators:
 
-	identifier(arg1, arg2, ..., argn) = statement
+	identifier(arg1, arg2, ..., argn) compound-statement
 
-The type of identifier(arg1, arg2, ..., argn) is the type of the final
-expression in block. The types of arg1, arg2, ..., argn are inferred within
-the statement. The names of arg1, arg2, ..., argn must be valid HAWK
-identifiers. 
+The type of identifier(arg1, arg2, ..., argn) is the type of the expression
+in the return statement. The types of arg1, arg2, ..., argn are inferred 
+within the compound-statement. The names of arg1, arg2, ..., argn must be 
+valid HAWK identifiers. 
 
 All arguments to a function are call-by-value. When tables are passed as 
 arguments, the reference to the table is passed by value. See the Syntax
 Section for more information. 
-
-'open' is a special reserved function that takes a file name as a string. 
 
 ---------------------------------------------------------------------------
 
@@ -54,14 +43,17 @@ Statements are executed in sequence.
 		compound-statement
 		conditional statement
 		while statement
+		return statement
 		pattern statement
+		Begin statement
+		End statement
 
 Expression Statements
 
 	Expression statement:
 		expression;	
 
-Expression statement will typically be a function call but can 
+Expression statements will typically be a function call but can 
 be any arbitrary expression. 
 
 Assignment Statement
@@ -73,7 +65,6 @@ Assignment statements are used to declare a variable or they
 can be used to update the value of a variable that already exists. 
 
 Compound Statements
-Used so several expressions can be used where one is expected
 
 	Compound-Statement:
 		statement-list
@@ -82,28 +73,48 @@ Used so several expressions can be used where one is expected
 		statement
 		statement, statement-list
 
+Compound statements are used to write several statements when 
+one statement is expected. 
+
 Conditional Statement
 
 	Conditional Statement:
-		if (expression) statement else statement
+		if (expression) compound-statement
+		if (expression) compound-statement else compound-statement
 
-The first substatement is executed if expression is true, 
-else the second substatement is executed. The expression
-that is evaluated must be of type boolean. 
+The first substatement is executed if the expression is not
+equal to zero, otherwise the second statement is executed. 
+The second statement can either be another Conditional Statement
+or a Compound Statement. 
 
 while Statement
 
 	while statement:
-		while (expression) statement
+		while (expression) compound-statement
 
-The substatement is executed while the expression evaluates to true. 
-The expression must be of type boolean. 
+The compound-statement is executed until the expression is not
+equal to 0. 
+
+return Statement
+
+	return statement:
+		return expression
+
+Return statements are only used within function bodies. 
 
 Pattern Statement
 
 	pattern statement:
-		pattern statement
+		pattern-expression compound-statement
 
-Pattern is a pattern to match against and substatement is executed each 
-time that the patern is matched. 
+Pattern is a pattern to match against and the compound-statement is executed 
+each time that the patern is matched. 
+
+Begin Statement
+	'BEGIN' compound-statement
+
+End Statement
+	'END' compound-statement	
 	
+Refer to the Program Structure for more information on Pattern, Begin, and
+End statements. 
