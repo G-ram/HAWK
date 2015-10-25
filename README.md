@@ -89,7 +89,7 @@ There are several tokens in HAWK: identifiers, keywords, constants, string liter
 
 ### 2.2 Comments
 
-Use /* to begin a comment, and terminate it with */. Comments can extend across multiple lines.
+Use /\* to begin a comment, and terminate it with \*/. Comments can extend across multiple lines.
 
 ### 2.3 Identifiers
 
