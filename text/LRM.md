@@ -19,7 +19,13 @@
 		* 2.5.D Table Literals
 	* Patterns
 		* 2.6.A CSS Selectors
-		* 2.5.A Regex
+			* 2.6.A.1 CSS Selectors
+			* 2.6.A.2 Simple Selector Sequences
+			* 2.6.A.3 Type Selectors
+			* 2.6.A.4 Property Selectors
+			* 2.6.A.5 Combinators
+			* 2.6.A.6 Examples
+		* 2.6.B Regex
 * 3 Syntax Notation
 	* 3.1 Meaning of Identifiers/Variables
 	* 3.2 Storage Scope
@@ -140,24 +146,153 @@ A table literal is a comma-separated sequence delimited by curly braces. The com
 ###2.6 Patterns
 Patterns utilize valid Regex or CSS selector syntax and are defined with special offset characters within brackets before an action block in the pattern section of the program. Please see the following sections for a discussion on what a comprises a valid CSS selector and Regex expression.
 
-####2.6.A CSS Selectors
-HAWK implements a limited syntax of the standard W3 definition of CSS selectors. A CSS selector is used to find a particular element in an HTML document using the handles and operations defined below (please see the CSS and HTML language reference manuals for more). Moreover, a CSS selector pattern must be offset with @ symbols on both sides and be contained within a bracket before an action section.
+####2.6.A CSS Selector Patterns
 
-	[@...@]{
+HAWK implements a limited syntax of the standard W3 definition of CSS selectors. A CSS selector contains special syntax used to find elements in an HTML document which match particular criteria criteria. In HAWK, a CSS selectors patterns consists of CSS selector enclosed by @ symbols which are themselves enclosed by brackets.
+
+	[@ css-selector @]{
 		/*action*/
 	}
+	
+#####2.6.A.1 CSS Selectors
 
-CSS selector operations may be combined, but must follow the law of the descendent, which states that operations following other operations must operate on elements that are children (elements that are contained by parent elements) of the previously found parent element. Valid CSS selector syntax and operations are as follows (all operations adhere to the law of the descendent):
+A CSS selector consists of one ore more simple selector sequences chained by combinators. See below for details on simple selector sequences and combinators.
 
+*css-selector*:
+
+* *simple-selector-sequence*
+* *simple-selector-sequence combinator css-selector*
+	
+
+#####2.6.A.2 Simple Selector Sequences
+
+A simple selector sequence consists of a single type selector, or an optional type selector followed by one or more property selectors. These are the essential building blocks of CSS selectors.
+
+Intuitively, a type selector is used to find HTML elements with specific tags (e.g. `<div>` or `<td>` or `<span>`) while property selectors are predicates on attributes and associated values within a tag (e.g. blah1, blah2, "something1", and "something2" in `<td blah1="something" blah2="somethingelse">`).
+
+*simple-selector-sequence*:
+
+* *type-selector*
+* *type-selector property-selector-list*
+* *property-selector-list*
+	
+#####2.6.A.3 Type Selectors
+
+A type selector can either specify a specific tag type, or can select any tag using the universal selector. We allow matching on non-standard tag types named by any valid identifier, even those not typically supported in web browsers.
+
+*type-selector*:
+
+* *identifier*
+* *universal-selector* 
+
+*universal-selector*:
+
+* &#42;
+	
+#####2.6.A.4 Property Selectors
+
+Property selectors are predicates on attributes and associated values within an HTML tag. 
+
+*property-selector*:
+
+* *attribute-exists-selector*
+* *attribute-string-selector*
+* *class-selector*
+* *id-selector*
+
+Attribute existence selectors check if a tag contains a given attribute.
+
+attribute-exists-selector:
+
+* [identifier]
+	
+Attribute string matching selectors check if a tag contains a given attribute, and additionally filters for attributes whose associated values have certain string properties. Most of these are self explanatory with the exception of the whitespace separated containment selector. This selects for attribute values which, when split into a list of words by whitespace, contain the chosen word (e.g. `[years ~=  "1992"]` would match the element `<div years = "1488 1875 1992 1995"/>`.).
+
+*attribute-string-selector*:
+
+* *attribute-equals-selector*
+* *attribute-contains-selector*
+* *attribute-beginswith-selector*
+* *attribute-endswith-selector*
+* *attribute-whitespace-separated-contains*
+	
+*attribute-equals-selector*:
+
+* [identifier = string]
+	
+*attribute-contains-selector*:
+
+* [identifier *= string]
+	
+*attribute-beginswith-selector*:
+
+* [identifier ^= string]
+	
+*attribute-endswith-selector*:
+
+* [identifier $= string]
+
+*attribute-whitespace-separated-contains*:
+
+* [identifier ~= string]
+	
+
+*class-selector*:
+
+* .identifier
+
+Class selectors are used to find HTML elements whose "class" attribute contains a given value.
+*.
+*id-selector*:
+
+* \#identifier
+
+ID Selectors are used to find HTML elements whose "id" attributes equal a given value.er
+
+
+#####2.6.A.5 Combinators
+
+Combinators chain together multiple simple sequence selectors, and are used to find elements who have a certain hierarchical relation to other elements. For instance, the direct child combinator > can be used to find an element that is a direct child of another element in the HTML XML hierarchy (e.g. `@div[attr1=value1] > span@` will find the span in `<div attr1="value1"> Blah blah blah <span></span></div>`).
+
+*combinator*:
+
+* *direct-child-combinator*
+* *descendent-combinator*
+* *direct-sibling-combinator*
+* *any-sibling-combinator*
+	
+
+*direct-child-combinator*:
+
+* \>
+
+The direct child combinator finds elements matched by a simple selector sequence that are immediate children of elements matched by another simple selector sequence.
+
+*descendent-combinator*:
+
+* (empty string)
+
+The descendent combinator finds elements matched by a simple selector sequence that are descendents of elements matched by another simple selector sequence. For instance, `@div span@` will match the nested span in `<div><span></span/></div>`.
+
+*direct-sibling-combinator*:
+
+* +
+
+The direct sibling combinator finds elements matched by a simple selector sequence that are the next sibling of elements matched by another simple selector sequence. For instance, `@tr + span@` will match the span in `<div><tr></tr><span><span/></div>`.
+
+	
+	
+#####2.6.A.6 Examples
+	
 * *\** : selects all elements
 * *\#id* : selects all elements with an id attribute that matches the provided string 
-	* **Example:** `#first-name` will select all elements with attribute `id=“first-name”`
+	* **Example:** `@#first-name@` will select all elements with attribute `id=“first-name”`
 * *.class* : selects all elements with a class attribute that matches the provided string
-	* **Example**: `.first-name` will select all elements with attribute `class=“first-name”`
+	* **Example**: `@.first-name@` will select all elements with attribute `class=“first-name”`
 * *element* : selects all elements that have the provided tag name. Please see the HTML language reference manual for a complete list of valid HTML element tags.
-	* **Example**: `p` will select for all paragraph elements
+	* **Example**: `@p@` will select for all paragraph elements
 * *element1 element2* : law of the descendent. This pattern will select for all element2’s that are child elements of element1
-	* **Example**: `div #first-name` will select for all elements with id attribute, `id=“first-name”` that are children of div elements
+	* **Example**: `@div #first-name@` will select for all elements with id attribute, `id=“first-name”` that are children of div elements
 * *element1 > element2* : strict law of the descendent. This pattern will select for the elements that are direction children of the parent element. In other words, these children  cannot be grandchildren (elements nested within other elements)
 * *element1 + element2* : selects the immediate child (the one child that is directly below the parent), element2, of the parent element, element1.
 * *element1 ~ element2* : selects every element, element2, that is preceded by element1
@@ -171,7 +306,10 @@ CSS selector operations may be combined, but must follow the law of the descende
 
 Please see CSS and HTML language reference manuals for additional explanation of each selector pattern.
 
-####2.6.A Regex
+
+
+
+####2.6.B Regex Patterns
 HAWK implements a limited version of the standard regex expression syntax of the AWK language. A regex expression is used to find a particular pattern in an text document using the operations defined below (please see the POSIX and AWK language reference manuals for more). Moreover, a regex expression pattern must be offset with / symbols on both sides and be contained within a bracket before an action section.
 
 	[/.../]{
