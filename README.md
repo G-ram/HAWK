@@ -1,3 +1,4 @@
+![HAWK](http://static.greatbigcanvas.com/images/square/national-geographic/a-red-tail-hawk,1407681.jpg?max=128)
 # HAWK Language Reference Manual
 **Created By: Graham Gobieski, George Yu, Ethan Benjamin, Justin Chang, Jon Adelson**
 
