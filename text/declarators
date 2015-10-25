@@ -1,0 +1,120 @@
+Introduction
+HAWK is a programming language designed for web-scraping. The language
+takes its inspiration from AWK, using the same (pattern, action) model
+to manipulate HTML as opposed to text documents. The HAWK compiler compiles
+code to Java code, which is compiled to Java Bytecode, and then run on a
+Java Virtual Machine 
+
+-------------------------------------------------------------------------
+Declarations give a specific meaning to each identifier.
+
+	declaration:
+		declarator
+
+	declarator:
+		identifier = expression
+		identifier(arg-list) compound-statement
+
+For identifier = expression, the type of identifier is the result of the
+expression on the RHS. If this identifier is later used in an expression,
+it yields a type that is the same as when it was created. You must initialize
+a variable when you create it.
+
+Functions Declarators:
+
+	identifier(arg1, arg2, ..., argn) compound-statement
+
+The type of identifier(arg1, arg2, ..., argn) is the type of the expression
+in the return statement. The types of arg1, arg2, ..., argn are inferred 
+within the compound-statement. The names of arg1, arg2, ..., argn must be 
+valid HAWK identifiers. 
+
+All arguments to a function are call-by-value. When tables are passed as 
+arguments, the reference to the table is passed by value. See the Syntax
+Section for more information. 
+
+---------------------------------------------------------------------------
+
+Statements are executed in sequence.
+
+	Statement:
+		expression statement
+		assignment statement
+		compound-statement
+		conditional statement
+		while statement
+		return statement
+		pattern statement
+		Begin statement
+		End statement
+
+Expression Statements
+
+	Expression statement:
+		expression;	
+
+Expression statements will typically be a function call but can 
+be any arbitrary expression. 
+
+Assignment Statement
+
+	Assignment statement:
+		identifier = expression
+
+Assignment statements are used to declare a variable or they
+can be used to update the value of a variable that already exists. 
+
+Compound Statements
+
+	Compound-Statement:
+		statement-list
+
+	statement-list:
+		statement
+		statement, statement-list
+
+Compound statements are used to write several statements when 
+one statement is expected. 
+
+Conditional Statement
+
+	Conditional Statement:
+		if (expression) compound-statement
+		if (expression) compound-statement else compound-statement
+
+The first substatement is executed if the expression is not
+equal to zero, otherwise the second statement is executed. 
+The second statement can either be another Conditional Statement
+or a Compound Statement. 
+
+while Statement
+
+	while statement:
+		while (expression) compound-statement
+
+The compound-statement is executed until the expression is not
+equal to 0. 
+
+return Statement
+
+	return statement:
+		return expression
+
+Return statements are only used within function bodies. 
+
+Pattern Statement
+
+	pattern statement:
+		pattern-expression compound-statement
+
+Pattern is a pattern to match against and the compound-statement is executed 
+each time that the patern is matched. 
+
+Begin Statement
+	'BEGIN' compound-statement
+
+End Statement
+	'END' compound-statement	
+	
+Refer to the Program Structure for more information on Pattern, Begin, and
+End statements. 
