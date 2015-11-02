@@ -22,14 +22,14 @@ program:
 	pattern EOF {$1}
 	
 pattern:
-	LBRACE_AMP css_selector AMP_RBRACE {$2}
+	LBRACE_AMP css_selector AMP_RBRACE {CssPattern($2)}
 	
 css_selector:
 	simple_selector_seq {SingleSelector($1)}
-	| css_selector PLUS simple_selector_seq {ChainedSelectors($1,direct_sibling,SingleSelector($3))}
-	| css_selector GT simple_selector_seq {ChainedSelectors($1,descendent,SingleSelector($3))}
-	| css_selector TILDE simple_selector_seq {ChainedSelectors($1,any_sibling,SingleSelector($3))}
-	| css_selector typed_simple_selector_seq {ChainedSelectors($1,direct_child,SingleSelector($2))}
+	| css_selector PLUS simple_selector_seq {ChainedSelectors($1,DirectSibling,SingleSelector($3))}
+	| css_selector GT simple_selector_seq {ChainedSelectors($1,Descendent,SingleSelector($3))}
+	| css_selector TILDE simple_selector_seq {ChainedSelectors($1,AnySibling,SingleSelector($3))}
+	| css_selector typed_simple_selector_seq {ChainedSelectors($1,DirectChild,SingleSelector($2))}
 	
 simple_selector_seq:
 	typed_simple_selector_seq {$1}
@@ -41,7 +41,7 @@ typed_simple_selector_seq:
 	
 type_selector:
 	TIMES {Universal}
-	|ID {Elt(ID)}
+	|ID {Elt($1)}
 	
 property_selector_list:
 	PERIOD ID {ClassMatch($2)}

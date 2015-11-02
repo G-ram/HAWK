@@ -1,4 +1,6 @@
-type combinator = direct_child | descendent | direct_sibling | any_sibling
+
+(* Everything having to do with CSS patterns *)
+type combinator = DirectChild | Descendent | DirectSibling | AnySibling
 
 type property_selector =
 	ClassMatch of string
