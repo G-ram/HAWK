@@ -8,6 +8,8 @@ rule token = parse
 	[' ' '\t' '\r' '\n'] {token lexbuf}
 	| '.' {PERIOD}
 	| '[' {LBRACE} | ']' {RBRACE}
+	| '{' {LBRACKET} | '}' {RBRACKET}
+	| '(' {LPAREN} | ')' {RPAREN}
 	| '/' {FSLASH}
 	| ';' {SEMI}
 	| ',' {COMMA}
@@ -20,7 +22,7 @@ rule token = parse
 	| '&' {AMPERSAND}
 	| '~' {TILDE}
 	| '<' {LT} | '>' {GT} | "==" {EQ}
-	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '/' {DIV} | '=' {EQ}
+	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '/' {DIVIDES} | '=' {EQ}
 	| '#' {HASH}
 	| "[@" {LBRACE_AMP} | "@]" {AMP_RBRACE}
 	| "*=" {TIMES_EQ} | "^=" {XOR_EQ} | "$=" {DOLLAR_EQ} | "~=" {TILDE_EQ}

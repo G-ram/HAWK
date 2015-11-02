@@ -2,7 +2,9 @@
 
 %{ open Ast %}
 
-%token PERIOD LBRACE RBRACE AMPERSAND LT GT PLUS MINUS TIMES DIV ASSIGN EQ HASH TILDE COMMA
+%token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
+%token PLUS MINUS TIMES DIVIDES EQ
+%token PERIOD AMPERSAND LT GT ASSIGN HASH TILDE COMMA
 %token SEMI
 %token FSLASH
 %token LBRACE_AMP
@@ -38,16 +40,16 @@ program:
 													end_stmt = $3} }
 	
 begin_stmt:
-	BEGIN LBRACE stmt_list RBRACE {$3}
+	BEGIN LBRACKET stmt_list RBRACKET {$3}
 end_stmt:
-	END LBRACE stmt_list RBRACE {$3}
+	END LBRACKET stmt_list RBRACKET {$3}
 	
 pattern_action_list:
 	/* */ {[]}
 	| pattern_action pattern_action_list {$1 :: $2}
 	
 pattern_action:
-	pattern LBRACE stmt_list RBRACE { ($1,$3) }
+	pattern LBRACKET stmt_list RBRACKET { ($1,$3) }
 
 /*End of program structure*/
 
@@ -60,7 +62,7 @@ stmt_list:
 stmt:
 	expr SEMI {Expr($1)}
 	| RETURN expr SEMI {Return($2)}
-	| LBRACE stmt_list RBRACE {Block($2)}
+	| LBRACKET stmt_list RBRACKET {Block($2)}
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3,$5, Block([]))}
 	| IF LPAREN expr RPAREN stmt ELSE stmt { If($3,$5,$7) }
 	| WHILE LPAREN expr RPAREN stmt { While($3,$5) }
@@ -90,14 +92,18 @@ table_literal:
 	|keyvalue_literal {KeyValueLiteral($1)}
 	
 array_literal:
-	LBRACE literal_list RBRACE {$2}
+	LBRACKET literal_list RBRACKET {$2}
 	
 keyvalue_literal:
-	LBRACE keyvalue_list RBRACE {$2}
+	LBRACKET keyvalue_list RBRACKET {$2}
 	
 keyvalue_list:
 	keyvalue { [$1] }
 	|keyvalue COMMA keyvalue_list { $1 :: $3}
+
+keyvalue:
+	INT { IntKey($1) }
+	| STRING { StringKey($1) }
 	
 literal_list:
 	/* */ { [] }
@@ -117,13 +123,21 @@ func_decl:
 	
 params_list:
 	/* */ { [] }
-	ID COMMA params_list {$1::$3}
+	| ID COMMA params_list {$1::$3}
 	
 pattern:
 	LBRACE_AMP css_selector AMP_RBRACE {CssPattern($2)}
-	LBRACE_AMP FSLASH regex FSLASH AMP_RBRACE {RegexPattern($3)}
+	| LBRACE_AMP FSLASH regex FSLASH AMP_RBRACE {RegexPattern($3)}
 	
 /*End of statements and expressions*/
+
+/*Start of Regex stuff: GRAHAM you come in here :) */
+regex:
+	STRING {RegexPattern($1)} /*if we wanted to be lazy 
+	we could keep it like this and make regex errors happen at runtime. But that would be lame*/
+								
+	
+/*End of Regex stuff*/
 
 /*Start of CSS Selector stuff*/
 css_selector:

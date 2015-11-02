@@ -1,3 +1,4 @@
+(* NOTE: much of the AST code for statements/expressions is closely adapted from MicroC *)
 
 (* Everything having to do with CSS patterns *)
 type combinator = DirectChild | Descendent | DirectSibling | AnySibling
@@ -34,13 +35,25 @@ type func_decl = {
 	body : stmt list
 }
 
-type op = Plus | Minus | Divides | Times
+type op = Plus | Minus | Divides | Times | Equals
 
-type expr = 
+type key_literal =
+	IntKey of int
+	StringKey of string
+
+type table_literal =
+	ArrayLiteral of literal list
+	KeyValueLiteral of (key_literal * literal) list
+
+type literal = 
 	IntLiteral of int
 	|StringLiteral of string
 	|DoubleLiteral of string
 	|TableLiteral of table_literal
+	
+type expr = 
+	Id of string
+	|Literal of literal
 	|Assign of string * expr
 	|Binop of expr * op * expr
 	|Call of string * expr list
