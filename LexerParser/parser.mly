@@ -6,7 +6,7 @@
 %token <string> STRING
 %token <string> ID
 
-(* the attribute selectors *)
+/* the attribute selectors */
 %token TIMES_EQ XOR_EQ DOLLAR_EQ TILDE_EQ
 
 /*Precedence and associativity*/
@@ -22,11 +22,11 @@ program:
 	css_selector EOF
 	
 css_selector:
-	simple_selector_sequence {single_selector($1)}
-	| css_selector PLUS css_selector %prec CSS_PLUS {chained_selectors($1,direct_sibling,$3)}
-	| css_selector GT css_selector %prec CSS_GT {chained_selectors($1,descendent,$3)}
-	| css_selector TILDE css_selector {chained_selectors($1,any_sibling,$3)}
-	| simple_selector_sequence css_selector {chained_selectors(single_selector($1),direct_child,$2)}
+	simple_selector_sequence {SingleSelector($1)}
+	| css_selector PLUS css_selector %prec CSS_PLUS {ChainedSelectors($1,direct_sibling,$3)}
+	| css_selector GT css_selector %prec CSS_GT {ChainedSelectors($1,descendent,$3)}
+	| css_selector TILDE css_selector {ChainedSelectors($1,any_sibling,$3)}
+	| simple_selector_sequence css_selector {ChainedSelectors(SingleSelector($1),direct_child,$2)}
 	
 	
 simple_selector_sequence:
@@ -35,14 +35,14 @@ simple_selector_sequence:
 	| property_selector_list {(no_type,$1)}
 	
 type_selector:
-	TIMES {universal_selector}
-	|ID {elt(ID)}
+	TIMES {Universal}
+	|ID {Elt(ID)}
 	
 property_selector_list:
-	PERIOD ID {class_match($2)}
-	HASH ID {id_match($2)}
-	LBRACE ID RBRACE {attribute_exists($2)}
-	LBRACE ID EQUALS STRING RBRACE {attribute_equals($2,$4)}
+	PERIOD ID {ClassMatch($2)}
+	HASH ID {IdMatch($2)}
+	LBRACE ID RBRACE {AttributeExists($2)}
+	LBRACE ID EQUALS STRING RBRACE {AttributeEquals($2,$4)}
 	
 	
 	
