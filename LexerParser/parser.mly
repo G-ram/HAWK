@@ -1,7 +1,6 @@
 %{ open Ast %}
 
 %token PERIOD LBRACE RBRACE AMPERSAND LT GT PLUS MINUS TIMES DIV EQ HASH TILDE
-%token CSS_PLUS CSS_GT 
 %token EOF 
 %token <string> STRING
 %token <string> ID
@@ -10,7 +9,6 @@
 %token TIMES_EQ XOR_EQ DOLLAR_EQ TILDE_EQ
 
 /*Precedence and associativity*/
-%right CSS_PLUS CSS_GT TILDE
 
 
 %start program
