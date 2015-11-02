@@ -1,24 +1,30 @@
+/*NOTE: much of the parsing code for statements/expressions is directly adapted from MicroC*/
+
 %{ open Ast %}
 
-%token PERIOD LBRACE RBRACE AMPERSAND LT GT PLUS MINUS TIMES DIV EQ HASH TILDE COMMA
+%token PERIOD LBRACE RBRACE AMPERSAND LT GT PLUS MINUS TIMES DIV ASSIGN EQ HASH TILDE COMMA
 %token SEMI
 %token FSLASH
 %token LBRACE_AMP
 %token AMP_RBRACE
 %token EOF 
 %token <string> STRING
+%token <int> INT
+%token <double> DOUBLE
 %token <string> ID
 
 /*Program structure*/
 %token BEGIN END
 /*other keywords*/
-%token DOUBLE ELSE END IF INT RETURN STRING THIS WHILE FOR IN
+%token ELSE END IF INT RETURN STRING THIS WHILE FOR IN
 
 /* the attribute selectors */
 %token TIMES_EQ XOR_EQ DOLLAR_EQ TILDE_EQ
 
 /*Precedence and associativity*/
 %nonassoc NOELSE
+%nonassoc ELSE
+%right ASSIGN
 
 %start program
 %type <Ast.program> program
@@ -61,9 +67,47 @@ stmt:
 	| FOR LPAREN ID IN ID RPAREN stmt { For($3,$5,$7) }
 	| func_decl {Func($1)}
 	
-/*TODO: this*/
 expr:
-
+	ID {Id($1)}
+	| ID ASSIGN expr {Assign($1,$3)}
+	| expr op expr {Binop($1,$2,$3)}
+	| literal {Literal($1)}
+	| ID LBRACE STRING RBRACE {TableAccess($1,$3)}
+	| ID LPAREN expr_list RPAREN {Call($1,$3)}
+	
+expr_list:
+	/* */ { [] }
+	| expr COMMA expr_list { $1 :: $3 }
+	
+literal:
+	INT {IntLiteral($1)}
+	|STRING {StringLiteral($1)}
+	|DOUBLE {DoubleLiteral($1)}
+	|table_literal {TableLiteral($1)}
+	
+table_literal:
+	array_literal {ArrayLiteral($1)}
+	|keyvalue_literal {KeyValueLiteral($1)}
+	
+array_literal:
+	LBRACE literal_list RBRACE {$2}
+	
+keyvalue_literal:
+	LBRACE keyvalue_list RBRACE {$2}
+	
+keyvalue_list:
+	keyvalue { [$1] }
+	|keyvalue COMMA keyvalue_list { $1 :: $3}
+	
+literal_list:
+	/* */ { [] }
+	| literal COMMA literal_list { $1 :: $3}
+op:
+	PLUS {Plus}
+	|MINUS {Minus}
+	|DIVIDES {Divides}
+	|TIMES {Times}
+	|EQ {Equals}
 	
 func_decl:
 	ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE { {fname=$1;
@@ -109,7 +153,7 @@ property_selector:
 	PERIOD ID {ClassMatch($2)}
 	| HASH ID {IdMatch($2)}
 	| LBRACE ID RBRACE {AttributeExists($2)}
-	| LBRACE ID EQ STRING RBRACE {AttributeEquals($2,$4)}
+	| LBRACE ID ASSIGN STRING RBRACE {AttributeEquals($2,$4)}
 	| LBRACE ID TIMES_EQ STRING RBRACE {AttributeContains($2,$4)}
 	| LBRACE ID XOR_EQ STRING RBRACE {AttributeBeginsWith($2,$4)}
 	| LBRACE ID DOLLAR_EQ STRING RBRACE {AttributeEndsWith($2,$4)}

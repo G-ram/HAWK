@@ -14,12 +14,14 @@ let rec test_css_pattern pat = match pat with
 	| ChainedSelectors(pat1,combinator,sel) ->
 		print_string "("; test_css_pattern pat1; print_string ")"; print_string (comb_string combinator); ignore (print_selector sel);;
 
-let test_program p = match p with 
+let test_pattern p = match p with 
 	CssPattern(pat) -> test_css_pattern pat
 	| _ -> ();;
-
-
-let lexbuf = Lexing.from_string "[@ div + span div.class2[dog=\"cat\"] @]" in
+	
+let test_program p = 
+	List.iter test_pattern (List.map fst p.pattern_actions);;
+	
+let lexbuf = Lexing.from_channel (open_in "test.hawk") in
 let p = Parser.program Scanner.token lexbuf in
 test_program p
 	
