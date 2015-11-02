@@ -2,7 +2,7 @@
 
 %token PERIOD LBRACE RBRACE AMPERSAND LT GT PLUS MINUS TIMES DIV EQ HASH TILDE
 %token CSS_PLUS CSS_GT 
-%token EOF ID
+%token EOF 
 %token <string> STRING
 %token <string> ID
 
@@ -22,14 +22,14 @@ program:
 	css_selector EOF {$1}
 	
 css_selector:
-	simple_selector_sequence {SingleSelector($1)}
-	| css_selector PLUS css_selector %prec CSS_PLUS {ChainedSelectors($1,direct_sibling,$3)}
-	| css_selector GT css_selector %prec CSS_GT {ChainedSelectors($1,descendent,$3)}
-	| css_selector TILDE css_selector {ChainedSelectors($1,any_sibling,$3)}
-	| simple_selector_sequence css_selector {ChainedSelectors(SingleSelector($1),direct_child,$2)}
+	simple_selector_seq {SingleSelector($1)}
+	| simple_selector_seq PLUS css_selector %prec CSS_PLUS {ChainedSelectors(SingleSelector($1),direct_sibling,$3)}
+	| simple_selector_seq GT css_selector %prec CSS_GT {ChainedSelectors(SingleSelector($1),descendent,$3)}
+	| simple_selector_seq TILDE css_selector {ChainedSelectors(SingleSelector($1),any_sibling,$3)}
+	| simple_selector_seq css_selector {ChainedSelectors(SingleSelector($1),direct_child,$2)}
 	
 	
-simple_selector_sequence:
+simple_selector_seq:
 	type_selector {($1,[])}
 	| type_selector property_selector_list {($1,$2)}
 	| property_selector_list {(no_type,$1)}
