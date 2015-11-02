@@ -1,7 +1,5 @@
 {open Parser}
 
-%token TIMES_EQ XOR_EQ DOLLAR_EQ TILDE_EQ
-
 rule token = parse
 	[' ' '\t' '\r' '\n'] {token lexbuf}
 	| '.' {PERIOD}
