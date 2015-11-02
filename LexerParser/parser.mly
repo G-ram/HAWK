@@ -44,6 +44,10 @@ type_selector:
 	|ID {Elt($1)}
 	
 property_selector_list:
+	property_selector { [$1]}
+	| property_selector property_selector_list { $1::$2}
+	
+property_selector:
 	PERIOD ID {ClassMatch($2)}
 	| HASH ID {IdMatch($2)}
 	| LBRACE ID RBRACE {AttributeExists($2)}
