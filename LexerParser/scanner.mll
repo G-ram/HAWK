@@ -4,6 +4,15 @@ rule token = parse
 	[' ' '\t' '\r' '\n'] {token lexbuf}
 	| '.' {PERIOD}
 	| '[' {LBRACE} | ']' {RBRACE}
+	| '/' {FSLASH}
+	| ';' {SEMI}
+	| ',' {COMMA}
+	| "in" {IN}
+	| "BEGIN" {BEGIN} | "END" {END}
+	| "double" {DOUBLE} | "int" {INT} | "string" {STRING}
+	| "else" {ELSE} | "if" {IF} 
+	| "while" {WHILE} | "for" {FOR}
+	| "this" {THIS}
 	| '&' {AMPERSAND}
 	| '~' {TILDE}
 	| '<' {LT} | '>' {GT}
