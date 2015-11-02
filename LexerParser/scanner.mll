@@ -11,7 +11,8 @@ rule token = parse
 	| '<' {LT} | '>' {GT}
 	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '/' {DIV} | '=' {EQ}
 	| '#' {HASH}
+	| "[@" {LBRACE_AMP} | "@]" {AMP_RBRACE}
 	| "*=" {TIMES_EQ} | "^=" {XOR_EQ} | "$=" {DOLLAR_EQ} | "~=" {TILDE_EQ}
 	| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
-	| '"' _* '"' + as lxm { STRING(lxm) }
+	| '"' [^ '"']+ '"' as lxm { STRING(lxm) }
 	| eof {EOF}

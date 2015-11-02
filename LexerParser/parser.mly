@@ -1,6 +1,8 @@
 %{ open Ast %}
 
 %token PERIOD LBRACE RBRACE AMPERSAND LT GT PLUS MINUS TIMES DIV EQ HASH TILDE
+%token LBRACE_AMP
+%token AMP_RBRACE
 %token EOF 
 %token <string> STRING
 %token <string> ID
@@ -17,7 +19,10 @@
 %%
 
 program:
-	css_selector EOF {$1}
+	pattern EOF {$1}
+	
+pattern:
+	LBRACE_AMP css_selector AMP_RBRACE {$2}
 	
 css_selector:
 	simple_selector_seq {SingleSelector($1)}
@@ -43,6 +48,10 @@ property_selector_list:
 	| HASH ID {IdMatch($2)}
 	| LBRACE ID RBRACE {AttributeExists($2)}
 	| LBRACE ID EQ STRING RBRACE {AttributeEquals($2,$4)}
+	| LBRACE ID TIMES_EQ STRING RBRACE {AttributeContains($2,$4)}
+	| LBRACE ID XOR_EQ STRING RBRACE {AttributeBeginsWith($2,$4)}
+	| LBRACE ID DOLLAR_EQ STRING RBRACE {AttributeEndsWith($2,$4)}
+	| LBRACE ID TILDE_EQ STRING RBRACE {AttributeWhitespaceContains($2,$4)}
 	
 	
 	

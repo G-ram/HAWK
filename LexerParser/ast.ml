@@ -22,6 +22,10 @@ type css_selector =
 	SingleSelector of simple_selector_sequence
 	| ChainedSelectors of css_selector * combinator * css_selector
 	
-type program = css_selector
+type pattern = 
+	CssPattern of css_selector
+	| RegexPattern of string
+	
+type program = pattern
 
 	
