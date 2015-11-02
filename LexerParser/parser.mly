@@ -53,6 +53,3 @@ property_selector_list:
 	| LBRACE ID DOLLAR_EQ STRING RBRACE {AttributeEndsWith($2,$4)}
 	| LBRACE ID TILDE_EQ STRING RBRACE {AttributeWhitespaceContains($2,$4)}
 	
-	
-	
-	
