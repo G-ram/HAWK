@@ -19,7 +19,7 @@
 %%
 
 program:
-	css_selector EOF
+	css_selector EOF {$1}
 	
 css_selector:
 	simple_selector_sequence {SingleSelector($1)}
@@ -40,9 +40,9 @@ type_selector:
 	
 property_selector_list:
 	PERIOD ID {ClassMatch($2)}
-	HASH ID {IdMatch($2)}
-	LBRACE ID RBRACE {AttributeExists($2)}
-	LBRACE ID EQUALS STRING RBRACE {AttributeEquals($2,$4)}
+	| HASH ID {IdMatch($2)}
+	| LBRACE ID RBRACE {AttributeExists($2)}
+	| LBRACE ID EQ STRING RBRACE {AttributeEquals($2,$4)}
 	
 	
 	
