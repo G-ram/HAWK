@@ -3,8 +3,10 @@
 %{ open Ast %}
 
 %token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
-%token PLUS MINUS TIMES DIVIDES EQ
-%token PERIOD AMPERSAND LT GT ASSIGN HASH TILDE COMMA
+%token PLUS MINUS TIMES DIVIDES 
+%token LT GT LEQ GEQ EQ NEQ
+%token PERIOD AMPERSAND ASSIGN HASH TILDE COMMA
+%token FUN
 %token SEMI
 %token FSLASH
 %token LBRACE_AMP
@@ -18,7 +20,7 @@
 /*Program structure*/
 %token BEGIN END
 /*other keywords*/
-%token ELSE END IF INT RETURN STRING THIS WHILE FOR IN
+%token ELSE IF RETURN THIS WHILE FOR IN
 
 /* the attribute selectors */
 %token TIMES_EQ XOR_EQ DOLLAR_EQ TILDE_EQ
@@ -26,7 +28,12 @@
 /*Precedence and associativity*/
 %nonassoc NOELSE
 %nonassoc ELSE
+%right COMMA
 %right ASSIGN
+%left EQ NEQ
+%left LT GT LEQ GEQ
+%left PLUS MINUS
+%left TIMES DIVIDES
 
 %start program
 %type <Ast.program> program
@@ -67,7 +74,7 @@ stmt:
 	| IF LPAREN expr RPAREN stmt ELSE stmt { If($3,$5,$7) }
 	| WHILE LPAREN expr RPAREN stmt { While($3,$5) }
 	| FOR LPAREN ID IN ID RPAREN stmt { For($3,$5,$7) }
-	| func_decl {Func($1)}
+	| FUN func_decl {Func($2)}
 	
 expr:
 	ID {Id($1)}
@@ -116,7 +123,7 @@ op:
 	|EQ {Equals}
 	
 func_decl:
-	ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE { {fname=$1;
+	ID LPAREN params_list RPAREN LBRACKET stmt_list RBRACKET { {fname=$1;
 															params=$3;
 															body=$6;
 														}}

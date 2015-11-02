@@ -13,6 +13,7 @@ rule token = parse
 	| '/' {FSLASH}
 	| ';' {SEMI}
 	| ',' {COMMA}
+    | "fun" {FUN}
 	| "in" {IN}
 	| "BEGIN" {BEGIN} | "END" {END}
 	| "double" {DOUBLE} | "int" {INT} | "string" {STRING}
