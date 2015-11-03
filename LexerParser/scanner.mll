@@ -6,6 +6,7 @@ let decimal = ['+' '-']? (digits '.' ['0'-'9']* | '.' digits) (['e' 'E'] signed_
 
 rule token = parse
 	[' ' '\t' '\r' '\n'] {token lexbuf}
+	| "/*"     { comment lexbuf }
 	| '.' {PERIOD}
 	| '[' {LBRACK} | ']' {RBRACK}
 	| '{' {LBRACE} | '}' {RBRACE}
@@ -16,7 +17,7 @@ rule token = parse
     | "fun" {FUN}
 	| "in" {IN}
 	| "BEGIN" {BEGIN} | "END" {END}
-	| "else" {ELSE} | "if" {IF} 
+	| "else" {ELSE} | "if" {IF}
 	| "while" {WHILE} | "for" {FOR}
 	| "this" {THIS}
 	| '~' {TILDE}
@@ -30,3 +31,7 @@ rule token = parse
 	| decimal as lxm {DOUBLE(float_of_string lxm)}
 	| '"' [^ '"']+ '"' as lxm { STRING(lxm) }
 	| eof {EOF}
+
+	and comment = parse
+	  "*/" { token lexbuf }
+	| _    { comment lexbuf }
