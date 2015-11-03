@@ -2,15 +2,15 @@
 
 %{ open Ast %}
 
-%token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
+%token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE
 %token PLUS MINUS TIMES DIVIDES 
 %token LT GT LEQ GEQ EQ NEQ
-%token PERIOD AMPERSAND ASSIGN HASH TILDE COMMA
+%token PERIOD ASSIGN HASH TILDE COMMA
 %token FUN
 %token SEMI
 %token FSLASH
-%token LBRACE_AMP
-%token AMP_RBRACE
+%token LBRACK_AMP
+%token AMP_RBRACK
 %token EOF 
 %token <string> STRING
 %token <int> INT
@@ -34,6 +34,7 @@
 %left LT GT LEQ GEQ
 %left PLUS MINUS
 %left TIMES DIVIDES
+%nonassoc UMINUS
 
 %start program
 %type <Ast.program> program
@@ -47,16 +48,16 @@ program:
 													end_stmt = $3} }
 	
 begin_stmt:
-	BEGIN LBRACKET stmt_list RBRACKET {$3}
+	BEGIN LBRACE stmt_list RBRACE {$3}
 end_stmt:
-	END LBRACKET stmt_list RBRACKET {$3}
+	END LBRACE stmt_list RBRACE {$3}
 	
 pattern_action_list:
 	/* */ {[]}
 	| pattern_action pattern_action_list {$1 :: $2}
 	
 pattern_action:
-	pattern LBRACKET stmt_list RBRACKET { ($1,$3) }
+	pattern LBRACE stmt_list RBRACE { ($1,$3) }
 
 /*End of program structure*/
 
@@ -67,74 +68,89 @@ stmt_list:
 	| stmt stmt_list {$1 :: $2}
 	
 stmt:
-	expr SEMI {Expr($1)}
+	expr_no_brace SEMI {Expr($1)}
 	| RETURN expr SEMI {Return($2)}
-	| LBRACKET stmt_list RBRACKET {Block($2)}
+	| LBRACE stmt_list RBRACE {Block($2)}
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3,$5, Block([]))}
 	| IF LPAREN expr RPAREN stmt ELSE stmt { If($3,$5,$7) }
 	| WHILE LPAREN expr RPAREN stmt { While($3,$5) }
 	| FOR LPAREN ID IN ID RPAREN stmt { For($3,$5,$7) }
 	| FUN func_decl {Func($2)}
-	
+
 expr:
-	ID {Id($1)}
-	| ID ASSIGN expr {Assign($1,$3)}
-	| expr op expr {Binop($1,$2,$3)}
+    table_literal {Literal(TableLiteral($1))}
+    /*below fixes S/R error. Basically, do all arithmetic before this reduction */
+    | expr_no_brace {$1} %prec ASSIGN 
+
+/*TODO: relational operators*/
+expr_no_brace:
+    ID {Id($1)}
 	| literal {Literal($1)}
-	| ID LBRACE STRING RBRACE {TableAccess($1,$3)}
+	| expr_no_brace TIMES expr_no_brace {Binop($1,Times,$3)}
+	| expr_no_brace DIVIDES expr_no_brace {Binop($1,Divides,$3)}
+	| expr_no_brace MINUS expr_no_brace {Binop($1,Minus,$3)}
+	| expr_no_brace PLUS expr_no_brace {Binop($1,Plus,$3)}
+	| expr_no_brace EQ expr_no_brace {Binop($1,Equal,$3)}
+	| expr_no_brace LT expr_no_brace {Binop($1,Less,$3)}
+	| expr_no_brace GT expr_no_brace {Binop($1,Greater,$3)}
+	| expr_no_brace LEQ expr_no_brace {Binop($1,LessEqual,$3)}
+	| expr_no_brace GEQ expr_no_brace {Binop($1,GreaterEqual,$3)}
+	| expr_no_brace NEQ expr_no_brace {Binop($1,NotEqual,$3)}
+	| ID ASSIGN expr {Assign($1,$3)}
 	| ID LPAREN expr_list RPAREN {Call($1,$3)}
-	
+	| ID LBRACK STRING RBRACK {TableAccess($1,$3)}
+    | LPAREN expr RPAREN {$2} 
+    | MINUS expr_no_brace %prec UMINUS {Uminus($2)}
+
 expr_list:
 	/* */ { [] }
-	| expr COMMA expr_list { $1 :: $3 }
+	| expr_list COMMA expr { $3 :: $1 }
 	
 literal:
 	INT {IntLiteral($1)}
 	|STRING {StringLiteral($1)}
 	|DOUBLE {DoubleLiteral($1)}
-	|table_literal {TableLiteral($1)}
+    |THIS {This}
 	
 table_literal:
 	array_literal {ArrayLiteral($1)}
 	|keyvalue_literal {KeyValueLiteral($1)}
 	
 array_literal:
-	LBRACKET literal_list RBRACKET {$2}
+    LBRACE RBRACE { [] }
+	|LBRACE literal_list RBRACE {$2}
 	
 keyvalue_literal:
-	LBRACKET keyvalue_list RBRACKET {$2}
+	LBRACE keyvalue_list RBRACE {$2}
 	
 keyvalue_list:
 	keyvalue { [$1] }
-	|keyvalue COMMA keyvalue_list { $1 :: $3}
+	|keyvalue_list COMMA keyvalue { $3 :: $1}
 
 keyvalue:
-	INT { IntKey($1) }
-	| STRING { StringKey($1) }
+	key ASSIGN literal  { ($1,$3) }
+
+key:
+    INT {IntKey($1)}
+    |STRING {StringKey($1)}
 	
 literal_list:
-	/* */ { [] }
-	| literal COMMA literal_list { $1 :: $3}
-op:
-	PLUS {Plus}
-	|MINUS {Minus}
-	|DIVIDES {Divides}
-	|TIMES {Times}
-	|EQ {Equals}
+	literal { [$1] }
+	| literal_list COMMA literal_list { $3 :: $1}
 	
 func_decl:
-	ID LPAREN params_list RPAREN LBRACKET stmt_list RBRACKET { {fname=$1;
+	ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE { {fname=$1;
 															params=$3;
 															body=$6;
 														}}
-	
+
 params_list:
 	/* */ { [] }
-	| ID COMMA params_list {$1::$3}
+	| params_list COMMA ID {$3::$1}
 	
 pattern:
-	LBRACE_AMP css_selector AMP_RBRACE {CssPattern($2)}
-	| LBRACE_AMP FSLASH regex FSLASH AMP_RBRACE {RegexPattern($3)}
+	LBRACK_AMP css_selector AMP_RBRACK {CssPattern($2)}
+	| LBRACK_AMP FSLASH regex FSLASH AMP_RBRACK {RegexPattern($3)}
 	
 /*End of statements and expressions*/
 
@@ -173,11 +189,11 @@ property_selector_list:
 property_selector:
 	PERIOD ID {ClassMatch($2)}
 	| HASH ID {IdMatch($2)}
-	| LBRACE ID RBRACE {AttributeExists($2)}
-	| LBRACE ID ASSIGN STRING RBRACE {AttributeEquals($2,$4)}
-	| LBRACE ID TIMES_EQ STRING RBRACE {AttributeContains($2,$4)}
-	| LBRACE ID XOR_EQ STRING RBRACE {AttributeBeginsWith($2,$4)}
-	| LBRACE ID DOLLAR_EQ STRING RBRACE {AttributeEndsWith($2,$4)}
-	| LBRACE ID TILDE_EQ STRING RBRACE {AttributeWhitespaceContains($2,$4)}
+	| LBRACK ID RBRACK {AttributeExists($2)}
+	| LBRACK ID ASSIGN STRING RBRACK {AttributeEquals($2,$4)}
+	| LBRACK ID TIMES_EQ STRING RBRACK {AttributeContains($2,$4)}
+	| LBRACK ID XOR_EQ STRING RBRACK {AttributeBeginsWith($2,$4)}
+	| LBRACK ID DOLLAR_EQ STRING RBRACK {AttributeEndsWith($2,$4)}
+	| LBRACK ID TILDE_EQ STRING RBRACK {AttributeWhitespaceContains($2,$4)}
 /*end of CSS selector stuff */
 

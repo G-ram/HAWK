@@ -35,11 +35,13 @@ type func_decl = {
 	body : stmt list
 }
 
-type op = Plus | Minus | Divides | Times | Equals
+type op = Plus | Minus | Divides | Times | Equal
+            | Less | Greater | LessEqual | GreaterEqual
+            | NotEqual
 
 type key_literal =
 	IntKey of int
-	StringKey of string
+	|StringKey of string
 
 type table_literal =
 	ArrayLiteral of literal list
@@ -49,6 +51,7 @@ type literal =
 	IntLiteral of int
 	|StringLiteral of string
 	|DoubleLiteral of string
+    |This
 	|TableLiteral of table_literal
 	
 type expr = 
@@ -56,6 +59,7 @@ type expr =
 	|Literal of literal
 	|Assign of string * expr
 	|Binop of expr * op * expr
+    |Uminus of expr
 	|Call of string * expr list
 	|TableAccess of string * string
 	
