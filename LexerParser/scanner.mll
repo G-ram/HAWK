@@ -7,25 +7,23 @@ let decimal = ['+' '-']? (digits '.' ['0'-'9']* | '.' digits) (['e' 'E'] signed_
 rule token = parse
 	[' ' '\t' '\r' '\n'] {token lexbuf}
 	| '.' {PERIOD}
-	| '[' {LBRACE} | ']' {RBRACE}
-	| '{' {LBRACKET} | '}' {RBRACKET}
+	| '[' {LBRACK} | ']' {RBRACK}
+	| '{' {LBRACE} | '}' {RBRACE}
 	| '(' {LPAREN} | ')' {RPAREN}
 	| '/' {FSLASH}
-	| ';' {SEMI}
+	| ';' {SEMI} | ':' {COLON}
 	| ',' {COMMA}
     | "fun" {FUN}
 	| "in" {IN}
 	| "BEGIN" {BEGIN} | "END" {END}
-	| "double" {DOUBLE} | "int" {INT} | "string" {STRING}
 	| "else" {ELSE} | "if" {IF} 
 	| "while" {WHILE} | "for" {FOR}
 	| "this" {THIS}
-	| '&' {AMPERSAND}
 	| '~' {TILDE}
 	| '<' {LT} | '>' {GT} | "==" {EQ}
 	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '/' {DIVIDES} | '=' {EQ}
 	| '#' {HASH}
-	| "[@" {LBRACE_AMP} | "@]" {AMP_RBRACE}
+	| "[@" {LBRACK_AMP} | "@]" {AMP_RBRACK}
 	| "*=" {TIMES_EQ} | "^=" {XOR_EQ} | "$=" {DOLLAR_EQ} | "~=" {TILDE_EQ}
 	| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 	| signed_int as lxm {INT(int_of_string lxm)}

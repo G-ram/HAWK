@@ -5,7 +5,7 @@
 %token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE
 %token PLUS MINUS TIMES DIVIDES 
 %token LT GT LEQ GEQ EQ NEQ
-%token PERIOD ASSIGN HASH TILDE COMMA
+%token PERIOD ASSIGN HASH TILDE COMMA COLON
 %token FUN
 %token SEMI
 %token FSLASH
@@ -14,7 +14,7 @@
 %token EOF 
 %token <string> STRING
 %token <int> INT
-%token <double> DOUBLE
+%token <float> DOUBLE
 %token <string> ID
 
 /*Program structure*/
@@ -48,16 +48,16 @@ program:
 													end_stmt = $3} }
 	
 begin_stmt:
-	BEGIN LBRACE stmt_list RBRACE {$3}
+	BEGIN LBRACE stmt_list RBRACE {Block($3)}
 end_stmt:
-	END LBRACE stmt_list RBRACE {$3}
+	END LBRACE stmt_list RBRACE {Block($3)}
 	
 pattern_action_list:
 	/* */ {[]}
 	| pattern_action pattern_action_list {$1 :: $2}
 	
 pattern_action:
-	pattern LBRACE stmt_list RBRACE { ($1,$3) }
+	pattern LBRACE stmt_list RBRACE { ($1,Block($3)) }
 
 /*End of program structure*/
 
@@ -113,12 +113,12 @@ literal:
     |THIS {This}
 	
 table_literal:
-	array_literal {ArrayLiteral($1)}
+	array_literal {$1}
 	|keyvalue_literal {KeyValueLiteral($1)}
 	
 array_literal:
-    LBRACE RBRACE { [] }
-	|LBRACE literal_list RBRACE {$2}
+    LBRACE RBRACE { EmptyTable }
+	|LBRACE literal_list RBRACE {ArrayLiteral($2)}
 	
 keyvalue_literal:
 	LBRACE keyvalue_list RBRACE {$2}
@@ -128,7 +128,7 @@ keyvalue_list:
 	|keyvalue_list COMMA keyvalue { $3 :: $1}
 
 keyvalue:
-	key ASSIGN literal  { ($1,$3) }
+	key COLON literal  { ($1,$3) }
 
 key:
     INT {IntKey($1)}
@@ -136,7 +136,7 @@ key:
 	
 literal_list:
 	literal { [$1] }
-	| literal_list COMMA literal_list { $3 :: $1}
+	| literal COMMA literal_list { $1 :: $3}
 	
 func_decl:
 	ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE { {fname=$1;
@@ -150,7 +150,7 @@ params_list:
 	
 pattern:
 	LBRACK_AMP css_selector AMP_RBRACK {CssPattern($2)}
-	| LBRACK_AMP FSLASH regex FSLASH AMP_RBRACK {RegexPattern($3)}
+	| LBRACK_AMP FSLASH regex FSLASH AMP_RBRACK {$3}
 	
 /*End of statements and expressions*/
 

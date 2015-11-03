@@ -29,11 +29,6 @@ type pattern =
 	CssPattern of css_selector
 	| RegexPattern of string
 	
-type func_decl = {
-	fname : string;
-	params : string list;
-	body : stmt list
-}
 
 type op = Plus | Minus | Divides | Times | Equal
             | Less | Greater | LessEqual | GreaterEqual
@@ -43,17 +38,19 @@ type key_literal =
 	IntKey of int
 	|StringKey of string
 
-type table_literal =
-	ArrayLiteral of literal list
-	KeyValueLiteral of (key_literal * literal) list
 
 type literal = 
 	IntLiteral of int
 	|StringLiteral of string
-	|DoubleLiteral of string
+	|DoubleLiteral of float
     |This
 	|TableLiteral of table_literal
-	
+and 
+table_literal =
+    EmptyTable
+	|ArrayLiteral of literal list
+	|KeyValueLiteral of (key_literal * literal) list
+
 type expr = 
 	Id of string
 	|Literal of literal
@@ -72,7 +69,13 @@ type stmt =
 	| If of expr * stmt * stmt
 	| While of expr * stmt
 	| For of string * string * stmt
-	
+and
+func_decl = {
+	fname : string;
+	params : string list;
+	body : stmt list;
+}
+
 type pattern_action = pattern * stmt
 	
 type program = {
