@@ -1,3 +1,7 @@
 *.aux
 *.log
 *.synctex.gz
+*.cmo
+*.cmi
+parser.ml parser.mli
+scanner.ml 
