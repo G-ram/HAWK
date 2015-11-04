@@ -167,19 +167,19 @@ regex:
 	| regex VERT regex {RegexBinOp($1,Or,$3)}
 
 regex_sequence:
-	regex {($1, [])}
-	| regex regex_sequence {($1, $2)}
+	regex {[$1]}
+	| regex regex_sequence {$1 :: $2}
 
 regex_set:
  	STRING {RegexStringSet($1)}
 	| CHAR {RegexCharSet($1)}
 	| CHAR MINUS CHAR  {RegexCharRangeSet($1, $3)}
-	| UNDER {RegexAnyCharSet()}
+	| UNDER {RegexAnyCharSet}
 	| CARROT regex_set {RegexComplementSet($2)}
 
 regex_set_sequence:
-	regex_set {($1, [])}
-	| regex_set regex_set_sequence {($1, $2)}
+	regex_set {[$1]}
+	| regex_set regex_set_sequence {$1 :: $2}
 
 /*End of Regex stuff*/
 

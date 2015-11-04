@@ -1,9 +1,5 @@
 (* NOTE: much of the AST code for statements/expressions is closely adapted from MicroC *)
 
-type pattern =
-	CssPattern of css_selector
-	| RegexPattern of regex_sequence
-
 (* CSS patterns *)
 type css_combinator = DirectChild | Descendent | DirectSibling | AnySibling
 
@@ -32,10 +28,6 @@ type css_selector =
 (* Regex patterns *)
 type regex_op = Or | Optional | KleenePlus | KleeneTimes
 
-type regex_set_sequence = regex_set * list
-
-type regex_sequence = regex * list
-
 type regex_set =
 	 RegexStringSet of string
 	| RegexCharSet of char
@@ -43,11 +35,20 @@ type regex_set =
 	| RegexComplementSet of regex_set
 	| RegexAnyCharSet
 
+type regex_set_sequence = regex_set list
+
 type regex =
-	| RegexString of string
-	| RegexSet of regex_set_sequence
-	| RegexUnOp of regex * regex_op
-	| RegexBinOp of regex * regex_op * regex
+		| RegexString of string
+		| RegexSet of regex_set_sequence
+		| RegexUnOp of regex * regex_op
+		| RegexBinOp of regex * regex_op * regex
+
+type regex_sequence = regex list
+
+
+type pattern =
+	CssPattern of css_selector
+	| RegexPattern of regex_sequence
 
 (* Arithmetic Expressions *)
 type op = Plus | Minus | Divides | Times | Equal
