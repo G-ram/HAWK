@@ -39,6 +39,7 @@ type regex_set_sequence = regex_set list
 
 type regex =
 		| RegexString of string
+		| RegexNested of regex
 		| RegexSet of regex_set_sequence
 		| RegexUnOp of regex * regex_op
 		| RegexBinOp of regex * regex_op * regex

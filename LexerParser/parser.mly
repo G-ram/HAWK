@@ -160,6 +160,7 @@ pattern:
 
 regex:
 	STRING {RegexString($1)}
+	| LPAREN regex RPAREN {RegexNested($2)}
 	| LBRACK regex_set_sequence RBRACK {RegexSet($2)}
 	| regex QUEST {RegexUnOp($1,Optional)}
 	| regex PLUS {RegexUnOp($1,KleenePlus)}
