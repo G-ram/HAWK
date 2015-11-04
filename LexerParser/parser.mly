@@ -5,14 +5,16 @@
 %token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE
 %token PLUS MINUS TIMES DIVIDES
 %token LT GT LEQ GEQ EQ NEQ
-%token PERIOD ASSIGN HASH TILDE COMMA COLON
+%token PERIOD ASSIGN HASH TILDE COMMA COLON UNDER QUEST CARROT VERT
 %token FUN
 %token SEMI
-%token FSLASH
+%token LBRACK_FSLASH
+%token FSLASH_RBRACK
 %token LBRACK_AMP
 %token AMP_RBRACK
 %token EOF
 %token <string> STRING
+%token <char> CHAR
 %token <int> INT
 %token <float> DOUBLE
 %token <string> ID
@@ -28,12 +30,11 @@
 /*Precedence and associativity*/
 %nonassoc NOELSE
 %nonassoc ELSE
-%right COMMA
 %right ASSIGN
 %left EQ NEQ
 %left LT GT LEQ GEQ
 %left PLUS MINUS
-%left TIMES DIVIDES
+%left TIMES DIVIDES VERT QUEST
 %nonassoc UMINUS
 
 %start program
@@ -150,14 +151,35 @@ params_list:
 
 pattern:
 	LBRACK_AMP css_selector AMP_RBRACK {CssPattern($2)}
-	| LBRACK_AMP FSLASH regex FSLASH AMP_RBRACK {$3}
+	| LBRACK_FSLASH regex_sequence FSLASH_RBRACK {RegexPattern($2)}
 
 /*End of statements and expressions*/
 
 /*Start of Regex*/
-regex:
-	STRING {RegexPattern($1)}
+/*TODO: parantheses*/
 
+regex:
+	STRING {RegexString($1)}
+	| LBRACK regex_set_sequence RBRACK {RegexSet($2)}
+	| regex QUEST {RegexUnOp($1,Optional)}
+	| regex PLUS {RegexUnOp($1,KleenePlus)}
+	| regex TIMES {RegexUnOp($1,KleeneTimes)}
+	| regex VERT regex {RegexBinOp($1,Or,$3)}
+
+regex_sequence:
+	regex {($1, [])}
+	| regex regex_sequence {($1, $2)}
+
+regex_set:
+ 	STRING {RegexStringSet($1)}
+	| CHAR {RegexCharSet($1)}
+	| CHAR MINUS CHAR  {RegexCharRangeSet($1, $3)}
+	| UNDER {RegexAnyCharSet()}
+	| CARROT regex_set {RegexComplementSet($2)}
+
+regex_set_sequence:
+	regex_set {($1, [])}
+	| regex_set regex_set_sequence {($1, $2)}
 
 /*End of Regex stuff*/
 

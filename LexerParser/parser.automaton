@@ -1,0 +1,2067 @@
+State 0:
+program' -> . program [ # ]
+-- On BEGIN shift to state 1
+-- On program shift to state 109
+-- On begin_stmt shift to state 110
+
+State 1:
+begin_stmt -> BEGIN . LBRACE stmt_list RBRACE [ LBRACK_FSLASH LBRACK_AMP END ]
+-- On LBRACE shift to state 2
+
+State 2:
+begin_stmt -> BEGIN LBRACE . stmt_list RBRACE [ LBRACK_FSLASH LBRACK_AMP END ]
+-- On WHILE shift to state 3
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On RETURN shift to state 71
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 74
+-- On INT shift to state 18
+-- On IF shift to state 75
+-- On ID shift to state 30
+-- On FUN shift to state 79
+-- On FOR shift to state 85
+-- On DOUBLE shift to state 13
+-- On stmt_list shift to state 107
+-- On stmt shift to state 96
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 92
+-- On RBRACE reduce production stmt_list -> 
+
+State 3:
+stmt -> WHILE . LPAREN expr RPAREN stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On LPAREN shift to state 4
+
+State 4:
+stmt -> WHILE LPAREN . expr RPAREN stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 9
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On table_literal shift to state 35
+-- On literal shift to state 36
+-- On keyvalue_literal shift to state 37
+-- On expr_no_brace shift to state 38
+-- On expr shift to state 69
+-- On array_literal shift to state 60
+
+State 5:
+literal -> THIS . [ TIMES SEMI RPAREN RBRACE PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production literal -> THIS 
+-- On SEMI reduce production literal -> THIS 
+-- On RPAREN reduce production literal -> THIS 
+-- On RBRACE reduce production literal -> THIS 
+-- On PLUS reduce production literal -> THIS 
+-- On NEQ reduce production literal -> THIS 
+-- On MINUS reduce production literal -> THIS 
+-- On LT reduce production literal -> THIS 
+-- On LEQ reduce production literal -> THIS 
+-- On GT reduce production literal -> THIS 
+-- On GEQ reduce production literal -> THIS 
+-- On EQ reduce production literal -> THIS 
+-- On DIVIDES reduce production literal -> THIS 
+-- On COMMA reduce production literal -> THIS 
+
+State 6:
+literal -> STRING . [ TIMES SEMI RPAREN RBRACE PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production literal -> STRING 
+-- On SEMI reduce production literal -> STRING 
+-- On RPAREN reduce production literal -> STRING 
+-- On RBRACE reduce production literal -> STRING 
+-- On PLUS reduce production literal -> STRING 
+-- On NEQ reduce production literal -> STRING 
+-- On MINUS reduce production literal -> STRING 
+-- On LT reduce production literal -> STRING 
+-- On LEQ reduce production literal -> STRING 
+-- On GT reduce production literal -> STRING 
+-- On GEQ reduce production literal -> STRING 
+-- On EQ reduce production literal -> STRING 
+-- On DIVIDES reduce production literal -> STRING 
+-- On COMMA reduce production literal -> STRING 
+
+State 7:
+expr_no_brace -> MINUS . expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 68
+
+State 8:
+expr_no_brace -> LPAREN . expr RPAREN [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 9
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On table_literal shift to state 35
+-- On literal shift to state 36
+-- On keyvalue_literal shift to state 37
+-- On expr_no_brace shift to state 38
+-- On expr shift to state 66
+-- On array_literal shift to state 60
+
+State 9:
+array_literal -> LBRACE . RBRACE [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+array_literal -> LBRACE . literal_list RBRACE [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+keyvalue_literal -> LBRACE . keyvalue_list RBRACE [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 10
+-- On RBRACE shift to state 11
+-- On INT shift to state 12
+-- On DOUBLE shift to state 13
+-- On literal_list shift to state 14
+-- On literal shift to state 16
+-- On keyvalue_list shift to state 20
+-- On keyvalue shift to state 29
+-- On key shift to state 26
+
+State 10:
+key -> STRING . [ COLON ]
+literal -> STRING . [ RBRACE COMMA ]
+-- On RBRACE reduce production literal -> STRING 
+-- On COMMA reduce production literal -> STRING 
+-- On COLON reduce production key -> STRING 
+
+State 11:
+array_literal -> LBRACE RBRACE . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production array_literal -> LBRACE RBRACE 
+-- On SEMI reduce production array_literal -> LBRACE RBRACE 
+-- On RPAREN reduce production array_literal -> LBRACE RBRACE 
+-- On PLUS reduce production array_literal -> LBRACE RBRACE 
+-- On NEQ reduce production array_literal -> LBRACE RBRACE 
+-- On MINUS reduce production array_literal -> LBRACE RBRACE 
+-- On LT reduce production array_literal -> LBRACE RBRACE 
+-- On LEQ reduce production array_literal -> LBRACE RBRACE 
+-- On GT reduce production array_literal -> LBRACE RBRACE 
+-- On GEQ reduce production array_literal -> LBRACE RBRACE 
+-- On EQ reduce production array_literal -> LBRACE RBRACE 
+-- On DIVIDES reduce production array_literal -> LBRACE RBRACE 
+-- On COMMA reduce production array_literal -> LBRACE RBRACE 
+
+State 12:
+key -> INT . [ COLON ]
+literal -> INT . [ RBRACE COMMA ]
+-- On RBRACE reduce production literal -> INT 
+-- On COMMA reduce production literal -> INT 
+-- On COLON reduce production key -> INT 
+
+State 13:
+literal -> DOUBLE . [ TIMES SEMI RPAREN RBRACE PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production literal -> DOUBLE 
+-- On SEMI reduce production literal -> DOUBLE 
+-- On RPAREN reduce production literal -> DOUBLE 
+-- On RBRACE reduce production literal -> DOUBLE 
+-- On PLUS reduce production literal -> DOUBLE 
+-- On NEQ reduce production literal -> DOUBLE 
+-- On MINUS reduce production literal -> DOUBLE 
+-- On LT reduce production literal -> DOUBLE 
+-- On LEQ reduce production literal -> DOUBLE 
+-- On GT reduce production literal -> DOUBLE 
+-- On GEQ reduce production literal -> DOUBLE 
+-- On EQ reduce production literal -> DOUBLE 
+-- On DIVIDES reduce production literal -> DOUBLE 
+-- On COMMA reduce production literal -> DOUBLE 
+
+State 14:
+array_literal -> LBRACE literal_list . RBRACE [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On RBRACE shift to state 15
+
+State 15:
+array_literal -> LBRACE literal_list RBRACE . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production array_literal -> LBRACE literal_list RBRACE 
+-- On SEMI reduce production array_literal -> LBRACE literal_list RBRACE 
+-- On RPAREN reduce production array_literal -> LBRACE literal_list RBRACE 
+-- On PLUS reduce production array_literal -> LBRACE literal_list RBRACE 
+-- On NEQ reduce production array_literal -> LBRACE literal_list RBRACE 
+-- On MINUS reduce production array_literal -> LBRACE literal_list RBRACE 
+-- On LT reduce production array_literal -> LBRACE literal_list RBRACE 
+-- On LEQ reduce production array_literal -> LBRACE literal_list RBRACE 
+-- On GT reduce production array_literal -> LBRACE literal_list RBRACE 
+-- On GEQ reduce production array_literal -> LBRACE literal_list RBRACE 
+-- On EQ reduce production array_literal -> LBRACE literal_list RBRACE 
+-- On DIVIDES reduce production array_literal -> LBRACE literal_list RBRACE 
+-- On COMMA reduce production array_literal -> LBRACE literal_list RBRACE 
+
+State 16:
+literal_list -> literal . [ RBRACE ]
+literal_list -> literal . COMMA literal_list [ RBRACE ]
+-- On COMMA shift to state 17
+-- On RBRACE reduce production literal_list -> literal 
+
+State 17:
+literal_list -> literal COMMA . literal_list [ RBRACE ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On INT shift to state 18
+-- On DOUBLE shift to state 13
+-- On literal_list shift to state 19
+-- On literal shift to state 16
+
+State 18:
+literal -> INT . [ TIMES SEMI RPAREN RBRACE PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production literal -> INT 
+-- On SEMI reduce production literal -> INT 
+-- On RPAREN reduce production literal -> INT 
+-- On RBRACE reduce production literal -> INT 
+-- On PLUS reduce production literal -> INT 
+-- On NEQ reduce production literal -> INT 
+-- On MINUS reduce production literal -> INT 
+-- On LT reduce production literal -> INT 
+-- On LEQ reduce production literal -> INT 
+-- On GT reduce production literal -> INT 
+-- On GEQ reduce production literal -> INT 
+-- On EQ reduce production literal -> INT 
+-- On DIVIDES reduce production literal -> INT 
+-- On COMMA reduce production literal -> INT 
+
+State 19:
+literal_list -> literal COMMA literal_list . [ RBRACE ]
+-- On RBRACE reduce production literal_list -> literal COMMA literal_list 
+
+State 20:
+keyvalue_list -> keyvalue_list . COMMA keyvalue [ RBRACE COMMA ]
+keyvalue_literal -> LBRACE keyvalue_list . RBRACE [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On RBRACE shift to state 21
+-- On COMMA shift to state 22
+
+State 21:
+keyvalue_literal -> LBRACE keyvalue_list RBRACE . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production keyvalue_literal -> LBRACE keyvalue_list RBRACE 
+-- On SEMI reduce production keyvalue_literal -> LBRACE keyvalue_list RBRACE 
+-- On RPAREN reduce production keyvalue_literal -> LBRACE keyvalue_list RBRACE 
+-- On PLUS reduce production keyvalue_literal -> LBRACE keyvalue_list RBRACE 
+-- On NEQ reduce production keyvalue_literal -> LBRACE keyvalue_list RBRACE 
+-- On MINUS reduce production keyvalue_literal -> LBRACE keyvalue_list RBRACE 
+-- On LT reduce production keyvalue_literal -> LBRACE keyvalue_list RBRACE 
+-- On LEQ reduce production keyvalue_literal -> LBRACE keyvalue_list RBRACE 
+-- On GT reduce production keyvalue_literal -> LBRACE keyvalue_list RBRACE 
+-- On GEQ reduce production keyvalue_literal -> LBRACE keyvalue_list RBRACE 
+-- On EQ reduce production keyvalue_literal -> LBRACE keyvalue_list RBRACE 
+-- On DIVIDES reduce production keyvalue_literal -> LBRACE keyvalue_list RBRACE 
+-- On COMMA reduce production keyvalue_literal -> LBRACE keyvalue_list RBRACE 
+
+State 22:
+keyvalue_list -> keyvalue_list COMMA . keyvalue [ RBRACE COMMA ]
+-- On STRING shift to state 23
+-- On INT shift to state 24
+-- On keyvalue shift to state 25
+-- On key shift to state 26
+
+State 23:
+key -> STRING . [ COLON ]
+-- On COLON reduce production key -> STRING 
+
+State 24:
+key -> INT . [ COLON ]
+-- On COLON reduce production key -> INT 
+
+State 25:
+keyvalue_list -> keyvalue_list COMMA keyvalue . [ RBRACE COMMA ]
+-- On RBRACE reduce production keyvalue_list -> keyvalue_list COMMA keyvalue 
+-- On COMMA reduce production keyvalue_list -> keyvalue_list COMMA keyvalue 
+
+State 26:
+keyvalue -> key . COLON literal [ RBRACE COMMA ]
+-- On COLON shift to state 27
+
+State 27:
+keyvalue -> key COLON . literal [ RBRACE COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On INT shift to state 18
+-- On DOUBLE shift to state 13
+-- On literal shift to state 28
+
+State 28:
+keyvalue -> key COLON literal . [ RBRACE COMMA ]
+-- On RBRACE reduce production keyvalue -> key COLON literal 
+-- On COMMA reduce production keyvalue -> key COLON literal 
+
+State 29:
+keyvalue_list -> keyvalue . [ RBRACE COMMA ]
+-- On RBRACE reduce production keyvalue_list -> keyvalue 
+-- On COMMA reduce production keyvalue_list -> keyvalue 
+
+State 30:
+expr_no_brace -> ID . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> ID . ASSIGN expr [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> ID . LPAREN expr_list RPAREN [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> ID . LBRACK STRING RBRACK [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On LPAREN shift to state 31
+-- On LBRACK shift to state 61
+-- On ASSIGN shift to state 64
+-- On TIMES reduce production expr_no_brace -> ID 
+-- On SEMI reduce production expr_no_brace -> ID 
+-- On RPAREN reduce production expr_no_brace -> ID 
+-- On PLUS reduce production expr_no_brace -> ID 
+-- On NEQ reduce production expr_no_brace -> ID 
+-- On MINUS reduce production expr_no_brace -> ID 
+-- On LT reduce production expr_no_brace -> ID 
+-- On LEQ reduce production expr_no_brace -> ID 
+-- On GT reduce production expr_no_brace -> ID 
+-- On GEQ reduce production expr_no_brace -> ID 
+-- On EQ reduce production expr_no_brace -> ID 
+-- On DIVIDES reduce production expr_no_brace -> ID 
+-- On COMMA reduce production expr_no_brace -> ID 
+
+State 31:
+expr_no_brace -> ID LPAREN . expr_list RPAREN [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On expr_list shift to state 32
+-- On RPAREN reduce production expr_list -> 
+-- On COMMA reduce production expr_list -> 
+
+State 32:
+expr_list -> expr_list . COMMA expr [ RPAREN COMMA ]
+expr_no_brace -> ID LPAREN expr_list . RPAREN [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On RPAREN shift to state 33
+-- On COMMA shift to state 34
+
+State 33:
+expr_no_brace -> ID LPAREN expr_list RPAREN . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production expr_no_brace -> ID LPAREN expr_list RPAREN 
+-- On SEMI reduce production expr_no_brace -> ID LPAREN expr_list RPAREN 
+-- On RPAREN reduce production expr_no_brace -> ID LPAREN expr_list RPAREN 
+-- On PLUS reduce production expr_no_brace -> ID LPAREN expr_list RPAREN 
+-- On NEQ reduce production expr_no_brace -> ID LPAREN expr_list RPAREN 
+-- On MINUS reduce production expr_no_brace -> ID LPAREN expr_list RPAREN 
+-- On LT reduce production expr_no_brace -> ID LPAREN expr_list RPAREN 
+-- On LEQ reduce production expr_no_brace -> ID LPAREN expr_list RPAREN 
+-- On GT reduce production expr_no_brace -> ID LPAREN expr_list RPAREN 
+-- On GEQ reduce production expr_no_brace -> ID LPAREN expr_list RPAREN 
+-- On EQ reduce production expr_no_brace -> ID LPAREN expr_list RPAREN 
+-- On DIVIDES reduce production expr_no_brace -> ID LPAREN expr_list RPAREN 
+-- On COMMA reduce production expr_no_brace -> ID LPAREN expr_list RPAREN 
+
+State 34:
+expr_list -> expr_list COMMA . expr [ RPAREN COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 9
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On table_literal shift to state 35
+-- On literal shift to state 36
+-- On keyvalue_literal shift to state 37
+-- On expr_no_brace shift to state 38
+-- On expr shift to state 59
+-- On array_literal shift to state 60
+
+State 35:
+expr -> table_literal . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production expr -> table_literal 
+-- On SEMI reduce production expr -> table_literal 
+-- On RPAREN reduce production expr -> table_literal 
+-- On PLUS reduce production expr -> table_literal 
+-- On NEQ reduce production expr -> table_literal 
+-- On MINUS reduce production expr -> table_literal 
+-- On LT reduce production expr -> table_literal 
+-- On LEQ reduce production expr -> table_literal 
+-- On GT reduce production expr -> table_literal 
+-- On GEQ reduce production expr -> table_literal 
+-- On EQ reduce production expr -> table_literal 
+-- On DIVIDES reduce production expr -> table_literal 
+-- On COMMA reduce production expr -> table_literal 
+
+State 36:
+expr_no_brace -> literal . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production expr_no_brace -> literal 
+-- On SEMI reduce production expr_no_brace -> literal 
+-- On RPAREN reduce production expr_no_brace -> literal 
+-- On PLUS reduce production expr_no_brace -> literal 
+-- On NEQ reduce production expr_no_brace -> literal 
+-- On MINUS reduce production expr_no_brace -> literal 
+-- On LT reduce production expr_no_brace -> literal 
+-- On LEQ reduce production expr_no_brace -> literal 
+-- On GT reduce production expr_no_brace -> literal 
+-- On GEQ reduce production expr_no_brace -> literal 
+-- On EQ reduce production expr_no_brace -> literal 
+-- On DIVIDES reduce production expr_no_brace -> literal 
+-- On COMMA reduce production expr_no_brace -> literal 
+
+State 37:
+table_literal -> keyvalue_literal . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production table_literal -> keyvalue_literal 
+-- On SEMI reduce production table_literal -> keyvalue_literal 
+-- On RPAREN reduce production table_literal -> keyvalue_literal 
+-- On PLUS reduce production table_literal -> keyvalue_literal 
+-- On NEQ reduce production table_literal -> keyvalue_literal 
+-- On MINUS reduce production table_literal -> keyvalue_literal 
+-- On LT reduce production table_literal -> keyvalue_literal 
+-- On LEQ reduce production table_literal -> keyvalue_literal 
+-- On GT reduce production table_literal -> keyvalue_literal 
+-- On GEQ reduce production table_literal -> keyvalue_literal 
+-- On EQ reduce production table_literal -> keyvalue_literal 
+-- On DIVIDES reduce production table_literal -> keyvalue_literal 
+-- On COMMA reduce production table_literal -> keyvalue_literal 
+
+State 38:
+expr -> expr_no_brace . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . TIMES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . DIVIDES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . MINUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . PLUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . EQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . NEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES shift to state 39
+-- On PLUS shift to state 41
+-- On NEQ shift to state 45
+-- On MINUS shift to state 47
+-- On LT shift to state 49
+-- On LEQ shift to state 51
+-- On GT shift to state 53
+-- On GEQ shift to state 55
+-- On EQ shift to state 57
+-- On DIVIDES shift to state 43
+-- On SEMI reduce production expr -> expr_no_brace 
+-- On RPAREN reduce production expr -> expr_no_brace 
+-- On COMMA reduce production expr -> expr_no_brace 
+
+State 39:
+expr_no_brace -> expr_no_brace TIMES . expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 40
+
+State 40:
+expr_no_brace -> expr_no_brace . TIMES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace TIMES expr_no_brace . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . DIVIDES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . MINUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . PLUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . EQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . NEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production expr_no_brace -> expr_no_brace TIMES expr_no_brace 
+-- On SEMI reduce production expr_no_brace -> expr_no_brace TIMES expr_no_brace 
+-- On RPAREN reduce production expr_no_brace -> expr_no_brace TIMES expr_no_brace 
+-- On PLUS reduce production expr_no_brace -> expr_no_brace TIMES expr_no_brace 
+-- On NEQ reduce production expr_no_brace -> expr_no_brace TIMES expr_no_brace 
+-- On MINUS reduce production expr_no_brace -> expr_no_brace TIMES expr_no_brace 
+-- On LT reduce production expr_no_brace -> expr_no_brace TIMES expr_no_brace 
+-- On LEQ reduce production expr_no_brace -> expr_no_brace TIMES expr_no_brace 
+-- On GT reduce production expr_no_brace -> expr_no_brace TIMES expr_no_brace 
+-- On GEQ reduce production expr_no_brace -> expr_no_brace TIMES expr_no_brace 
+-- On EQ reduce production expr_no_brace -> expr_no_brace TIMES expr_no_brace 
+-- On DIVIDES reduce production expr_no_brace -> expr_no_brace TIMES expr_no_brace 
+-- On COMMA reduce production expr_no_brace -> expr_no_brace TIMES expr_no_brace 
+
+State 41:
+expr_no_brace -> expr_no_brace PLUS . expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 42
+
+State 42:
+expr_no_brace -> expr_no_brace . TIMES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . DIVIDES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . MINUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . PLUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace PLUS expr_no_brace . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . EQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . NEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES shift to state 39
+-- On DIVIDES shift to state 43
+-- On SEMI reduce production expr_no_brace -> expr_no_brace PLUS expr_no_brace 
+-- On RPAREN reduce production expr_no_brace -> expr_no_brace PLUS expr_no_brace 
+-- On PLUS reduce production expr_no_brace -> expr_no_brace PLUS expr_no_brace 
+-- On NEQ reduce production expr_no_brace -> expr_no_brace PLUS expr_no_brace 
+-- On MINUS reduce production expr_no_brace -> expr_no_brace PLUS expr_no_brace 
+-- On LT reduce production expr_no_brace -> expr_no_brace PLUS expr_no_brace 
+-- On LEQ reduce production expr_no_brace -> expr_no_brace PLUS expr_no_brace 
+-- On GT reduce production expr_no_brace -> expr_no_brace PLUS expr_no_brace 
+-- On GEQ reduce production expr_no_brace -> expr_no_brace PLUS expr_no_brace 
+-- On EQ reduce production expr_no_brace -> expr_no_brace PLUS expr_no_brace 
+-- On COMMA reduce production expr_no_brace -> expr_no_brace PLUS expr_no_brace 
+
+State 43:
+expr_no_brace -> expr_no_brace DIVIDES . expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 44
+
+State 44:
+expr_no_brace -> expr_no_brace . TIMES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . DIVIDES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace DIVIDES expr_no_brace . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . MINUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . PLUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . EQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . NEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production expr_no_brace -> expr_no_brace DIVIDES expr_no_brace 
+-- On SEMI reduce production expr_no_brace -> expr_no_brace DIVIDES expr_no_brace 
+-- On RPAREN reduce production expr_no_brace -> expr_no_brace DIVIDES expr_no_brace 
+-- On PLUS reduce production expr_no_brace -> expr_no_brace DIVIDES expr_no_brace 
+-- On NEQ reduce production expr_no_brace -> expr_no_brace DIVIDES expr_no_brace 
+-- On MINUS reduce production expr_no_brace -> expr_no_brace DIVIDES expr_no_brace 
+-- On LT reduce production expr_no_brace -> expr_no_brace DIVIDES expr_no_brace 
+-- On LEQ reduce production expr_no_brace -> expr_no_brace DIVIDES expr_no_brace 
+-- On GT reduce production expr_no_brace -> expr_no_brace DIVIDES expr_no_brace 
+-- On GEQ reduce production expr_no_brace -> expr_no_brace DIVIDES expr_no_brace 
+-- On EQ reduce production expr_no_brace -> expr_no_brace DIVIDES expr_no_brace 
+-- On DIVIDES reduce production expr_no_brace -> expr_no_brace DIVIDES expr_no_brace 
+-- On COMMA reduce production expr_no_brace -> expr_no_brace DIVIDES expr_no_brace 
+
+State 45:
+expr_no_brace -> expr_no_brace NEQ . expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 46
+
+State 46:
+expr_no_brace -> expr_no_brace . TIMES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . DIVIDES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . MINUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . PLUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . EQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . NEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace NEQ expr_no_brace . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES shift to state 39
+-- On PLUS shift to state 41
+-- On MINUS shift to state 47
+-- On LT shift to state 49
+-- On LEQ shift to state 51
+-- On GT shift to state 53
+-- On GEQ shift to state 55
+-- On DIVIDES shift to state 43
+-- On SEMI reduce production expr_no_brace -> expr_no_brace NEQ expr_no_brace 
+-- On RPAREN reduce production expr_no_brace -> expr_no_brace NEQ expr_no_brace 
+-- On NEQ reduce production expr_no_brace -> expr_no_brace NEQ expr_no_brace 
+-- On EQ reduce production expr_no_brace -> expr_no_brace NEQ expr_no_brace 
+-- On COMMA reduce production expr_no_brace -> expr_no_brace NEQ expr_no_brace 
+
+State 47:
+expr_no_brace -> expr_no_brace MINUS . expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 48
+
+State 48:
+expr_no_brace -> expr_no_brace . TIMES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . DIVIDES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . MINUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace MINUS expr_no_brace . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . PLUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . EQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . NEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES shift to state 39
+-- On DIVIDES shift to state 43
+-- On SEMI reduce production expr_no_brace -> expr_no_brace MINUS expr_no_brace 
+-- On RPAREN reduce production expr_no_brace -> expr_no_brace MINUS expr_no_brace 
+-- On PLUS reduce production expr_no_brace -> expr_no_brace MINUS expr_no_brace 
+-- On NEQ reduce production expr_no_brace -> expr_no_brace MINUS expr_no_brace 
+-- On MINUS reduce production expr_no_brace -> expr_no_brace MINUS expr_no_brace 
+-- On LT reduce production expr_no_brace -> expr_no_brace MINUS expr_no_brace 
+-- On LEQ reduce production expr_no_brace -> expr_no_brace MINUS expr_no_brace 
+-- On GT reduce production expr_no_brace -> expr_no_brace MINUS expr_no_brace 
+-- On GEQ reduce production expr_no_brace -> expr_no_brace MINUS expr_no_brace 
+-- On EQ reduce production expr_no_brace -> expr_no_brace MINUS expr_no_brace 
+-- On COMMA reduce production expr_no_brace -> expr_no_brace MINUS expr_no_brace 
+
+State 49:
+expr_no_brace -> expr_no_brace LT . expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 50
+
+State 50:
+expr_no_brace -> expr_no_brace . TIMES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . DIVIDES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . MINUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . PLUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . EQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace LT expr_no_brace . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . NEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES shift to state 39
+-- On PLUS shift to state 41
+-- On MINUS shift to state 47
+-- On DIVIDES shift to state 43
+-- On SEMI reduce production expr_no_brace -> expr_no_brace LT expr_no_brace 
+-- On RPAREN reduce production expr_no_brace -> expr_no_brace LT expr_no_brace 
+-- On NEQ reduce production expr_no_brace -> expr_no_brace LT expr_no_brace 
+-- On LT reduce production expr_no_brace -> expr_no_brace LT expr_no_brace 
+-- On LEQ reduce production expr_no_brace -> expr_no_brace LT expr_no_brace 
+-- On GT reduce production expr_no_brace -> expr_no_brace LT expr_no_brace 
+-- On GEQ reduce production expr_no_brace -> expr_no_brace LT expr_no_brace 
+-- On EQ reduce production expr_no_brace -> expr_no_brace LT expr_no_brace 
+-- On COMMA reduce production expr_no_brace -> expr_no_brace LT expr_no_brace 
+
+State 51:
+expr_no_brace -> expr_no_brace LEQ . expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 52
+
+State 52:
+expr_no_brace -> expr_no_brace . TIMES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . DIVIDES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . MINUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . PLUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . EQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace LEQ expr_no_brace . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . NEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES shift to state 39
+-- On PLUS shift to state 41
+-- On MINUS shift to state 47
+-- On DIVIDES shift to state 43
+-- On SEMI reduce production expr_no_brace -> expr_no_brace LEQ expr_no_brace 
+-- On RPAREN reduce production expr_no_brace -> expr_no_brace LEQ expr_no_brace 
+-- On NEQ reduce production expr_no_brace -> expr_no_brace LEQ expr_no_brace 
+-- On LT reduce production expr_no_brace -> expr_no_brace LEQ expr_no_brace 
+-- On LEQ reduce production expr_no_brace -> expr_no_brace LEQ expr_no_brace 
+-- On GT reduce production expr_no_brace -> expr_no_brace LEQ expr_no_brace 
+-- On GEQ reduce production expr_no_brace -> expr_no_brace LEQ expr_no_brace 
+-- On EQ reduce production expr_no_brace -> expr_no_brace LEQ expr_no_brace 
+-- On COMMA reduce production expr_no_brace -> expr_no_brace LEQ expr_no_brace 
+
+State 53:
+expr_no_brace -> expr_no_brace GT . expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 54
+
+State 54:
+expr_no_brace -> expr_no_brace . TIMES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . DIVIDES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . MINUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . PLUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . EQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace GT expr_no_brace . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . NEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES shift to state 39
+-- On PLUS shift to state 41
+-- On MINUS shift to state 47
+-- On DIVIDES shift to state 43
+-- On SEMI reduce production expr_no_brace -> expr_no_brace GT expr_no_brace 
+-- On RPAREN reduce production expr_no_brace -> expr_no_brace GT expr_no_brace 
+-- On NEQ reduce production expr_no_brace -> expr_no_brace GT expr_no_brace 
+-- On LT reduce production expr_no_brace -> expr_no_brace GT expr_no_brace 
+-- On LEQ reduce production expr_no_brace -> expr_no_brace GT expr_no_brace 
+-- On GT reduce production expr_no_brace -> expr_no_brace GT expr_no_brace 
+-- On GEQ reduce production expr_no_brace -> expr_no_brace GT expr_no_brace 
+-- On EQ reduce production expr_no_brace -> expr_no_brace GT expr_no_brace 
+-- On COMMA reduce production expr_no_brace -> expr_no_brace GT expr_no_brace 
+
+State 55:
+expr_no_brace -> expr_no_brace GEQ . expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 56
+
+State 56:
+expr_no_brace -> expr_no_brace . TIMES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . DIVIDES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . MINUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . PLUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . EQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace GEQ expr_no_brace . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . NEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES shift to state 39
+-- On PLUS shift to state 41
+-- On MINUS shift to state 47
+-- On DIVIDES shift to state 43
+-- On SEMI reduce production expr_no_brace -> expr_no_brace GEQ expr_no_brace 
+-- On RPAREN reduce production expr_no_brace -> expr_no_brace GEQ expr_no_brace 
+-- On NEQ reduce production expr_no_brace -> expr_no_brace GEQ expr_no_brace 
+-- On LT reduce production expr_no_brace -> expr_no_brace GEQ expr_no_brace 
+-- On LEQ reduce production expr_no_brace -> expr_no_brace GEQ expr_no_brace 
+-- On GT reduce production expr_no_brace -> expr_no_brace GEQ expr_no_brace 
+-- On GEQ reduce production expr_no_brace -> expr_no_brace GEQ expr_no_brace 
+-- On EQ reduce production expr_no_brace -> expr_no_brace GEQ expr_no_brace 
+-- On COMMA reduce production expr_no_brace -> expr_no_brace GEQ expr_no_brace 
+
+State 57:
+expr_no_brace -> expr_no_brace EQ . expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 58
+
+State 58:
+expr_no_brace -> expr_no_brace . TIMES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . DIVIDES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . MINUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . PLUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . EQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace EQ expr_no_brace . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . NEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES shift to state 39
+-- On PLUS shift to state 41
+-- On MINUS shift to state 47
+-- On LT shift to state 49
+-- On LEQ shift to state 51
+-- On GT shift to state 53
+-- On GEQ shift to state 55
+-- On DIVIDES shift to state 43
+-- On SEMI reduce production expr_no_brace -> expr_no_brace EQ expr_no_brace 
+-- On RPAREN reduce production expr_no_brace -> expr_no_brace EQ expr_no_brace 
+-- On NEQ reduce production expr_no_brace -> expr_no_brace EQ expr_no_brace 
+-- On EQ reduce production expr_no_brace -> expr_no_brace EQ expr_no_brace 
+-- On COMMA reduce production expr_no_brace -> expr_no_brace EQ expr_no_brace 
+
+State 59:
+expr_list -> expr_list COMMA expr . [ RPAREN COMMA ]
+-- On RPAREN reduce production expr_list -> expr_list COMMA expr 
+-- On COMMA reduce production expr_list -> expr_list COMMA expr 
+
+State 60:
+table_literal -> array_literal . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production table_literal -> array_literal 
+-- On SEMI reduce production table_literal -> array_literal 
+-- On RPAREN reduce production table_literal -> array_literal 
+-- On PLUS reduce production table_literal -> array_literal 
+-- On NEQ reduce production table_literal -> array_literal 
+-- On MINUS reduce production table_literal -> array_literal 
+-- On LT reduce production table_literal -> array_literal 
+-- On LEQ reduce production table_literal -> array_literal 
+-- On GT reduce production table_literal -> array_literal 
+-- On GEQ reduce production table_literal -> array_literal 
+-- On EQ reduce production table_literal -> array_literal 
+-- On DIVIDES reduce production table_literal -> array_literal 
+-- On COMMA reduce production table_literal -> array_literal 
+
+State 61:
+expr_no_brace -> ID LBRACK . STRING RBRACK [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On STRING shift to state 62
+
+State 62:
+expr_no_brace -> ID LBRACK STRING . RBRACK [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On RBRACK shift to state 63
+
+State 63:
+expr_no_brace -> ID LBRACK STRING RBRACK . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production expr_no_brace -> ID LBRACK STRING RBRACK 
+-- On SEMI reduce production expr_no_brace -> ID LBRACK STRING RBRACK 
+-- On RPAREN reduce production expr_no_brace -> ID LBRACK STRING RBRACK 
+-- On PLUS reduce production expr_no_brace -> ID LBRACK STRING RBRACK 
+-- On NEQ reduce production expr_no_brace -> ID LBRACK STRING RBRACK 
+-- On MINUS reduce production expr_no_brace -> ID LBRACK STRING RBRACK 
+-- On LT reduce production expr_no_brace -> ID LBRACK STRING RBRACK 
+-- On LEQ reduce production expr_no_brace -> ID LBRACK STRING RBRACK 
+-- On GT reduce production expr_no_brace -> ID LBRACK STRING RBRACK 
+-- On GEQ reduce production expr_no_brace -> ID LBRACK STRING RBRACK 
+-- On EQ reduce production expr_no_brace -> ID LBRACK STRING RBRACK 
+-- On DIVIDES reduce production expr_no_brace -> ID LBRACK STRING RBRACK 
+-- On COMMA reduce production expr_no_brace -> ID LBRACK STRING RBRACK 
+
+State 64:
+expr_no_brace -> ID ASSIGN . expr [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 9
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On table_literal shift to state 35
+-- On literal shift to state 36
+-- On keyvalue_literal shift to state 37
+-- On expr_no_brace shift to state 38
+-- On expr shift to state 65
+-- On array_literal shift to state 60
+
+State 65:
+expr_no_brace -> ID ASSIGN expr . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production expr_no_brace -> ID ASSIGN expr 
+-- On SEMI reduce production expr_no_brace -> ID ASSIGN expr 
+-- On RPAREN reduce production expr_no_brace -> ID ASSIGN expr 
+-- On PLUS reduce production expr_no_brace -> ID ASSIGN expr 
+-- On NEQ reduce production expr_no_brace -> ID ASSIGN expr 
+-- On MINUS reduce production expr_no_brace -> ID ASSIGN expr 
+-- On LT reduce production expr_no_brace -> ID ASSIGN expr 
+-- On LEQ reduce production expr_no_brace -> ID ASSIGN expr 
+-- On GT reduce production expr_no_brace -> ID ASSIGN expr 
+-- On GEQ reduce production expr_no_brace -> ID ASSIGN expr 
+-- On EQ reduce production expr_no_brace -> ID ASSIGN expr 
+-- On DIVIDES reduce production expr_no_brace -> ID ASSIGN expr 
+-- On COMMA reduce production expr_no_brace -> ID ASSIGN expr 
+
+State 66:
+expr_no_brace -> LPAREN expr . RPAREN [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On RPAREN shift to state 67
+
+State 67:
+expr_no_brace -> LPAREN expr RPAREN . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production expr_no_brace -> LPAREN expr RPAREN 
+-- On SEMI reduce production expr_no_brace -> LPAREN expr RPAREN 
+-- On RPAREN reduce production expr_no_brace -> LPAREN expr RPAREN 
+-- On PLUS reduce production expr_no_brace -> LPAREN expr RPAREN 
+-- On NEQ reduce production expr_no_brace -> LPAREN expr RPAREN 
+-- On MINUS reduce production expr_no_brace -> LPAREN expr RPAREN 
+-- On LT reduce production expr_no_brace -> LPAREN expr RPAREN 
+-- On LEQ reduce production expr_no_brace -> LPAREN expr RPAREN 
+-- On GT reduce production expr_no_brace -> LPAREN expr RPAREN 
+-- On GEQ reduce production expr_no_brace -> LPAREN expr RPAREN 
+-- On EQ reduce production expr_no_brace -> LPAREN expr RPAREN 
+-- On DIVIDES reduce production expr_no_brace -> LPAREN expr RPAREN 
+-- On COMMA reduce production expr_no_brace -> LPAREN expr RPAREN 
+
+State 68:
+expr_no_brace -> expr_no_brace . TIMES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . DIVIDES expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . MINUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . PLUS expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . EQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GT expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . LEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . GEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> expr_no_brace . NEQ expr_no_brace [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+expr_no_brace -> MINUS expr_no_brace . [ TIMES SEMI RPAREN PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES COMMA ]
+-- On TIMES reduce production expr_no_brace -> MINUS expr_no_brace 
+-- On SEMI reduce production expr_no_brace -> MINUS expr_no_brace 
+-- On RPAREN reduce production expr_no_brace -> MINUS expr_no_brace 
+-- On PLUS reduce production expr_no_brace -> MINUS expr_no_brace 
+-- On NEQ reduce production expr_no_brace -> MINUS expr_no_brace 
+-- On MINUS reduce production expr_no_brace -> MINUS expr_no_brace 
+-- On LT reduce production expr_no_brace -> MINUS expr_no_brace 
+-- On LEQ reduce production expr_no_brace -> MINUS expr_no_brace 
+-- On GT reduce production expr_no_brace -> MINUS expr_no_brace 
+-- On GEQ reduce production expr_no_brace -> MINUS expr_no_brace 
+-- On EQ reduce production expr_no_brace -> MINUS expr_no_brace 
+-- On DIVIDES reduce production expr_no_brace -> MINUS expr_no_brace 
+-- On COMMA reduce production expr_no_brace -> MINUS expr_no_brace 
+
+State 69:
+stmt -> WHILE LPAREN expr . RPAREN stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On RPAREN shift to state 70
+
+State 70:
+stmt -> WHILE LPAREN expr RPAREN . stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On WHILE shift to state 3
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On RETURN shift to state 71
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 74
+-- On INT shift to state 18
+-- On IF shift to state 75
+-- On ID shift to state 30
+-- On FUN shift to state 79
+-- On FOR shift to state 85
+-- On DOUBLE shift to state 13
+-- On stmt shift to state 106
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 92
+
+State 71:
+stmt -> RETURN . expr SEMI [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 9
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On table_literal shift to state 35
+-- On literal shift to state 36
+-- On keyvalue_literal shift to state 37
+-- On expr_no_brace shift to state 38
+-- On expr shift to state 72
+-- On array_literal shift to state 60
+
+State 72:
+stmt -> RETURN expr . SEMI [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On SEMI shift to state 73
+
+State 73:
+stmt -> RETURN expr SEMI . [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On WHILE reduce production stmt -> RETURN expr SEMI 
+-- On THIS reduce production stmt -> RETURN expr SEMI 
+-- On STRING reduce production stmt -> RETURN expr SEMI 
+-- On RETURN reduce production stmt -> RETURN expr SEMI 
+-- On RBRACE reduce production stmt -> RETURN expr SEMI 
+-- On MINUS reduce production stmt -> RETURN expr SEMI 
+-- On LPAREN reduce production stmt -> RETURN expr SEMI 
+-- On LBRACE reduce production stmt -> RETURN expr SEMI 
+-- On INT reduce production stmt -> RETURN expr SEMI 
+-- On IF reduce production stmt -> RETURN expr SEMI 
+-- On ID reduce production stmt -> RETURN expr SEMI 
+-- On FUN reduce production stmt -> RETURN expr SEMI 
+-- On FOR reduce production stmt -> RETURN expr SEMI 
+-- On ELSE reduce production stmt -> RETURN expr SEMI 
+-- On DOUBLE reduce production stmt -> RETURN expr SEMI 
+
+State 74:
+stmt -> LBRACE . stmt_list RBRACE [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On WHILE shift to state 3
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On RETURN shift to state 71
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 74
+-- On INT shift to state 18
+-- On IF shift to state 75
+-- On ID shift to state 30
+-- On FUN shift to state 79
+-- On FOR shift to state 85
+-- On DOUBLE shift to state 13
+-- On stmt_list shift to state 104
+-- On stmt shift to state 96
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 92
+-- On RBRACE reduce production stmt_list -> 
+
+State 75:
+stmt -> IF . LPAREN expr RPAREN stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+stmt -> IF . LPAREN expr RPAREN stmt ELSE stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On LPAREN shift to state 76
+
+State 76:
+stmt -> IF LPAREN . expr RPAREN stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+stmt -> IF LPAREN . expr RPAREN stmt ELSE stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 9
+-- On INT shift to state 18
+-- On ID shift to state 30
+-- On DOUBLE shift to state 13
+-- On table_literal shift to state 35
+-- On literal shift to state 36
+-- On keyvalue_literal shift to state 37
+-- On expr_no_brace shift to state 38
+-- On expr shift to state 77
+-- On array_literal shift to state 60
+
+State 77:
+stmt -> IF LPAREN expr . RPAREN stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+stmt -> IF LPAREN expr . RPAREN stmt ELSE stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On RPAREN shift to state 78
+
+State 78:
+stmt -> IF LPAREN expr RPAREN . stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+stmt -> IF LPAREN expr RPAREN . stmt ELSE stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On WHILE shift to state 3
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On RETURN shift to state 71
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 74
+-- On INT shift to state 18
+-- On IF shift to state 75
+-- On ID shift to state 30
+-- On FUN shift to state 79
+-- On FOR shift to state 85
+-- On DOUBLE shift to state 13
+-- On stmt shift to state 101
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 92
+
+State 79:
+stmt -> FUN . func_decl [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On ID shift to state 80
+-- On func_decl shift to state 100
+
+State 80:
+func_decl -> ID . LPAREN params_list RPAREN LBRACE stmt_list RBRACE [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On LPAREN shift to state 81
+
+State 81:
+func_decl -> ID LPAREN . params_list RPAREN LBRACE stmt_list RBRACE [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On params_list shift to state 82
+-- On RPAREN reduce production params_list -> 
+-- On COMMA reduce production params_list -> 
+
+State 82:
+func_decl -> ID LPAREN params_list . RPAREN LBRACE stmt_list RBRACE [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+params_list -> params_list . COMMA ID [ RPAREN COMMA ]
+-- On RPAREN shift to state 83
+-- On COMMA shift to state 98
+
+State 83:
+func_decl -> ID LPAREN params_list RPAREN . LBRACE stmt_list RBRACE [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On LBRACE shift to state 84
+
+State 84:
+func_decl -> ID LPAREN params_list RPAREN LBRACE . stmt_list RBRACE [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On WHILE shift to state 3
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On RETURN shift to state 71
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 74
+-- On INT shift to state 18
+-- On IF shift to state 75
+-- On ID shift to state 30
+-- On FUN shift to state 79
+-- On FOR shift to state 85
+-- On DOUBLE shift to state 13
+-- On stmt_list shift to state 94
+-- On stmt shift to state 96
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 92
+-- On RBRACE reduce production stmt_list -> 
+
+State 85:
+stmt -> FOR . LPAREN ID IN ID RPAREN stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On LPAREN shift to state 86
+
+State 86:
+stmt -> FOR LPAREN . ID IN ID RPAREN stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On ID shift to state 87
+
+State 87:
+stmt -> FOR LPAREN ID . IN ID RPAREN stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On IN shift to state 88
+
+State 88:
+stmt -> FOR LPAREN ID IN . ID RPAREN stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On ID shift to state 89
+
+State 89:
+stmt -> FOR LPAREN ID IN ID . RPAREN stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On RPAREN shift to state 90
+
+State 90:
+stmt -> FOR LPAREN ID IN ID RPAREN . stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On WHILE shift to state 3
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On RETURN shift to state 71
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 74
+-- On INT shift to state 18
+-- On IF shift to state 75
+-- On ID shift to state 30
+-- On FUN shift to state 79
+-- On FOR shift to state 85
+-- On DOUBLE shift to state 13
+-- On stmt shift to state 91
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 92
+
+State 91:
+stmt -> FOR LPAREN ID IN ID RPAREN stmt . [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On WHILE reduce production stmt -> FOR LPAREN ID IN ID RPAREN stmt 
+-- On THIS reduce production stmt -> FOR LPAREN ID IN ID RPAREN stmt 
+-- On STRING reduce production stmt -> FOR LPAREN ID IN ID RPAREN stmt 
+-- On RETURN reduce production stmt -> FOR LPAREN ID IN ID RPAREN stmt 
+-- On RBRACE reduce production stmt -> FOR LPAREN ID IN ID RPAREN stmt 
+-- On MINUS reduce production stmt -> FOR LPAREN ID IN ID RPAREN stmt 
+-- On LPAREN reduce production stmt -> FOR LPAREN ID IN ID RPAREN stmt 
+-- On LBRACE reduce production stmt -> FOR LPAREN ID IN ID RPAREN stmt 
+-- On INT reduce production stmt -> FOR LPAREN ID IN ID RPAREN stmt 
+-- On IF reduce production stmt -> FOR LPAREN ID IN ID RPAREN stmt 
+-- On ID reduce production stmt -> FOR LPAREN ID IN ID RPAREN stmt 
+-- On FUN reduce production stmt -> FOR LPAREN ID IN ID RPAREN stmt 
+-- On FOR reduce production stmt -> FOR LPAREN ID IN ID RPAREN stmt 
+-- On ELSE reduce production stmt -> FOR LPAREN ID IN ID RPAREN stmt 
+-- On DOUBLE reduce production stmt -> FOR LPAREN ID IN ID RPAREN stmt 
+
+State 92:
+expr_no_brace -> expr_no_brace . TIMES expr_no_brace [ TIMES SEMI PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES ]
+expr_no_brace -> expr_no_brace . DIVIDES expr_no_brace [ TIMES SEMI PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES ]
+expr_no_brace -> expr_no_brace . MINUS expr_no_brace [ TIMES SEMI PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES ]
+expr_no_brace -> expr_no_brace . PLUS expr_no_brace [ TIMES SEMI PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES ]
+expr_no_brace -> expr_no_brace . EQ expr_no_brace [ TIMES SEMI PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES ]
+expr_no_brace -> expr_no_brace . LT expr_no_brace [ TIMES SEMI PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES ]
+expr_no_brace -> expr_no_brace . GT expr_no_brace [ TIMES SEMI PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES ]
+expr_no_brace -> expr_no_brace . LEQ expr_no_brace [ TIMES SEMI PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES ]
+expr_no_brace -> expr_no_brace . GEQ expr_no_brace [ TIMES SEMI PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES ]
+expr_no_brace -> expr_no_brace . NEQ expr_no_brace [ TIMES SEMI PLUS NEQ MINUS LT LEQ GT GEQ EQ DIVIDES ]
+stmt -> expr_no_brace . SEMI [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On TIMES shift to state 39
+-- On SEMI shift to state 93
+-- On PLUS shift to state 41
+-- On NEQ shift to state 45
+-- On MINUS shift to state 47
+-- On LT shift to state 49
+-- On LEQ shift to state 51
+-- On GT shift to state 53
+-- On GEQ shift to state 55
+-- On EQ shift to state 57
+-- On DIVIDES shift to state 43
+
+State 93:
+stmt -> expr_no_brace SEMI . [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On WHILE reduce production stmt -> expr_no_brace SEMI 
+-- On THIS reduce production stmt -> expr_no_brace SEMI 
+-- On STRING reduce production stmt -> expr_no_brace SEMI 
+-- On RETURN reduce production stmt -> expr_no_brace SEMI 
+-- On RBRACE reduce production stmt -> expr_no_brace SEMI 
+-- On MINUS reduce production stmt -> expr_no_brace SEMI 
+-- On LPAREN reduce production stmt -> expr_no_brace SEMI 
+-- On LBRACE reduce production stmt -> expr_no_brace SEMI 
+-- On INT reduce production stmt -> expr_no_brace SEMI 
+-- On IF reduce production stmt -> expr_no_brace SEMI 
+-- On ID reduce production stmt -> expr_no_brace SEMI 
+-- On FUN reduce production stmt -> expr_no_brace SEMI 
+-- On FOR reduce production stmt -> expr_no_brace SEMI 
+-- On ELSE reduce production stmt -> expr_no_brace SEMI 
+-- On DOUBLE reduce production stmt -> expr_no_brace SEMI 
+
+State 94:
+func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list . RBRACE [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On RBRACE shift to state 95
+
+State 95:
+func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE . [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On WHILE reduce production func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE 
+-- On THIS reduce production func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE 
+-- On STRING reduce production func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE 
+-- On RETURN reduce production func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE 
+-- On RBRACE reduce production func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE 
+-- On MINUS reduce production func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE 
+-- On LPAREN reduce production func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE 
+-- On LBRACE reduce production func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE 
+-- On INT reduce production func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE 
+-- On IF reduce production func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE 
+-- On ID reduce production func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE 
+-- On FUN reduce production func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE 
+-- On FOR reduce production func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE 
+-- On ELSE reduce production func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE 
+-- On DOUBLE reduce production func_decl -> ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE 
+
+State 96:
+stmt_list -> stmt . stmt_list [ RBRACE ]
+-- On WHILE shift to state 3
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On RETURN shift to state 71
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 74
+-- On INT shift to state 18
+-- On IF shift to state 75
+-- On ID shift to state 30
+-- On FUN shift to state 79
+-- On FOR shift to state 85
+-- On DOUBLE shift to state 13
+-- On stmt_list shift to state 97
+-- On stmt shift to state 96
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 92
+-- On RBRACE reduce production stmt_list -> 
+
+State 97:
+stmt_list -> stmt stmt_list . [ RBRACE ]
+-- On RBRACE reduce production stmt_list -> stmt stmt_list 
+
+State 98:
+params_list -> params_list COMMA . ID [ RPAREN COMMA ]
+-- On ID shift to state 99
+
+State 99:
+params_list -> params_list COMMA ID . [ RPAREN COMMA ]
+-- On RPAREN reduce production params_list -> params_list COMMA ID 
+-- On COMMA reduce production params_list -> params_list COMMA ID 
+
+State 100:
+stmt -> FUN func_decl . [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On WHILE reduce production stmt -> FUN func_decl 
+-- On THIS reduce production stmt -> FUN func_decl 
+-- On STRING reduce production stmt -> FUN func_decl 
+-- On RETURN reduce production stmt -> FUN func_decl 
+-- On RBRACE reduce production stmt -> FUN func_decl 
+-- On MINUS reduce production stmt -> FUN func_decl 
+-- On LPAREN reduce production stmt -> FUN func_decl 
+-- On LBRACE reduce production stmt -> FUN func_decl 
+-- On INT reduce production stmt -> FUN func_decl 
+-- On IF reduce production stmt -> FUN func_decl 
+-- On ID reduce production stmt -> FUN func_decl 
+-- On FUN reduce production stmt -> FUN func_decl 
+-- On FOR reduce production stmt -> FUN func_decl 
+-- On ELSE reduce production stmt -> FUN func_decl 
+-- On DOUBLE reduce production stmt -> FUN func_decl 
+
+State 101:
+stmt -> IF LPAREN expr RPAREN stmt . [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+stmt -> IF LPAREN expr RPAREN stmt . ELSE stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On ELSE shift to state 102
+-- On WHILE reduce production stmt -> IF LPAREN expr RPAREN stmt 
+-- On THIS reduce production stmt -> IF LPAREN expr RPAREN stmt 
+-- On STRING reduce production stmt -> IF LPAREN expr RPAREN stmt 
+-- On RETURN reduce production stmt -> IF LPAREN expr RPAREN stmt 
+-- On RBRACE reduce production stmt -> IF LPAREN expr RPAREN stmt 
+-- On MINUS reduce production stmt -> IF LPAREN expr RPAREN stmt 
+-- On LPAREN reduce production stmt -> IF LPAREN expr RPAREN stmt 
+-- On LBRACE reduce production stmt -> IF LPAREN expr RPAREN stmt 
+-- On INT reduce production stmt -> IF LPAREN expr RPAREN stmt 
+-- On IF reduce production stmt -> IF LPAREN expr RPAREN stmt 
+-- On ID reduce production stmt -> IF LPAREN expr RPAREN stmt 
+-- On FUN reduce production stmt -> IF LPAREN expr RPAREN stmt 
+-- On FOR reduce production stmt -> IF LPAREN expr RPAREN stmt 
+-- On DOUBLE reduce production stmt -> IF LPAREN expr RPAREN stmt 
+
+State 102:
+stmt -> IF LPAREN expr RPAREN stmt ELSE . stmt [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On WHILE shift to state 3
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On RETURN shift to state 71
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 74
+-- On INT shift to state 18
+-- On IF shift to state 75
+-- On ID shift to state 30
+-- On FUN shift to state 79
+-- On FOR shift to state 85
+-- On DOUBLE shift to state 13
+-- On stmt shift to state 103
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 92
+
+State 103:
+stmt -> IF LPAREN expr RPAREN stmt ELSE stmt . [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On WHILE reduce production stmt -> IF LPAREN expr RPAREN stmt ELSE stmt 
+-- On THIS reduce production stmt -> IF LPAREN expr RPAREN stmt ELSE stmt 
+-- On STRING reduce production stmt -> IF LPAREN expr RPAREN stmt ELSE stmt 
+-- On RETURN reduce production stmt -> IF LPAREN expr RPAREN stmt ELSE stmt 
+-- On RBRACE reduce production stmt -> IF LPAREN expr RPAREN stmt ELSE stmt 
+-- On MINUS reduce production stmt -> IF LPAREN expr RPAREN stmt ELSE stmt 
+-- On LPAREN reduce production stmt -> IF LPAREN expr RPAREN stmt ELSE stmt 
+-- On LBRACE reduce production stmt -> IF LPAREN expr RPAREN stmt ELSE stmt 
+-- On INT reduce production stmt -> IF LPAREN expr RPAREN stmt ELSE stmt 
+-- On IF reduce production stmt -> IF LPAREN expr RPAREN stmt ELSE stmt 
+-- On ID reduce production stmt -> IF LPAREN expr RPAREN stmt ELSE stmt 
+-- On FUN reduce production stmt -> IF LPAREN expr RPAREN stmt ELSE stmt 
+-- On FOR reduce production stmt -> IF LPAREN expr RPAREN stmt ELSE stmt 
+-- On ELSE reduce production stmt -> IF LPAREN expr RPAREN stmt ELSE stmt 
+-- On DOUBLE reduce production stmt -> IF LPAREN expr RPAREN stmt ELSE stmt 
+
+State 104:
+stmt -> LBRACE stmt_list . RBRACE [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On RBRACE shift to state 105
+
+State 105:
+stmt -> LBRACE stmt_list RBRACE . [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On WHILE reduce production stmt -> LBRACE stmt_list RBRACE 
+-- On THIS reduce production stmt -> LBRACE stmt_list RBRACE 
+-- On STRING reduce production stmt -> LBRACE stmt_list RBRACE 
+-- On RETURN reduce production stmt -> LBRACE stmt_list RBRACE 
+-- On RBRACE reduce production stmt -> LBRACE stmt_list RBRACE 
+-- On MINUS reduce production stmt -> LBRACE stmt_list RBRACE 
+-- On LPAREN reduce production stmt -> LBRACE stmt_list RBRACE 
+-- On LBRACE reduce production stmt -> LBRACE stmt_list RBRACE 
+-- On INT reduce production stmt -> LBRACE stmt_list RBRACE 
+-- On IF reduce production stmt -> LBRACE stmt_list RBRACE 
+-- On ID reduce production stmt -> LBRACE stmt_list RBRACE 
+-- On FUN reduce production stmt -> LBRACE stmt_list RBRACE 
+-- On FOR reduce production stmt -> LBRACE stmt_list RBRACE 
+-- On ELSE reduce production stmt -> LBRACE stmt_list RBRACE 
+-- On DOUBLE reduce production stmt -> LBRACE stmt_list RBRACE 
+
+State 106:
+stmt -> WHILE LPAREN expr RPAREN stmt . [ WHILE THIS STRING RETURN RBRACE MINUS LPAREN LBRACE INT IF ID FUN FOR ELSE DOUBLE ]
+-- On WHILE reduce production stmt -> WHILE LPAREN expr RPAREN stmt 
+-- On THIS reduce production stmt -> WHILE LPAREN expr RPAREN stmt 
+-- On STRING reduce production stmt -> WHILE LPAREN expr RPAREN stmt 
+-- On RETURN reduce production stmt -> WHILE LPAREN expr RPAREN stmt 
+-- On RBRACE reduce production stmt -> WHILE LPAREN expr RPAREN stmt 
+-- On MINUS reduce production stmt -> WHILE LPAREN expr RPAREN stmt 
+-- On LPAREN reduce production stmt -> WHILE LPAREN expr RPAREN stmt 
+-- On LBRACE reduce production stmt -> WHILE LPAREN expr RPAREN stmt 
+-- On INT reduce production stmt -> WHILE LPAREN expr RPAREN stmt 
+-- On IF reduce production stmt -> WHILE LPAREN expr RPAREN stmt 
+-- On ID reduce production stmt -> WHILE LPAREN expr RPAREN stmt 
+-- On FUN reduce production stmt -> WHILE LPAREN expr RPAREN stmt 
+-- On FOR reduce production stmt -> WHILE LPAREN expr RPAREN stmt 
+-- On ELSE reduce production stmt -> WHILE LPAREN expr RPAREN stmt 
+-- On DOUBLE reduce production stmt -> WHILE LPAREN expr RPAREN stmt 
+
+State 107:
+begin_stmt -> BEGIN LBRACE stmt_list . RBRACE [ LBRACK_FSLASH LBRACK_AMP END ]
+-- On RBRACE shift to state 108
+
+State 108:
+begin_stmt -> BEGIN LBRACE stmt_list RBRACE . [ LBRACK_FSLASH LBRACK_AMP END ]
+-- On LBRACK_FSLASH reduce production begin_stmt -> BEGIN LBRACE stmt_list RBRACE 
+-- On LBRACK_AMP reduce production begin_stmt -> BEGIN LBRACE stmt_list RBRACE 
+-- On END reduce production begin_stmt -> BEGIN LBRACE stmt_list RBRACE 
+
+State 109:
+program' -> program . [ # ]
+-- On # accept program
+
+State 110:
+program -> begin_stmt . pattern_action_list end_stmt EOF [ # ]
+-- On LBRACK_FSLASH shift to state 111
+-- On LBRACK_AMP shift to state 134
+-- On pattern_action_list shift to state 175
+-- On pattern_action shift to state 182
+-- On pattern shift to state 184
+-- On END reduce production pattern_action_list -> 
+
+State 111:
+pattern -> LBRACK_FSLASH . regex_sequence FSLASH_RBRACK [ LBRACE ]
+-- On STRING shift to state 112
+-- On LBRACK shift to state 113
+-- On regex_sequence shift to state 125
+-- On regex shift to state 127
+
+State 112:
+regex -> STRING . [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+-- On VERT reduce production regex -> STRING 
+-- On TIMES reduce production regex -> STRING 
+-- On STRING reduce production regex -> STRING 
+-- On QUEST reduce production regex -> STRING 
+-- On PLUS reduce production regex -> STRING 
+-- On LBRACK reduce production regex -> STRING 
+-- On FSLASH_RBRACK reduce production regex -> STRING 
+
+State 113:
+regex -> LBRACK . regex_set_sequence RBRACK [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+-- On UNDER shift to state 114
+-- On STRING shift to state 115
+-- On CHAR shift to state 116
+-- On CARROT shift to state 119
+-- On regex_set_sequence shift to state 121
+-- On regex_set shift to state 123
+
+State 114:
+regex_set -> UNDER . [ UNDER STRING RBRACK CHAR CARROT ]
+-- On UNDER reduce production regex_set -> UNDER 
+-- On STRING reduce production regex_set -> UNDER 
+-- On RBRACK reduce production regex_set -> UNDER 
+-- On CHAR reduce production regex_set -> UNDER 
+-- On CARROT reduce production regex_set -> UNDER 
+
+State 115:
+regex_set -> STRING . [ UNDER STRING RBRACK CHAR CARROT ]
+-- On UNDER reduce production regex_set -> STRING 
+-- On STRING reduce production regex_set -> STRING 
+-- On RBRACK reduce production regex_set -> STRING 
+-- On CHAR reduce production regex_set -> STRING 
+-- On CARROT reduce production regex_set -> STRING 
+
+State 116:
+regex_set -> CHAR . [ UNDER STRING RBRACK CHAR CARROT ]
+regex_set -> CHAR . MINUS CHAR [ UNDER STRING RBRACK CHAR CARROT ]
+-- On MINUS shift to state 117
+-- On UNDER reduce production regex_set -> CHAR 
+-- On STRING reduce production regex_set -> CHAR 
+-- On RBRACK reduce production regex_set -> CHAR 
+-- On CHAR reduce production regex_set -> CHAR 
+-- On CARROT reduce production regex_set -> CHAR 
+
+State 117:
+regex_set -> CHAR MINUS . CHAR [ UNDER STRING RBRACK CHAR CARROT ]
+-- On CHAR shift to state 118
+
+State 118:
+regex_set -> CHAR MINUS CHAR . [ UNDER STRING RBRACK CHAR CARROT ]
+-- On UNDER reduce production regex_set -> CHAR MINUS CHAR 
+-- On STRING reduce production regex_set -> CHAR MINUS CHAR 
+-- On RBRACK reduce production regex_set -> CHAR MINUS CHAR 
+-- On CHAR reduce production regex_set -> CHAR MINUS CHAR 
+-- On CARROT reduce production regex_set -> CHAR MINUS CHAR 
+
+State 119:
+regex_set -> CARROT . regex_set [ UNDER STRING RBRACK CHAR CARROT ]
+-- On UNDER shift to state 114
+-- On STRING shift to state 115
+-- On CHAR shift to state 116
+-- On CARROT shift to state 119
+-- On regex_set shift to state 120
+
+State 120:
+regex_set -> CARROT regex_set . [ UNDER STRING RBRACK CHAR CARROT ]
+-- On UNDER reduce production regex_set -> CARROT regex_set 
+-- On STRING reduce production regex_set -> CARROT regex_set 
+-- On RBRACK reduce production regex_set -> CARROT regex_set 
+-- On CHAR reduce production regex_set -> CARROT regex_set 
+-- On CARROT reduce production regex_set -> CARROT regex_set 
+
+State 121:
+regex -> LBRACK regex_set_sequence . RBRACK [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+-- On RBRACK shift to state 122
+
+State 122:
+regex -> LBRACK regex_set_sequence RBRACK . [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+-- On VERT reduce production regex -> LBRACK regex_set_sequence RBRACK 
+-- On TIMES reduce production regex -> LBRACK regex_set_sequence RBRACK 
+-- On STRING reduce production regex -> LBRACK regex_set_sequence RBRACK 
+-- On QUEST reduce production regex -> LBRACK regex_set_sequence RBRACK 
+-- On PLUS reduce production regex -> LBRACK regex_set_sequence RBRACK 
+-- On LBRACK reduce production regex -> LBRACK regex_set_sequence RBRACK 
+-- On FSLASH_RBRACK reduce production regex -> LBRACK regex_set_sequence RBRACK 
+
+State 123:
+regex_set_sequence -> regex_set . [ RBRACK ]
+regex_set_sequence -> regex_set . regex_set_sequence [ RBRACK ]
+-- On UNDER shift to state 114
+-- On STRING shift to state 115
+-- On CHAR shift to state 116
+-- On CARROT shift to state 119
+-- On regex_set_sequence shift to state 124
+-- On regex_set shift to state 123
+-- On RBRACK reduce production regex_set_sequence -> regex_set 
+
+State 124:
+regex_set_sequence -> regex_set regex_set_sequence . [ RBRACK ]
+-- On RBRACK reduce production regex_set_sequence -> regex_set regex_set_sequence 
+
+State 125:
+pattern -> LBRACK_FSLASH regex_sequence . FSLASH_RBRACK [ LBRACE ]
+-- On FSLASH_RBRACK shift to state 126
+
+State 126:
+pattern -> LBRACK_FSLASH regex_sequence FSLASH_RBRACK . [ LBRACE ]
+-- On LBRACE reduce production pattern -> LBRACK_FSLASH regex_sequence FSLASH_RBRACK 
+
+State 127:
+regex -> regex . QUEST [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+regex -> regex . PLUS [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+regex -> regex . TIMES [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+regex -> regex . VERT regex [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+regex_sequence -> regex . [ FSLASH_RBRACK ]
+regex_sequence -> regex . regex_sequence [ FSLASH_RBRACK ]
+-- On VERT shift to state 128
+-- On TIMES shift to state 130
+-- On STRING shift to state 112
+-- On QUEST shift to state 131
+-- On PLUS shift to state 132
+-- On LBRACK shift to state 113
+-- On regex_sequence shift to state 133
+-- On regex shift to state 127
+-- On FSLASH_RBRACK reduce production regex_sequence -> regex 
+
+State 128:
+regex -> regex VERT . regex [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+-- On STRING shift to state 112
+-- On LBRACK shift to state 113
+-- On regex shift to state 129
+
+State 129:
+regex -> regex . QUEST [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+regex -> regex . PLUS [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+regex -> regex . TIMES [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+regex -> regex . VERT regex [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+regex -> regex VERT regex . [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+-- On VERT reduce production regex -> regex VERT regex 
+-- On TIMES reduce production regex -> regex VERT regex 
+-- On STRING reduce production regex -> regex VERT regex 
+-- On QUEST reduce production regex -> regex VERT regex 
+-- On PLUS reduce production regex -> regex VERT regex 
+-- On LBRACK reduce production regex -> regex VERT regex 
+-- On FSLASH_RBRACK reduce production regex -> regex VERT regex 
+
+State 130:
+regex -> regex TIMES . [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+-- On VERT reduce production regex -> regex TIMES 
+-- On TIMES reduce production regex -> regex TIMES 
+-- On STRING reduce production regex -> regex TIMES 
+-- On QUEST reduce production regex -> regex TIMES 
+-- On PLUS reduce production regex -> regex TIMES 
+-- On LBRACK reduce production regex -> regex TIMES 
+-- On FSLASH_RBRACK reduce production regex -> regex TIMES 
+
+State 131:
+regex -> regex QUEST . [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+-- On VERT reduce production regex -> regex QUEST 
+-- On TIMES reduce production regex -> regex QUEST 
+-- On STRING reduce production regex -> regex QUEST 
+-- On QUEST reduce production regex -> regex QUEST 
+-- On PLUS reduce production regex -> regex QUEST 
+-- On LBRACK reduce production regex -> regex QUEST 
+-- On FSLASH_RBRACK reduce production regex -> regex QUEST 
+
+State 132:
+regex -> regex PLUS . [ VERT TIMES STRING QUEST PLUS LBRACK FSLASH_RBRACK ]
+-- On VERT reduce production regex -> regex PLUS 
+-- On TIMES reduce production regex -> regex PLUS 
+-- On STRING reduce production regex -> regex PLUS 
+-- On QUEST reduce production regex -> regex PLUS 
+-- On PLUS reduce production regex -> regex PLUS 
+-- On LBRACK reduce production regex -> regex PLUS 
+-- On FSLASH_RBRACK reduce production regex -> regex PLUS 
+
+State 133:
+regex_sequence -> regex regex_sequence . [ FSLASH_RBRACK ]
+-- On FSLASH_RBRACK reduce production regex_sequence -> regex regex_sequence 
+
+State 134:
+pattern -> LBRACK_AMP . css_selector AMP_RBRACK [ LBRACE ]
+-- On TIMES shift to state 135
+-- On PERIOD shift to state 136
+-- On LBRACK shift to state 138
+-- On ID shift to state 156
+-- On HASH shift to state 157
+-- On typed_simple_selector_seq shift to state 159
+-- On type_selector shift to state 160
+-- On simple_selector_seq shift to state 164
+-- On property_selector_list shift to state 165
+-- On property_selector shift to state 162
+-- On css_selector shift to state 166
+
+State 135:
+type_selector -> TIMES . [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On TIMES reduce production type_selector -> TIMES 
+-- On TILDE reduce production type_selector -> TIMES 
+-- On PLUS reduce production type_selector -> TIMES 
+-- On PERIOD reduce production type_selector -> TIMES 
+-- On LBRACK reduce production type_selector -> TIMES 
+-- On ID reduce production type_selector -> TIMES 
+-- On HASH reduce production type_selector -> TIMES 
+-- On GT reduce production type_selector -> TIMES 
+-- On AMP_RBRACK reduce production type_selector -> TIMES 
+
+State 136:
+property_selector -> PERIOD . ID [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On ID shift to state 137
+
+State 137:
+property_selector -> PERIOD ID . [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On TIMES reduce production property_selector -> PERIOD ID 
+-- On TILDE reduce production property_selector -> PERIOD ID 
+-- On PLUS reduce production property_selector -> PERIOD ID 
+-- On PERIOD reduce production property_selector -> PERIOD ID 
+-- On LBRACK reduce production property_selector -> PERIOD ID 
+-- On ID reduce production property_selector -> PERIOD ID 
+-- On HASH reduce production property_selector -> PERIOD ID 
+-- On GT reduce production property_selector -> PERIOD ID 
+-- On AMP_RBRACK reduce production property_selector -> PERIOD ID 
+
+State 138:
+property_selector -> LBRACK . ID RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+property_selector -> LBRACK . ID ASSIGN STRING RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+property_selector -> LBRACK . ID TIMES_EQ STRING RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+property_selector -> LBRACK . ID XOR_EQ STRING RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+property_selector -> LBRACK . ID DOLLAR_EQ STRING RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+property_selector -> LBRACK . ID TILDE_EQ STRING RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On ID shift to state 139
+
+State 139:
+property_selector -> LBRACK ID . RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+property_selector -> LBRACK ID . ASSIGN STRING RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+property_selector -> LBRACK ID . TIMES_EQ STRING RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+property_selector -> LBRACK ID . XOR_EQ STRING RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+property_selector -> LBRACK ID . DOLLAR_EQ STRING RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+property_selector -> LBRACK ID . TILDE_EQ STRING RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On XOR_EQ shift to state 140
+-- On TIMES_EQ shift to state 143
+-- On TILDE_EQ shift to state 146
+-- On RBRACK shift to state 149
+-- On DOLLAR_EQ shift to state 150
+-- On ASSIGN shift to state 153
+
+State 140:
+property_selector -> LBRACK ID XOR_EQ . STRING RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On STRING shift to state 141
+
+State 141:
+property_selector -> LBRACK ID XOR_EQ STRING . RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On RBRACK shift to state 142
+
+State 142:
+property_selector -> LBRACK ID XOR_EQ STRING RBRACK . [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On TIMES reduce production property_selector -> LBRACK ID XOR_EQ STRING RBRACK 
+-- On TILDE reduce production property_selector -> LBRACK ID XOR_EQ STRING RBRACK 
+-- On PLUS reduce production property_selector -> LBRACK ID XOR_EQ STRING RBRACK 
+-- On PERIOD reduce production property_selector -> LBRACK ID XOR_EQ STRING RBRACK 
+-- On LBRACK reduce production property_selector -> LBRACK ID XOR_EQ STRING RBRACK 
+-- On ID reduce production property_selector -> LBRACK ID XOR_EQ STRING RBRACK 
+-- On HASH reduce production property_selector -> LBRACK ID XOR_EQ STRING RBRACK 
+-- On GT reduce production property_selector -> LBRACK ID XOR_EQ STRING RBRACK 
+-- On AMP_RBRACK reduce production property_selector -> LBRACK ID XOR_EQ STRING RBRACK 
+
+State 143:
+property_selector -> LBRACK ID TIMES_EQ . STRING RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On STRING shift to state 144
+
+State 144:
+property_selector -> LBRACK ID TIMES_EQ STRING . RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On RBRACK shift to state 145
+
+State 145:
+property_selector -> LBRACK ID TIMES_EQ STRING RBRACK . [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On TIMES reduce production property_selector -> LBRACK ID TIMES_EQ STRING RBRACK 
+-- On TILDE reduce production property_selector -> LBRACK ID TIMES_EQ STRING RBRACK 
+-- On PLUS reduce production property_selector -> LBRACK ID TIMES_EQ STRING RBRACK 
+-- On PERIOD reduce production property_selector -> LBRACK ID TIMES_EQ STRING RBRACK 
+-- On LBRACK reduce production property_selector -> LBRACK ID TIMES_EQ STRING RBRACK 
+-- On ID reduce production property_selector -> LBRACK ID TIMES_EQ STRING RBRACK 
+-- On HASH reduce production property_selector -> LBRACK ID TIMES_EQ STRING RBRACK 
+-- On GT reduce production property_selector -> LBRACK ID TIMES_EQ STRING RBRACK 
+-- On AMP_RBRACK reduce production property_selector -> LBRACK ID TIMES_EQ STRING RBRACK 
+
+State 146:
+property_selector -> LBRACK ID TILDE_EQ . STRING RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On STRING shift to state 147
+
+State 147:
+property_selector -> LBRACK ID TILDE_EQ STRING . RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On RBRACK shift to state 148
+
+State 148:
+property_selector -> LBRACK ID TILDE_EQ STRING RBRACK . [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On TIMES reduce production property_selector -> LBRACK ID TILDE_EQ STRING RBRACK 
+-- On TILDE reduce production property_selector -> LBRACK ID TILDE_EQ STRING RBRACK 
+-- On PLUS reduce production property_selector -> LBRACK ID TILDE_EQ STRING RBRACK 
+-- On PERIOD reduce production property_selector -> LBRACK ID TILDE_EQ STRING RBRACK 
+-- On LBRACK reduce production property_selector -> LBRACK ID TILDE_EQ STRING RBRACK 
+-- On ID reduce production property_selector -> LBRACK ID TILDE_EQ STRING RBRACK 
+-- On HASH reduce production property_selector -> LBRACK ID TILDE_EQ STRING RBRACK 
+-- On GT reduce production property_selector -> LBRACK ID TILDE_EQ STRING RBRACK 
+-- On AMP_RBRACK reduce production property_selector -> LBRACK ID TILDE_EQ STRING RBRACK 
+
+State 149:
+property_selector -> LBRACK ID RBRACK . [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On TIMES reduce production property_selector -> LBRACK ID RBRACK 
+-- On TILDE reduce production property_selector -> LBRACK ID RBRACK 
+-- On PLUS reduce production property_selector -> LBRACK ID RBRACK 
+-- On PERIOD reduce production property_selector -> LBRACK ID RBRACK 
+-- On LBRACK reduce production property_selector -> LBRACK ID RBRACK 
+-- On ID reduce production property_selector -> LBRACK ID RBRACK 
+-- On HASH reduce production property_selector -> LBRACK ID RBRACK 
+-- On GT reduce production property_selector -> LBRACK ID RBRACK 
+-- On AMP_RBRACK reduce production property_selector -> LBRACK ID RBRACK 
+
+State 150:
+property_selector -> LBRACK ID DOLLAR_EQ . STRING RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On STRING shift to state 151
+
+State 151:
+property_selector -> LBRACK ID DOLLAR_EQ STRING . RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On RBRACK shift to state 152
+
+State 152:
+property_selector -> LBRACK ID DOLLAR_EQ STRING RBRACK . [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On TIMES reduce production property_selector -> LBRACK ID DOLLAR_EQ STRING RBRACK 
+-- On TILDE reduce production property_selector -> LBRACK ID DOLLAR_EQ STRING RBRACK 
+-- On PLUS reduce production property_selector -> LBRACK ID DOLLAR_EQ STRING RBRACK 
+-- On PERIOD reduce production property_selector -> LBRACK ID DOLLAR_EQ STRING RBRACK 
+-- On LBRACK reduce production property_selector -> LBRACK ID DOLLAR_EQ STRING RBRACK 
+-- On ID reduce production property_selector -> LBRACK ID DOLLAR_EQ STRING RBRACK 
+-- On HASH reduce production property_selector -> LBRACK ID DOLLAR_EQ STRING RBRACK 
+-- On GT reduce production property_selector -> LBRACK ID DOLLAR_EQ STRING RBRACK 
+-- On AMP_RBRACK reduce production property_selector -> LBRACK ID DOLLAR_EQ STRING RBRACK 
+
+State 153:
+property_selector -> LBRACK ID ASSIGN . STRING RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On STRING shift to state 154
+
+State 154:
+property_selector -> LBRACK ID ASSIGN STRING . RBRACK [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On RBRACK shift to state 155
+
+State 155:
+property_selector -> LBRACK ID ASSIGN STRING RBRACK . [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On TIMES reduce production property_selector -> LBRACK ID ASSIGN STRING RBRACK 
+-- On TILDE reduce production property_selector -> LBRACK ID ASSIGN STRING RBRACK 
+-- On PLUS reduce production property_selector -> LBRACK ID ASSIGN STRING RBRACK 
+-- On PERIOD reduce production property_selector -> LBRACK ID ASSIGN STRING RBRACK 
+-- On LBRACK reduce production property_selector -> LBRACK ID ASSIGN STRING RBRACK 
+-- On ID reduce production property_selector -> LBRACK ID ASSIGN STRING RBRACK 
+-- On HASH reduce production property_selector -> LBRACK ID ASSIGN STRING RBRACK 
+-- On GT reduce production property_selector -> LBRACK ID ASSIGN STRING RBRACK 
+-- On AMP_RBRACK reduce production property_selector -> LBRACK ID ASSIGN STRING RBRACK 
+
+State 156:
+type_selector -> ID . [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On TIMES reduce production type_selector -> ID 
+-- On TILDE reduce production type_selector -> ID 
+-- On PLUS reduce production type_selector -> ID 
+-- On PERIOD reduce production type_selector -> ID 
+-- On LBRACK reduce production type_selector -> ID 
+-- On ID reduce production type_selector -> ID 
+-- On HASH reduce production type_selector -> ID 
+-- On GT reduce production type_selector -> ID 
+-- On AMP_RBRACK reduce production type_selector -> ID 
+
+State 157:
+property_selector -> HASH . ID [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On ID shift to state 158
+
+State 158:
+property_selector -> HASH ID . [ TIMES TILDE PLUS PERIOD LBRACK ID HASH GT AMP_RBRACK ]
+-- On TIMES reduce production property_selector -> HASH ID 
+-- On TILDE reduce production property_selector -> HASH ID 
+-- On PLUS reduce production property_selector -> HASH ID 
+-- On PERIOD reduce production property_selector -> HASH ID 
+-- On LBRACK reduce production property_selector -> HASH ID 
+-- On ID reduce production property_selector -> HASH ID 
+-- On HASH reduce production property_selector -> HASH ID 
+-- On GT reduce production property_selector -> HASH ID 
+-- On AMP_RBRACK reduce production property_selector -> HASH ID 
+
+State 159:
+simple_selector_seq -> typed_simple_selector_seq . [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+-- On TIMES reduce production simple_selector_seq -> typed_simple_selector_seq 
+-- On TILDE reduce production simple_selector_seq -> typed_simple_selector_seq 
+-- On PLUS reduce production simple_selector_seq -> typed_simple_selector_seq 
+-- On ID reduce production simple_selector_seq -> typed_simple_selector_seq 
+-- On GT reduce production simple_selector_seq -> typed_simple_selector_seq 
+-- On AMP_RBRACK reduce production simple_selector_seq -> typed_simple_selector_seq 
+
+State 160:
+typed_simple_selector_seq -> type_selector . [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+typed_simple_selector_seq -> type_selector . property_selector_list [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+-- On PERIOD shift to state 136
+-- On LBRACK shift to state 138
+-- On HASH shift to state 157
+-- On property_selector_list shift to state 161
+-- On property_selector shift to state 162
+-- On TIMES reduce production typed_simple_selector_seq -> type_selector 
+-- On TILDE reduce production typed_simple_selector_seq -> type_selector 
+-- On PLUS reduce production typed_simple_selector_seq -> type_selector 
+-- On ID reduce production typed_simple_selector_seq -> type_selector 
+-- On GT reduce production typed_simple_selector_seq -> type_selector 
+-- On AMP_RBRACK reduce production typed_simple_selector_seq -> type_selector 
+
+State 161:
+typed_simple_selector_seq -> type_selector property_selector_list . [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+-- On TIMES reduce production typed_simple_selector_seq -> type_selector property_selector_list 
+-- On TILDE reduce production typed_simple_selector_seq -> type_selector property_selector_list 
+-- On PLUS reduce production typed_simple_selector_seq -> type_selector property_selector_list 
+-- On ID reduce production typed_simple_selector_seq -> type_selector property_selector_list 
+-- On GT reduce production typed_simple_selector_seq -> type_selector property_selector_list 
+-- On AMP_RBRACK reduce production typed_simple_selector_seq -> type_selector property_selector_list 
+
+State 162:
+property_selector_list -> property_selector . [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+property_selector_list -> property_selector . property_selector_list [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+-- On PERIOD shift to state 136
+-- On LBRACK shift to state 138
+-- On HASH shift to state 157
+-- On property_selector_list shift to state 163
+-- On property_selector shift to state 162
+-- On TIMES reduce production property_selector_list -> property_selector 
+-- On TILDE reduce production property_selector_list -> property_selector 
+-- On PLUS reduce production property_selector_list -> property_selector 
+-- On ID reduce production property_selector_list -> property_selector 
+-- On GT reduce production property_selector_list -> property_selector 
+-- On AMP_RBRACK reduce production property_selector_list -> property_selector 
+
+State 163:
+property_selector_list -> property_selector property_selector_list . [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+-- On TIMES reduce production property_selector_list -> property_selector property_selector_list 
+-- On TILDE reduce production property_selector_list -> property_selector property_selector_list 
+-- On PLUS reduce production property_selector_list -> property_selector property_selector_list 
+-- On ID reduce production property_selector_list -> property_selector property_selector_list 
+-- On GT reduce production property_selector_list -> property_selector property_selector_list 
+-- On AMP_RBRACK reduce production property_selector_list -> property_selector property_selector_list 
+
+State 164:
+css_selector -> simple_selector_seq . [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+-- On TIMES reduce production css_selector -> simple_selector_seq 
+-- On TILDE reduce production css_selector -> simple_selector_seq 
+-- On PLUS reduce production css_selector -> simple_selector_seq 
+-- On ID reduce production css_selector -> simple_selector_seq 
+-- On GT reduce production css_selector -> simple_selector_seq 
+-- On AMP_RBRACK reduce production css_selector -> simple_selector_seq 
+
+State 165:
+simple_selector_seq -> property_selector_list . [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+-- On TIMES reduce production simple_selector_seq -> property_selector_list 
+-- On TILDE reduce production simple_selector_seq -> property_selector_list 
+-- On PLUS reduce production simple_selector_seq -> property_selector_list 
+-- On ID reduce production simple_selector_seq -> property_selector_list 
+-- On GT reduce production simple_selector_seq -> property_selector_list 
+-- On AMP_RBRACK reduce production simple_selector_seq -> property_selector_list 
+
+State 166:
+css_selector -> css_selector . PLUS simple_selector_seq [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+css_selector -> css_selector . GT simple_selector_seq [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+css_selector -> css_selector . TILDE simple_selector_seq [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+css_selector -> css_selector . typed_simple_selector_seq [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+pattern -> LBRACK_AMP css_selector . AMP_RBRACK [ LBRACE ]
+-- On TIMES shift to state 135
+-- On TILDE shift to state 167
+-- On PLUS shift to state 169
+-- On ID shift to state 156
+-- On GT shift to state 171
+-- On AMP_RBRACK shift to state 173
+-- On typed_simple_selector_seq shift to state 174
+-- On type_selector shift to state 160
+
+State 167:
+css_selector -> css_selector TILDE . simple_selector_seq [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+-- On TIMES shift to state 135
+-- On PERIOD shift to state 136
+-- On LBRACK shift to state 138
+-- On ID shift to state 156
+-- On HASH shift to state 157
+-- On typed_simple_selector_seq shift to state 159
+-- On type_selector shift to state 160
+-- On simple_selector_seq shift to state 168
+-- On property_selector_list shift to state 165
+-- On property_selector shift to state 162
+
+State 168:
+css_selector -> css_selector TILDE simple_selector_seq . [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+-- On TIMES reduce production css_selector -> css_selector TILDE simple_selector_seq 
+-- On TILDE reduce production css_selector -> css_selector TILDE simple_selector_seq 
+-- On PLUS reduce production css_selector -> css_selector TILDE simple_selector_seq 
+-- On ID reduce production css_selector -> css_selector TILDE simple_selector_seq 
+-- On GT reduce production css_selector -> css_selector TILDE simple_selector_seq 
+-- On AMP_RBRACK reduce production css_selector -> css_selector TILDE simple_selector_seq 
+
+State 169:
+css_selector -> css_selector PLUS . simple_selector_seq [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+-- On TIMES shift to state 135
+-- On PERIOD shift to state 136
+-- On LBRACK shift to state 138
+-- On ID shift to state 156
+-- On HASH shift to state 157
+-- On typed_simple_selector_seq shift to state 159
+-- On type_selector shift to state 160
+-- On simple_selector_seq shift to state 170
+-- On property_selector_list shift to state 165
+-- On property_selector shift to state 162
+
+State 170:
+css_selector -> css_selector PLUS simple_selector_seq . [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+-- On TIMES reduce production css_selector -> css_selector PLUS simple_selector_seq 
+-- On TILDE reduce production css_selector -> css_selector PLUS simple_selector_seq 
+-- On PLUS reduce production css_selector -> css_selector PLUS simple_selector_seq 
+-- On ID reduce production css_selector -> css_selector PLUS simple_selector_seq 
+-- On GT reduce production css_selector -> css_selector PLUS simple_selector_seq 
+-- On AMP_RBRACK reduce production css_selector -> css_selector PLUS simple_selector_seq 
+
+State 171:
+css_selector -> css_selector GT . simple_selector_seq [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+-- On TIMES shift to state 135
+-- On PERIOD shift to state 136
+-- On LBRACK shift to state 138
+-- On ID shift to state 156
+-- On HASH shift to state 157
+-- On typed_simple_selector_seq shift to state 159
+-- On type_selector shift to state 160
+-- On simple_selector_seq shift to state 172
+-- On property_selector_list shift to state 165
+-- On property_selector shift to state 162
+
+State 172:
+css_selector -> css_selector GT simple_selector_seq . [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+-- On TIMES reduce production css_selector -> css_selector GT simple_selector_seq 
+-- On TILDE reduce production css_selector -> css_selector GT simple_selector_seq 
+-- On PLUS reduce production css_selector -> css_selector GT simple_selector_seq 
+-- On ID reduce production css_selector -> css_selector GT simple_selector_seq 
+-- On GT reduce production css_selector -> css_selector GT simple_selector_seq 
+-- On AMP_RBRACK reduce production css_selector -> css_selector GT simple_selector_seq 
+
+State 173:
+pattern -> LBRACK_AMP css_selector AMP_RBRACK . [ LBRACE ]
+-- On LBRACE reduce production pattern -> LBRACK_AMP css_selector AMP_RBRACK 
+
+State 174:
+css_selector -> css_selector typed_simple_selector_seq . [ TIMES TILDE PLUS ID GT AMP_RBRACK ]
+-- On TIMES reduce production css_selector -> css_selector typed_simple_selector_seq 
+-- On TILDE reduce production css_selector -> css_selector typed_simple_selector_seq 
+-- On PLUS reduce production css_selector -> css_selector typed_simple_selector_seq 
+-- On ID reduce production css_selector -> css_selector typed_simple_selector_seq 
+-- On GT reduce production css_selector -> css_selector typed_simple_selector_seq 
+-- On AMP_RBRACK reduce production css_selector -> css_selector typed_simple_selector_seq 
+
+State 175:
+program -> begin_stmt pattern_action_list . end_stmt EOF [ # ]
+-- On END shift to state 176
+-- On end_stmt shift to state 180
+
+State 176:
+end_stmt -> END . LBRACE stmt_list RBRACE [ EOF ]
+-- On LBRACE shift to state 177
+
+State 177:
+end_stmt -> END LBRACE . stmt_list RBRACE [ EOF ]
+-- On WHILE shift to state 3
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On RETURN shift to state 71
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 74
+-- On INT shift to state 18
+-- On IF shift to state 75
+-- On ID shift to state 30
+-- On FUN shift to state 79
+-- On FOR shift to state 85
+-- On DOUBLE shift to state 13
+-- On stmt_list shift to state 178
+-- On stmt shift to state 96
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 92
+-- On RBRACE reduce production stmt_list -> 
+
+State 178:
+end_stmt -> END LBRACE stmt_list . RBRACE [ EOF ]
+-- On RBRACE shift to state 179
+
+State 179:
+end_stmt -> END LBRACE stmt_list RBRACE . [ EOF ]
+-- On EOF reduce production end_stmt -> END LBRACE stmt_list RBRACE 
+
+State 180:
+program -> begin_stmt pattern_action_list end_stmt . EOF [ # ]
+-- On EOF shift to state 181
+
+State 181:
+program -> begin_stmt pattern_action_list end_stmt EOF . [ # ]
+-- On # reduce production program -> begin_stmt pattern_action_list end_stmt EOF 
+
+State 182:
+pattern_action_list -> pattern_action . pattern_action_list [ END ]
+-- On LBRACK_FSLASH shift to state 111
+-- On LBRACK_AMP shift to state 134
+-- On pattern_action_list shift to state 183
+-- On pattern_action shift to state 182
+-- On pattern shift to state 184
+-- On END reduce production pattern_action_list -> 
+
+State 183:
+pattern_action_list -> pattern_action pattern_action_list . [ END ]
+-- On END reduce production pattern_action_list -> pattern_action pattern_action_list 
+
+State 184:
+pattern_action -> pattern . LBRACE stmt_list RBRACE [ LBRACK_FSLASH LBRACK_AMP END ]
+-- On LBRACE shift to state 185
+
+State 185:
+pattern_action -> pattern LBRACE . stmt_list RBRACE [ LBRACK_FSLASH LBRACK_AMP END ]
+-- On WHILE shift to state 3
+-- On THIS shift to state 5
+-- On STRING shift to state 6
+-- On RETURN shift to state 71
+-- On MINUS shift to state 7
+-- On LPAREN shift to state 8
+-- On LBRACE shift to state 74
+-- On INT shift to state 18
+-- On IF shift to state 75
+-- On ID shift to state 30
+-- On FUN shift to state 79
+-- On FOR shift to state 85
+-- On DOUBLE shift to state 13
+-- On stmt_list shift to state 186
+-- On stmt shift to state 96
+-- On literal shift to state 36
+-- On expr_no_brace shift to state 92
+-- On RBRACE reduce production stmt_list -> 
+
+State 186:
+pattern_action -> pattern LBRACE stmt_list . RBRACE [ LBRACK_FSLASH LBRACK_AMP END ]
+-- On RBRACE shift to state 187
+
+State 187:
+pattern_action -> pattern LBRACE stmt_list RBRACE . [ LBRACK_FSLASH LBRACK_AMP END ]
+-- On LBRACK_FSLASH reduce production pattern_action -> pattern LBRACE stmt_list RBRACE 
+-- On LBRACK_AMP reduce production pattern_action -> pattern LBRACE stmt_list RBRACE 
+-- On END reduce production pattern_action -> pattern LBRACE stmt_list RBRACE 
+

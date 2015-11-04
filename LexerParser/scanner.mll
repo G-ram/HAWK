@@ -11,25 +11,28 @@ rule token = parse
 	| '[' {LBRACK} | ']' {RBRACK}
 	| '{' {LBRACE} | '}' {RBRACE}
 	| '(' {LPAREN} | ')' {RPAREN}
-	| '/' {FSLASH}
 	| ';' {SEMI} | ':' {COLON}
 	| ',' {COMMA}
-    | "fun" {FUN}
+  | "fun" {FUN}
 	| "in" {IN}
 	| "BEGIN" {BEGIN} | "END" {END}
 	| "else" {ELSE} | "if" {IF}
 	| "while" {WHILE} | "for" {FOR}
 	| "this" {THIS}
+	| "return" {RETURN}
 	| '~' {TILDE}
 	| '<' {LT} | '>' {GT} | "==" {EQ}
 	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '/' {DIVIDES} | '=' {EQ}
 	| '#' {HASH}
+	| '_' {UNDER} | '?' {QUEST} | '^' {CARROT} | '|' {VERT}
+	| "[/" {LBRACK_FSLASH} | "/]" {FSLASH_RBRACK}
 	| "[@" {LBRACK_AMP} | "@]" {AMP_RBRACK}
 	| "*=" {TIMES_EQ} | "^=" {XOR_EQ} | "$=" {DOLLAR_EQ} | "~=" {TILDE_EQ}
 	| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 	| signed_int as lxm {INT(int_of_string lxm)}
 	| decimal as lxm {DOUBLE(float_of_string lxm)}
-	| '"' [^ '"']+ '"' as lxm { STRING(lxm) }
+	| '\''[^ '\'']'\'' as lxm {CHAR(lxm)}
+	| '"' [^ '"']+ '"' as lxm {STRING(lxm)}
 	| eof {EOF}
 
 	and comment = parse
