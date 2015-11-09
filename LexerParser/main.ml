@@ -24,4 +24,3 @@ let test_program p =
 let lexbuf = Lexing.from_channel (open_in "test.hawk") in
 let p = Parser.program Scanner.token lexbuf in
 test_program p
-	

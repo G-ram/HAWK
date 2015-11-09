@@ -156,7 +156,6 @@ pattern:
 /*End of statements and expressions*/
 
 /*Start of Regex*/
-/*TODO: parantheses*/
 
 regex:
 	STRING {RegexString($1)}
