@@ -85,30 +85,30 @@ HAWK is a programming language designed for web-scraping. The language takes its
 
 ### 2.1 Tokens
 
-There are several tokens in HAWK: identifiers, keywords, constants, string literals, operators, and patterns. Whitespace and comments are ignored except as separators of tokens.
+There are several tokens in HAWK: identifiers, keywords, constants, operators, and patterns. Whitespace and comments are ignored except as separators of tokens.
 
 ### 2.2 Comments
 
-Use /\* to begin a comment, and terminate it with \*/. Comments can extend across multiple lines.
+Use /\* to begin a comment, and terminate it with \*/. Comments can extend across multiple lines. Comments cannot be nested.
 
 ### 2.3 Identifiers
 
-An identifier is a sequence of letters, digits, dashes, and underscores. Uppercase and lowercase letters are different. Identifiers may have any length, and are separated from other tokens by whitespace. An identifier must have at least one letter or underscore, and must begin with either of the two.
+An identifier is a sequence of letters, digits, dashes, and underscores. Uppercase and lowercase letters are treated differently. Identifiers may have any length, and are separated from other tokens by whitespace. An identifier must have at least one letter or underscore, and must begin with either of the two.
 
 ### 2.4 Keywords
 
 The following identifiers are keywords reserved for particular use:
 
-* begin 
-* double 
-* else 
-* end 
-* if 
-* int 
-* return 
-* string 
-* this 
-* while
+* `begin` 
+* `double`
+* `else` 
+* `end`
+* `if` 
+* `int` 
+* `return` 
+* `string` 
+* `this` 
+* `while`
 
 ### 2.5 Constants
 
@@ -116,7 +116,7 @@ There are four types of constants, described in detail below.
 
 #### 2.5.A Integer Constants
 
-An integer constant consists of a sequence of digits that does not begin with 0. All integers in HAWK are taken to base 10. Negative integer constants consist of a sequence of digits prefixed by a dash.
+An integer constant consists of a sequence of digits that does not have leading zeros. All integers in HAWK are taken to base 10. Negative integer constants consist of a sequence of digits prefixed by a dash.
 
 #### 2.5.B Double Constants
 
@@ -126,20 +126,20 @@ A double constant consists of an integer part, decimal point, fractional part, a
 
 A string literal is a sequence of characters surround by double quotes. HAWK contains several escape sequences which can be used as characters within string literals:
 
-* newline “\n”
-* tab “\t” 
-* backslash “\\”
-* single quote “\’”
-* double quote “\””
+* newline `\n`
+* tab `\t` 
+* backslash `\\`
+* single quote `\’`
+* double quote `\”`
 
-String literals are immutable, and thus cannot be altered. Any operations performed a string literal will not affect the original literal but instead generate a new string.
+String literals are immutable, and thus cannot be altered. Any operations performed on a string literal will not affect the original literal but instead generate a new string.
 
 #### 2.5.D Table Literals
 
 A table literal is a comma-separated sequence delimited by curly braces. The comma-separated sequence can take two forms. 
 
 
-* A sequence of values of any type — there can be different types in this sequence. This generates a table where the values are keyed in sequential order from the integer 0 to sequence length-1. 
+* A sequence of values of any type — there can be different types in this sequence. However, these values have to be constants. This generates a table where the values are keyed in sequential order from the integer 0 to sequence length-1. 
 * A sequence of key-value pairs written in the form key : val. As before, values can vary within a table. Keys are restricted to integer or string types, and a table can be keyed by either integers or by strings, but not both.
 
 
@@ -148,20 +148,18 @@ Patterns utilize valid Regex or CSS selector syntax and are defined with special
 
 ####2.6.A CSS Selector Patterns
 
-HAWK implements a limited syntax of the standard W3 definition of CSS selectors. A CSS selector contains special syntax used to find elements in an HTML document which match particular criteria criteria. In HAWK, a CSS selectors patterns consists of CSS selector enclosed by @ symbols which are themselves enclosed by brackets.
+HAWK implements a limited syntax of the standard W3 definition of CSS selectors. A CSS selector contains special syntax used to find elements in an HTML document which match particular criteria. In HAWK, a CSS selector pattern consists of a CSS selector enclosed by @ symbols which are themselves enclosed by brackets.
 
-	[@ css-selector @]{
-		/*action*/
-	}
+	[@ css-selector @]
 	
 #####2.6.A.1 CSS Selectors
 
-A CSS selector consists of one ore more simple selector sequences chained by combinators. See below for details on simple selector sequences and combinators.
+A CSS selector consists of one or more simple selector sequences chained by combinators. See below for details on simple selector sequences and combinators.
 
 *css-selector*:
 
-* *simple-selector-sequence*
-* *simple-selector-sequence combinator css-selector*
+- *simple-selector-sequence*
+- *simple-selector-sequence combinator css-selector*
 	
 
 #####2.6.A.2 Simple Selector Sequences
@@ -193,6 +191,11 @@ A type selector can either specify a specific tag type, or can select any tag us
 
 Property selectors are predicates on attributes and associated values within an HTML tag. 
 
+*property-selector-list*: 
+
+* *property-selector*
+* *property-selector property-selector-list*
+
 *property-selector*:
 
 * *attribute-exists-selector*
@@ -202,9 +205,9 @@ Property selectors are predicates on attributes and associated values within an 
 
 Attribute existence selectors check if a tag contains a given attribute.
 
-attribute-exists-selector:
+*attribute-exists-selector*:
 
-* [identifier]
+* *[identifier]*
 	
 Attribute string matching selectors check if a tag contains a given attribute, and additionally filters for attributes whose associated values have certain string properties. Most of these are self explanatory with the exception of the whitespace separated containment selector. This selects for attribute values which, when split into a list of words by whitespace, contain the chosen word (e.g. `[years ~=  "1992"]` would match the element `<div years = "1488 1875 1992 1995"/>`.).
 
@@ -241,8 +244,8 @@ Attribute string matching selectors check if a tag contains a given attribute, a
 
 * .identifier
 
-Class selectors are used to find HTML elements whose "class" attribute contains a given value.
-*.
+Class selectors are used to find HTML elements whose "class" attribute contains a given value (doesn't have to be the exact value).
+
 *id-selector*:
 
 * \#identifier
@@ -252,7 +255,7 @@ ID Selectors are used to find HTML elements whose "id" attributes equal a given 
 
 #####2.6.A.5 Combinators
 
-Combinators chain together multiple simple sequence selectors, and are used to find elements who have a certain hierarchical relation to other elements. For instance, the direct child combinator > can be used to find an element that is a direct child of another element in the HTML XML hierarchy (e.g. `@div[attr1=value1] > span@` will find the span in `<div attr1="value1"> Blah blah blah <span></span></div>`).
+Combinators chain together multiple simple sequence selectors, and are used to find elements who have a certain hierarchical relation to other elements. For instance, the direct child combinator > can be used to find an element that is a direct child of another element in the HTML XML hierarchy (e.g. `@div[attr1="value1"] > span@` will find the span in `<div attr1="value1"> Blah blah blah <span></span></div>`).
 
 *combinator*:
 
@@ -270,7 +273,7 @@ The direct child combinator finds elements matched by a simple selector sequence
 
 *descendent-combinator*:
 
-* (empty string)
+* `\space`
 
 The descendent combinator finds elements matched by a simple selector sequence that are descendents of elements matched by another simple selector sequence. For instance, `@div span@` will match the nested span in `<div><span></span/></div>`.
 
@@ -293,8 +296,8 @@ The direct sibling combinator finds elements matched by a simple selector sequen
 	* **Example**: `@p@` will select for all paragraph elements
 * *element1 element2* : law of the descendent. This pattern will select for all element2’s that are child elements of element1
 	* **Example**: `@div #first-name@` will select for all elements with id attribute, `id=“first-name”` that are children of div elements
-* *element1 > element2* : strict law of the descendent. This pattern will select for the elements that are direction children of the parent element. In other words, these children  cannot be grandchildren (elements nested within other elements)
-* *element1 + element2* : selects the immediate child (the one child that is directly below the parent), element2, of the parent element, element1.
+* *element1 > element2* : strict law of the descendent. This pattern will select for the elements that are direct children of the parent element. In other words, these children  cannot be grandchildren (elements nested within other elements)
+* *element1 + element2* : selects the sibling, element2, of parent, element1
 * *element1 ~ element2* : selects every element, element2, that is preceded by element1
 * *[attribute]* : selects all elements with the given attribute. Example: [title] will select all elements with a title attribute
 * *[attribute op value]* : selects all elements that have an attribute with a value that evaluates the expression to true.
@@ -310,7 +313,7 @@ Please see CSS and HTML language reference manuals for additional explanation of
 
 
 ####2.6.B Regex Patterns
-HAWK implements a limited version of the standard regex expression syntax of the AWK language. A regex expression is used to find a particular pattern in an text document using the operations defined below (please see the POSIX and AWK language reference manuals for more). Moreover, a regex expression pattern must be offset with / symbols on both sides and be contained within a bracket before an action section.
+HAWK implements a limited version of the standard regex expression syntax of the AWK language. A regex expression is used to find a particular pattern in a text document using the operations defined below (please see the POSIX and AWK language reference manuals for more). Moreover, a regex expression pattern must be offset with / symbols on both sides and be contained within a bracket before an action section.
 
 	[/.../]{
 		/*action*/
@@ -321,10 +324,10 @@ Regex expression operations may be combined and standard regex expression operat
 * *_* : represents any character. 
 * *eof* : represents the end of file character.
 * *“string”* : represents a literal string of characters.
-* *‘a’ - ‘z’* : represents a range of characters. Must be contained within a pair of brackets.
+* *[‘a’ - ‘z’]* : represents a range of characters. Must be contained within a pair of brackets.
 * *[‘b’ ‘c’]* : evaluates to true if current character matches any character provided within brackets.
 * *^* : compliments a set of characters.
-* *(pattern)* : evaluates pattern inside parentheses before patterns outsides. Parentheses suggest an order of evaluation.
+* *(pattern)* : evaluates pattern inside parentheses before patterns outside. Parentheses suggest an order of evaluation.
 * *pattern\** : represents the kleene closure of a pattern with zero or more of the pattern present.
 * *pattern+* : represents the kleene closure of a pattern with one or more of the pattern present.
 * *pattern?* : represents a pattern that is optional.
@@ -333,7 +336,7 @@ Regex expression operations may be combined and standard regex expression operat
 
 Please see the POSIX and AWK language reference manuals for additional explanation of each regex expression operator.
 
-## 3. Syntax Notation
+## 3. Language Conventions
 
 ### 3.1 Meaning of Identifiers/Variables
 
@@ -373,11 +376,11 @@ HAWK uses reference counting to keep track of how many variables store reference
 
 #### 3.4.A Promotion of Integers in Mixed Arithmetic Expressions
 
-In mathematical binary expressions where one operand is an integer and the other operand is a double, the integer will be automatically converted to a double value. The conversion will be performed using the the built-in function int_to_double.
+In mathematical binary expressions where one operand is an integer and the other operand is a double, the integer will be automatically converted to a double value. The conversion will be performed using the the built-in function `int_to_double`.
 
 #### 3.4.B String Conversion in String Concatentation Expressions
 
-In binary addition expressions where one operand is a string, and the other operand is not a string, the non-string will be automatically converted to a string value. Tables will be converted using table_to_string, integers using int_to_string, doubles using double_to_string.
+In binary addition expressions where one operand is a string, and the other operand is not a string, the non-string will be automatically converted to a string value. Tables will be converted using `table_to_string`, integers using `int_to_string`, doubles using `double_to_string`. Using `int_to_string` or `double_to_string` on a string will convert the biggest substring starting from the front of the string that is a valid int/double into an int/double. For example, `int_to_string("123f") = 123`.
 
 ## 4. Expressions
 
@@ -400,6 +403,7 @@ Operators in postfix expressions group left to right.
 
 *postfix-expression*:
 
+* *primary-expression*
 * *postfix-expression[expression]*
 * *postfix-expression(argument-expression-list)* //arglist is optional
 
@@ -418,7 +422,8 @@ Expressions with unary operators group right to left.
 
 *unary expression*:
 
-* *unary-operator cast-expression*
+* *postfix expresssion*
+* *unary-operator unary-expression*
 
 *unary-operator: -*
 
@@ -432,9 +437,9 @@ The multiplicative operators \*, /, and % group left-to-right.
 
 *multiplicative-expression*:
 
-* *multiplicative-expression \* cast-expression*
-* *multiplicative-expression / cast-expression*
-* *multiplicative-expression % cast-expression*
+* *multiplicative-expression \* unary-expression*
+* *multiplicative-expression / unary-expression*
+* *multiplicative-expression % unary-expression*
 
 The operands of \*, /, and % must be of type integer or double. The usual arithmetic conversions are performed on the operands.
 
@@ -461,11 +466,11 @@ The relational operators group left-to-right. a<b<c is parsed as(a<b)<c, and eva
 
 *relational-expression:*
 
-* *shift-expression*
-* *relational-expression < shift-expression*
-* *relational-expression > shift-expression*
-* *relational-expression <= shift-expression*
-* *relational-expression >= shift-expression*
+* *additive-expression*
+* *relational-expression < additive-expression*
+* *relational-expression > additive-expression*
+* *relational-expression <= additive-expression*
+* *relational-expression >= additive-expression*
 
 The operators < (less), > (greater), <= (less or equal) and >= (greater or equal) all yield 0 if the specified relation is false and 1 if it is true. The type of the result is int. The usual arithmetic conversions are performed on arithmetic operands. 
 
@@ -484,8 +489,8 @@ same truth-value.)
 
 *logical-AND-expression:*
 
-* *inclusive-OR-expression*
-* *logical-AND-expression && inclusive-OR-expression*
+* *equality-expression*
+* *logical-AND-expression && equality-expression*
 
 The && operator groups left-to-right. It returns 1 if both its operands compare unequal to zero, 0 otherwise. 
 
@@ -509,11 +514,7 @@ evaluated, including all side effects; if it is unequal to 0, the value of the e
 The operands must be of type int or double, but don't have to be of the same type.
 The result is int. 
 
-### 4.10 Constant Expressions
-
-A constant expression is an expression that is just a constant. The type of the constant expression is the type of the constant, the value of the constant expression is the value of the constant.
-
-### 4.11 Built-In Functions
+### 4.10 Built-In Functions
 HAWK includes several built-in functions that are reserved and are specially-interpreted by the compiler. These include:
 
 * `open("...")` : must be placed before the BEGIN section of the program and sets the context of the program. In other words, the function determines which file the pattern-actions will operate on. Files are automatically closed at the end of program execution.
@@ -557,22 +558,22 @@ Section for more information.
 ##6. Statements
 Statements are executed in sequence.
 
-Statement:
+*statement*:
 
-* expression-statement
-* assignment-statement
-* compound-statement
-* conditional-statement
-* while-statement
-* return-statement
-* pattern-statement
-* BEGIN statement
-* END statement
+* *expression-statement*
+* *assignment-statement*
+* *compound-statement*
+* *conditional-statement*
+* *while-statement*
+* *return-statement*
+* *pattern-statement*
+* *BEGIN compound-statement*
+* *END compound-statement*
 
 ###6.1 Expression Statements
 *expression-statement:*
 
-* expression	
+* *expression*	
 
 Expression statements will typically be a function call but can 
 be any arbitrary expression. 
@@ -604,8 +605,8 @@ one statement is expected.
 
 *conditional-statement:*
 
-* *if (expression) compound-statement*
-* *if (expression) compound-statement else compound-statement*
+* *`if` (expression) compound-statement*
+* *`if` (expression) compound-statement `else` compound-statement*
 
 The first substatement is executed if the expression is not
 equal to zero, otherwise the second statement is executed. 
@@ -678,7 +679,6 @@ A table of relevant information returned by the pattern. In the case of a regex 
 
 * `this["id"]`: return id of the found element
 * `this["class"]`: return the class(es) of the found element
-* `this["handle"]`: return a handle that references the found element. This is read-only.
 * `this[/*custom attribute*/]`: return a custom attribute of the found element. This may not exist.
 
 
@@ -691,9 +691,9 @@ This section is executed last after all pattern sections have been executed, thi
 Creates a table, adds elements to this table each time a new line is encountered and prints this table. Notice that tables are mutable and how values of a table do not have to be of the same type.
 
 	BEGIN{
-		table = {1, 2, "hello", 70, 90, 100, 100.1}
+		table = {1, 2, "hello", 70, 90, 100, 100.1};
 	}
-	[ ]{
+	[\'\n'\]{
 		table[length(table)] = table[length(table)-1]+10;
 	}
 	END{
@@ -704,19 +704,34 @@ Looks for a certain CSS pattern and populates a global table with a count derive
 
 	BEGIN{ 
 		counts = { }
-	}	￼￼[@ table . wikitable > tr @]{		state = this["title"];		if(exists(counts[state])){
-			counts[state] = counts[state]+1;		}else{
-			counts[state] = 0;		} 	}	END{
-		len = length(counts) - 1;		while(len >= 0){			print(”STATE: ” + state + ”, COUNT: ” + counts[state]);
-			len = len - 1;		}	￼￼￼￼}
+	}
+	￼￼[@ table . wikitable > tr @]{
+		state = this["title"];
+		if(exists(counts[state])){
+			counts[state] = counts[state]+1;
+		}else{
+			counts[state] = 0;
+		} 
+	}
+	END{
+		len = length(counts) - 1;
+		while(len >= 0){
+			print(”STATE: ” + state + ”, COUNT: ” + counts[state]);
+			len = len - 1;
+		}
+	￼￼￼￼}
 
 ###8.3 Sample 3: Regex
 Looks for a regex expression, converts the output of the pattern to an integer and prints the integer if it satisifies a condition.
 
-	BEGIN{ }	[/ ['0'-'9']+ ft /]{ 		height = int_of_string(this);
+	BEGIN{ }
+	[/ ['0'-'9']+ ft /]{ 
+		height = int_to_string(this);
 		if( height >= 14000 && height <=15000){
 			print("found");
-		}	}	END{ }
+		}
+	}
+	END{ }
 
 ##9. References
 The following are helpful references that may have been previously refered to in above sections.
@@ -744,7 +759,6 @@ HAWK tables take inspiration from Lua tables. See the Lua LRM as further referen
 HAWK implements a limited set of Regex expressions. Regex operators are further defined in the POSIX reference manual.
 
 [https://www.gnu.org/software/guile/manual/html_node/POSIX.html](https://www.gnu.org/software/guile/manual/html_node/POSIX.html)
-
 
 
 
