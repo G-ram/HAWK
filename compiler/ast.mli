@@ -79,7 +79,7 @@ type expr =
 	|Literal of literal
 	|Assign of string * expr
 	|Binop of expr * op * expr
-    |Uminus of expr
+  |Uminus of expr
 	|Call of string * expr list
 	|TableAccess of string * string
 
