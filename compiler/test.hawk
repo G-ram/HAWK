@@ -1,7 +1,4 @@
-BEGIN {
-if(jon==3){a=3;}
+BEGIN{
+  print("hello world");
 }
-
-[@ div + span @]{}
-
 END{}
