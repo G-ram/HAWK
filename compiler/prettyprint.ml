@@ -134,7 +134,16 @@ and string_of_stmt = function
 	| While(expr, stmt) -> "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt)
 	| For(str1, str2, stmt) -> "for(" ^ str1 ^ " in " ^ str2 ^ ")" ^ (string_of_stmt stmt)
 	
+let string_of_pattern = function
+	CssPattern(css_selector) -> string_of_css_selector css_selector
+	| RegexPattern(regex) of string_of_regex regex
+	
+let string_of_pattern_action (pattern,action) =
+	(string_of_pattern pattern) ^ (string_of_stmt action)
+
 let string_of_program prog =
-	"BEGIN " ^ (string_of_stmt prog.begin_stmt) ^ "\n" ^ "END" ^ (string_of_stmt prog.end_stmt)
+	"BEGIN " ^ (string_of_stmt prog.begin_stmt) ^ "\n"
+	^ (String.concat "\n" (List.map string_of_pattern_action prog.pattern_actions))
+	^ "END" ^ (string_of_stmt prog.end_stmt)
 
 
