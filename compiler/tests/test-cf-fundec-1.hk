@@ -1,0 +1,6 @@
+BEGIN{
+    foo ( bar1 , bar2 ){
+        return bar1 + bar2;
+    }
+}
+END{}
