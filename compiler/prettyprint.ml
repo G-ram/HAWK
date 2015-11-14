@@ -136,7 +136,7 @@ and string_of_stmt = function
 	
 let string_of_pattern = function
 	CssPattern(css_selector) -> string_of_css_selector css_selector
-	| RegexPattern(regex) -> string_of_regex regex
+	| RegexPattern(regex_seq) -> (String.concat " " (List.map string_of_regex regex_seq))
 	
 let string_of_pattern_action (pattern,action) =
 	(string_of_pattern pattern) ^ (string_of_stmt action)
