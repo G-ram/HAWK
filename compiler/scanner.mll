@@ -22,7 +22,7 @@ rule token = parse
 	| "return" {RETURN}
 	| '~' {TILDE}
 	| '<' {LT} | '>' {GT} | "==" {EQ}
-	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '/' {DIVIDES} | '=' {EQ}
+	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '/' {DIVIDES} | '=' {ASSIGN}
 	| '#' {HASH}
 	| '_' {UNDER} | '?' {QUEST} | '^' {CARROT} | '|' {VERT}
 	| "[/" {LBRACK_FSLASH} | "/]" {FSLASH_RBRACK}
