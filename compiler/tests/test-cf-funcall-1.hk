@@ -1,0 +1,5 @@
+/*Actually passes*/
+BEGIN{
+    foo(1,2);
+}
+END{}

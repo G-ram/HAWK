@@ -6,3 +6,4 @@
 *.cmx
 parser.ml parser.mli
 scanner.ml
+.DS_Store

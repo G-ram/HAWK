@@ -1,0 +1,5 @@
+BEGIN{
+    table = {0,1};
+    keys(table);
+}
+END{}
