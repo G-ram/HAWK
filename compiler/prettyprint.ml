@@ -29,7 +29,7 @@ let string_of_regex_op op =
 
 	
 let rec string_of_regex regex = match regex with
-	| RegexString(str) -> "str"
+	| RegexString(str) -> str
 	| RegexNested(re) -> "(" ^ (string_of_regex re) ^ ")"
 	| RegexSet(sequence) -> string_of_regex_set_sequence sequence
 	| RegexUnOp(re,op) -> (string_of_regex re) ^ (string_of_regex_op op)
@@ -107,6 +107,7 @@ string_of_keyval_literal = function
 	
 let rec string_of_expr_list = function 
 	[] -> ""
+	| [hd] -> string_of_expr hd
 	| hd::tl -> (string_of_expr hd) ^ ", " ^ string_of_expr_list tl
 and
 string_of_expr = function
@@ -115,7 +116,7 @@ string_of_expr = function
 	| Assign(id, expr) -> id ^ " = " ^ (string_of_expr expr)
 	| Binop(expr1, op, expr2) -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr) -> string_of_expr expr
-	| Call(id, expr_list) -> id ^ string_of_expr_list expr_list
+	| Call(id, expr_list) -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
 	| TableAccess(id, str) -> id ^ "[" ^ str ^ "]"
 
 let rec string_of_func_decl func_decl  =
@@ -129,11 +130,11 @@ and string_of_stmt = function
 	| Expr(expr) -> (string_of_expr expr) ^ ";"
 	| Func(func_decl) -> string_of_func_decl func_decl
 	| Return(expr) -> "Return " ^ (string_of_expr expr) ^ ";"
-	| If(expr, stmt1, stmt2) -> "if(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt1) ^ (string_of_stmt stmt2)
+	| If(expr, stmt1, stmt2) -> "if(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt1) ^ "else" ^ (string_of_stmt stmt2)
 	| While(expr, stmt) -> "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt)
 	| For(str1, str2, stmt) -> "for(" ^ str1 ^ " in " ^ str2 ^ ")" ^ (string_of_stmt stmt)
 	
 let string_of_program prog =
-	"BEGIN " ^ (string_of_stmt prog.begin_stmt) ^ "\n" ^ "END" ^ (string_of_stmt prog.begin_stmt)
+	"BEGIN " ^ (string_of_stmt prog.begin_stmt) ^ "\n" ^ "END" ^ (string_of_stmt prog.end_stmt)
 
 
