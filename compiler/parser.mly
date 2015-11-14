@@ -105,6 +105,7 @@ expr_no_brace:
 
 expr_list:
 	/* */ { [] }
+	| expr { [$1] }
 	| expr_list COMMA expr { $3 :: $1 }
 
 literal:
