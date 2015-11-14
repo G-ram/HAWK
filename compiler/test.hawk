@@ -1,0 +1,7 @@
+BEGIN {
+if(jon==3){a=3;}
+}
+
+[@ div + span @]{}
+
+END{}
