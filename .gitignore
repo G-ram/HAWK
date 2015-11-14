@@ -3,5 +3,6 @@
 *.synctex.gz
 *.cmo
 *.cmi
+*.cmx
 parser.ml parser.mli
-scanner.ml 
+scanner.ml
