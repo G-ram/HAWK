@@ -83,10 +83,12 @@ let string_of_key_literal = function
 	| StringKey(key) -> key
 	
 (*TODO: these don't need to all be mutually recursive*)
-let rec string_of_table_literal = function
-	EmptyTable -> "{ }"
-	| ArrayLiteral(lit_list) -> string_of_array_literal lit_list
-	| KeyValueLiteral(keyval_list) -> string_of_keyval_literal keyval_list
+let rec string_of_table_literal table_lit =
+	let inner_part = match table_lit with
+		EmptyTable -> ""
+		| ArrayLiteral(lit_list) ->  (String.concat "," (List.map string_of_literal lit_list)) 
+		| KeyValueLiteral(keyval_list) -> (String.concat "," (List.map string_of_keyval_literal keyval_list))  
+	in "{" ^ inner_part ^ "}"
 and 
 string_of_literal = function
 	IntLiteral(x) -> string_of_int x
@@ -95,15 +97,8 @@ string_of_literal = function
 	| This -> "This"
 	| TableLiteral(tbl_lit) -> string_of_table_literal tbl_lit
 and
-string_of_array_literal = function
-	[] -> ""
-	| hd::tl -> "{" ^ (string_of_literal hd) ^ (string_of_array_literal tl) ^ "}"
-and
-string_of_keyval_literal = function
-	[] -> ""
-	| [(key,v)] -> "[" ^ (string_of_key_literal key) ^ ":" ^ (string_of_literal v) ^ "]" 
-	| (key,v)::tl -> "[" ^ (string_of_key_literal key) ^ ":" ^ (string_of_literal v) ^ "," 
-						^ (string_of_keyval_literal tl) ^ "]"
+string_of_keyval_literal (key,v) = 
+	(string_of_key_literal key) ^ ":" ^ (string_of_literal v) 
 	
 let rec string_of_expr_list = function 
 	[] -> ""
