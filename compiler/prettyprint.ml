@@ -97,7 +97,7 @@ string_of_literal = function
 and
 string_of_array_literal = function
 	[] -> ""
-	| hd::tl -> "[" ^ (string_of_literal hd) ^ (string_of_array_literal tl) ^ "]"
+	| hd::tl -> "{" ^ (string_of_literal hd) ^ (string_of_array_literal tl) ^ "}"
 and
 string_of_keyval_literal = function
 	[] -> ""
