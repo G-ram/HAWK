@@ -29,7 +29,7 @@ rule token = parse
 	| "[@" {LBRACK_AMP} | "@]" {AMP_RBRACK}
 	| "*=" {TIMES_EQ} | "^=" {XOR_EQ} | "$=" {DOLLAR_EQ} | "~=" {TILDE_EQ}
 	| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
-	| signed_int as lxm {INT(int_of_string lxm)}
+	| digits as lxm {INT(int_of_string lxm)}
 	| decimal as lxm {DOUBLE(float_of_string lxm)}
 	| '\''[^ '\'']'\'' as lxm {CHAR(lxm.[0])}
 	| '"' [^ '"']+ '"' as lxm {STRING(lxm)}

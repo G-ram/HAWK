@@ -115,7 +115,7 @@ string_of_expr = function
 	| Literal(lit) -> string_of_literal lit
 	| Assign(id, expr) -> id ^ " = " ^ (string_of_expr expr)
 	| Binop(expr1, op, expr2) -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
-	| Uminus(expr) -> string_of_expr expr
+	| Uminus(expr) -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list) -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
 	| TableAccess(id, str) -> id ^ "[" ^ str ^ "]"
 
