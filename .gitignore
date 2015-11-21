@@ -4,6 +4,8 @@
 *.cmo
 *.cmi
 *.cmx
+*.exe
+*.o
 parser.ml parser.mli
 scanner.ml
 .DS_Store
