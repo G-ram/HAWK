@@ -1,25 +1,71 @@
-open Ast
+type t = Int | String | Double| Table
 
-module StringMap = Map.Make(String)
+type expr_t = Ast.expr * Type.t
 
-type t = String
+type environment = {
+  scope: symbol_table
+  return: Type.t; (*Not implemented*)
+}
 
-let tree program =
+type symbol_table = {
+  parent: symbol_table option;
+  variables: expr_t list
+}
 
-  let rec gen_table_expr table p = match p with
-  Literal(l) -> (match l with
-    StringLiteral(s) -> StringMap.add s String table
-    | _ -> raise (Failure("WRONG!")))
-  | Call(fn, actual_params) ->
-    List.fold_left gen_table_expr table actual_params
-  | _ -> table
-  in
+let rec find (scope : symbol_table) name = try
+  List.find (fun (s, _, _, _) -> s = name) scope.variables with Not_found ->
+  match scope.parent with
+    Some(parent) -> find_variable parent name
+    | _ -> raise Not_found
 
-  let rec gen_table_stmt table p = match p with
-    Block(b) ->
-      List.fold_left gen_table_stmt table b
-    | Expr(e) ->
-      gen_table_expr table e
-    | _ -> table
+let rec check_expr env = function
+  Ast.Literal(v) ->
+    (match v with
+     Ast.IntLiteral -> Ast.IntLiteral(v), Types.Int
+     | Ast.StringLiteral -> Ast.StringLiteral(v), Types.String
+     | Ast.DoubleLiteral -> Ast.DoubleLiteral(v), Types.Double
+     | Ast.This -> Ast.This, Types.Table
+     | Ast.TableLiteral -> Ast.TableLiteral(v), Types.Table)
+  | Ast.Id(v) ->
+    let vdecl = try
+      find env.scope vname
+    with Not_found ->
+      raise (Error("undeclared identifier " ^ vname)) in
+    let (vname, typ) = vdecl in
+    Ast.Id(vname), typ
+  | Ast.Assign(v, e) ->
+    let (_, typ) = check_expr env e
+    Ast.Id(v), typ
+  | Ast.BinOp(e1, op, e2) ->
+    let e1 = expr env e1
+    and e2 = expr env e2 in
 
-  in gen_table_stmt (gen_table_stmt StringMap.empty program.begin_stmt) program.end_stmt
+    let _, t1 = e1
+    and _, t2 = e2 in
+    (*Operators come in*)
+    (
+      match op with
+      Ast.Plus ->
+      | Ast.Minus ->
+
+    )
+
+  | Ast.Uminus(e) ->
+    let (_, typ) = check_expr env e
+    (*Check for int or double*)
+    Ast.Uminus(e), typ
+  | Ast.Call(v, e) ->
+    (*Walk through function body and infer*)
+
+  | Ast.TableAccess(v, e) -> (*QUESTION*)
+    let (_, typ) = check_expr env e
+    (*Check for int or string*)
+
+let check_stmt env = function
+  Ast.Block(s) ->
+  | Ast.Expr(e) -> check_expr env e
+  | Ast.Func(f) ->
+  | Ast.Return(e) ->
+  | Ast.If(e, s, s) ->
+  | Ast.While(e, s) ->
+  | Ast.For(v, v, s) ->
