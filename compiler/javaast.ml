@@ -1,18 +1,15 @@
 type java_import = string
 
-type java_type = Int | Double | String | Void | ClassName(string)
+type java_type = Int | Double | String | Void | ClassName of string
 
-(* Expressions *)
-type expr =
-	Id of string
-	|Literal of literal
-	|Assign of string * expr
-	|Binop of expr * op * expr
-    |Uminus of expr
-	|Call of string * expr list
-	|TableAccess of string * string
+type java_literal = 
+	Int of int
+	| Double of float
+	| String of string
+	| Null
 	
-
+type op = Plus | Minus | Times | Divides | Greater | GreaterEqual | Less | LessEqual | Equal
+	
 type java_call = string * (java_expr list)
 
 and java_expr = 
@@ -25,6 +22,8 @@ and java_expr =
 	| MethodCall of java_expr * java_call (* e.g. (new Integer()).toString() *)
 	
 
+
+
 (* optional expr because we can either have "int a;" or "int a = 4;" *)
 type java_var_decl = {var_type: java_type;
 						var_id: string;
@@ -36,7 +35,15 @@ type java_fun_decl = { return_type: java_type;
 						fun_vars: java_var_decl list;
 						fun_body: java_stmt
 					}
-						
+and java_stmt = 
+	Block of java_stmt list
+	| VarDecl of java_var_decl
+	| Expr of java_expr
+	| Func of java_fun_decl
+	| Return of java_expr
+	| If of java_expr * java_stmt * java_stmt
+	| While of java_expr * java_stmt
+	| For of java_stmt * java_expr * java_stmt * java_stmt (* for(initial_statement; expr_condition; end_statement){  statement } *)
 
 type java_modifier = Public | Private | Static | Final
 
@@ -54,4 +61,6 @@ type java_program = {
 				imports : java_import list;
 				program_class : java_class;
 				}
+				
+
 				
