@@ -69,3 +69,5 @@ let check_stmt env = function
   | Ast.If(e, s, s) ->
   | Ast.While(e, s) ->
   | Ast.For(v, v, s) ->
+
+let check_pattern env Ast.pattern_action(_, action) = check_stmt env action
