@@ -65,7 +65,7 @@ type literal =
 	IntLiteral of int
 	|StringLiteral of string
 	|DoubleLiteral of float
-    |This
+  |This
 	|TableLiteral of table_literal
 and
 table_literal =
@@ -81,7 +81,7 @@ type expr =
 	|Binop of expr * op * expr
   |Uminus of expr
 	|Call of string * expr list
-	|TableAccess of string * string
+	|TableAccess of string * expr
 
 (*Program Structure and Action Syntax*)
 type stmt =
