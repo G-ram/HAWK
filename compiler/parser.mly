@@ -99,7 +99,7 @@ expr_no_brace:
 	| expr_no_brace NEQ expr_no_brace {Binop($1,NotEqual,$3)}
 	| ID ASSIGN expr {Assign($1,$3)}
 	| ID LPAREN expr_list RPAREN {Call($1,$3)}
-	| ID LBRACK STRING RBRACK {TableAccess($1,$3)}
+	| ID LBRACK expr RBRACK {TableAccess($1,$3)}
     | LPAREN expr RPAREN {$2}
     | MINUS expr_no_brace %prec UMINUS {Uminus($2)}
 
