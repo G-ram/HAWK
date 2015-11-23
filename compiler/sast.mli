@@ -26,7 +26,7 @@ type program_t = {
 }
 
 
-(*Test 2*)
+(*Test 3*)
 
 type symbol_table = {
   parent: symbol_table option;
