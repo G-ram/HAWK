@@ -25,7 +25,9 @@ type program_t = {
   	end_stmt : stmt_t;
 }
 
+
 (*Test*)
+
 type symbol_table = {
   parent: symbol_table option;
   variables: expr_t list
