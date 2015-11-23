@@ -50,7 +50,9 @@ let rec check_expr env = function
     Ast.Id("dummy"), Int
 
 let rec check_stmt env = function
-  Ast.Block(s) -> Expr((Ast.Id("dummy"),Int))
+  Ast.Block(sl) ->
+    let sl_t = List.map (fun s -> (check_stmt env s)) sl in
+    Block(sl_t)
   | Ast.Expr(e) -> Expr(check_expr env e)
   | Ast.Func(f) -> Expr((Ast.Id("dummy"),Int))
   | Ast.Return(e) -> Return(check_expr env e)
