@@ -25,12 +25,9 @@ type program_t = {
   	end_stmt : stmt_t;
 }
 
-
-(*Test 3*)
-
 type symbol_table = {
   parent: symbol_table option;
-  variables: expr_t list
+  mutable variables: expr_t list
 }
 
 type environment = {
