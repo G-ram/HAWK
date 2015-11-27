@@ -29,7 +29,9 @@ let rec check_expr env = function
   | Ast.Assign(v, e) ->
     let (_, typ) = check_expr env e in
     let vdecl = try (*Reassigning a variable to a different type is okay because assigment = declaration*)
-      find env.scope (Ast.Id(v))
+      let decl = find env.scope (Ast.Id(v)) in (*Add it in the symbol table if its a different type*)
+        if snd decl != typ then env.scope.variables <- (decl :: env.scope.variables) ;
+        decl
     with Not_found -> (*Declaring/Defining a new variable*)
       let decl = (Ast.Id(v), typ) in env.scope.variables <- (decl :: env.scope.variables) ; decl
       in
@@ -75,7 +77,7 @@ let rec check_expr env = function
     Ast.Id("dummy"), Int
 
 let rec check_stmt env = function
-  Ast.Block(sl) -> (*This is not correct!*)
+  Ast.Block(sl) -> (*This may or may not be correct!*)
     let sl_t = List.map (fun s -> (check_stmt env s)) sl in
     Block(sl_t)
   | Ast.Expr(e) -> Expr(check_expr env e)
