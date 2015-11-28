@@ -26,8 +26,6 @@ let string_of_regex_op op =
 		| KleenePlus -> "+"
 		| KleeneTimes -> "*"
 
-
-
 let rec string_of_regex regex = match regex with
 	| RegexString(str) -> str
 	| RegexNested(re) -> "(" ^ (string_of_regex re) ^ ")"

@@ -1,6 +1,14 @@
-type t = Int | String | Double| Table
+type t = Int | String | Double | Table
 
-type expr_t = Ast.expr * t
+type expr_det =
+  Id of string
+  |Literal of Ast.literal
+  |Assign of string * expr_t
+  |Binop of expr_t * Ast.op * expr_t
+  |Uminus of expr_t
+  |Call of string * expr_t list
+  |TableAccess of string * expr_t
+  and expr_t = expr_det * t
 
 type stmt_t =
   Block of stmt_t list
@@ -27,7 +35,7 @@ type program_t = {
 
 type symbol_table = {
   parent: symbol_table option;
-  mutable variables: expr_t list
+  mutable variables: (string*t) list
 }
 
 type environment = {
