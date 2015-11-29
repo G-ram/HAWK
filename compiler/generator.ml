@@ -1,22 +1,109 @@
 open Sast
+open String
+
+let type_to_str = function
+    Int -> "int"
+    | Double -> "double"
+    | Table -> ""
+    | String -> "String"
+
+let rec repeat str n =
+	match str,n with
+		|s,1 -> s
+		|s,n -> s ^ (repeat str (n-1))
+
+let string_for_indent indent =
+	repeat "\t" indent
+
+let rec string_of_regex_set = function
+	| Ast.RegexStringSet(str) -> str
+	| Ast.RegexCharSet(ch) -> (Char.escaped ch)
+	| Ast.RegexCharRangeSet(ch1,ch2) -> (Char.escaped ch1) ^ "-" ^ (Char.escaped ch2)
+	| Ast.RegexComplementSet(set) -> "^" ^ (string_of_regex_set set)
+	| Ast.RegexAnyCharSet -> "*"
+
+let string_of_regex_set_sequence seq =
+	let all_together = String.concat " " (List.map string_of_regex_set seq) in
+	"[" ^ all_together ^ "]"
+
+let string_of_regex_op op =
+	match op with
+		| Ast.Or -> "|"
+		| Ast.Optional -> "?"
+		| Ast.KleenePlus -> "+"
+		| Ast.KleeneTimes -> "*"
+
+let rec string_of_regex regex = match regex with
+	| Ast.RegexString(str) -> str
+	| Ast.RegexNested(re) -> "(" ^ (string_of_regex re) ^ ")"
+	| Ast.RegexSet(sequence) -> string_of_regex_set_sequence sequence
+	| Ast.RegexUnOp(re,op) -> (string_of_regex re) ^ (string_of_regex_op op)
+	| Ast.RegexBinOp(re1,op,re2) -> (string_of_regex re1) ^ (string_of_regex_op op) ^ (string_of_regex re1)
+
+
+let string_of_property prop = match prop with
+	|Ast.ClassMatch(s) -> "." ^ s
+	|Ast.IdMatch(s) -> "#" ^s
+	| Ast.AttributeExists(str) -> "[" ^ str ^ "]"
+	| Ast.AttributeEquals(attr,str) -> "[" ^ attr ^ "=" ^ str ^ "]"
+	| Ast.AttributeContains(attr,str) -> "[" ^ attr ^ "*=" ^ str ^ "]"
+	| Ast.AttributeBeginsWith(attr,str) -> "[" ^ attr ^ "^=" ^ str ^ "]"
+	| Ast.AttributeEndsWith(attr,str) -> "[" ^ attr ^ "$=" ^ str ^ "]"
+	| Ast.AttributeWhitespaceContains(attr,str) -> "[" ^ attr ^ "~=" ^ str ^ "]"
+
+let string_of_type_selector = function
+	|Ast.Elt(str) -> str
+	| Ast.Universal -> "*"
+	| Ast.NoType -> ""
+
+let string_of_simple_selector_seq (type_selector,props) =
+	let prop_string = List.fold_left (fun acc prop -> acc ^ (string_of_property prop)) "" props in
+	(string_of_type_selector type_selector) ^ prop_string
+
+let string_of_combinator = function
+	| Ast.DirectChild -> " "
+	| Ast.Descendent -> ">"
+	| Ast.DirectSibling -> "+"
+	| Ast.AnySibling -> "~"
+
+let rec string_of_css_selector css_selector = match css_selector with
+	| Ast.SingleSelector(seq) -> (string_of_simple_selector_seq seq)
+	| Ast.ChainedSelectors(selector,comb,seq) -> (string_of_css_selector selector) ^ (string_of_combinator comb) ^ (string_of_simple_selector_seq seq)
+
+
+let string_of_op = function
+	Ast.Plus ->  " + "
+	| Ast.Minus ->  " - "
+	| Ast.Times ->  " * "
+	| Ast.Divides ->  " / "
+	| Ast.Equal ->  " = "
+	| Ast.NotEqual ->  " != "
+	| Ast.Less ->  " < "
+	| Ast.LessEqual ->  " <= "
+	| Ast.Greater ->  " > "
+	| Ast.GreaterEqual ->  " >= "
+
+let string_of_key_literal = function
+	Ast.IntKey(key) -> string_of_int key
+	| Ast.StringKey(key) -> key
 
 (*TODO: these don't need to all be mutually recursive*)
 let rec string_of_table_literal table_lit =
 	let inner_part = match table_lit with
-		EmptyTable -> ""
-		| ArrayLiteral(lit_list) ->  ""(*(String.concat "," (List.map string_of_literal lit_list))*)
-		| KeyValueLiteral(keyval_list) -> ""(*(String.concat "," (List.map string_of_keyval_literal keyval_list))
-	in "{" ^ inner_part ^ "}"*)
+		Ast.EmptyTable -> ""
+		| Ast.ArrayLiteral(lit_list) ->  (String.concat "," (List.map string_of_literal lit_list))
+		| Ast.KeyValueLiteral(keyval_list) -> (String.concat "," (List.map string_of_keyval_literal keyval_list))
+	in "{" ^ inner_part ^ "}"
 and
 string_of_literal = function
-	IntLiteral(x), _ -> string_of_int x
-	| StringLiteral(str), _ -> str
-	| DoubleLiteral(dbl), _ -> string_of_float dbl
-	| This, _ ->  "" (*"This"*)
-	| TableLiteral(tbl_lit), _ -> "" (* string_of_table_literal tbl_lit *)
+	IntLiteral(x) -> string_of_int x
+	| StringLiteral(str) -> str
+	| DoubleLiteral(dbl) -> string_of_float dbl
+	| This-> "This"
+	| TableLiteral(tbl_lit) -> string_of_table_literal tbl_lit
 and
 string_of_keyval_literal (key,v) =
-	(* (string_of_key_literal key) ^ ":" ^ (string_of_literal v) *)
+	(string_of_key_literal key) ^ ":" ^ (string_of_literal v)
 
 let rec string_of_expr_list = function
 	[] -> ""
@@ -24,19 +111,39 @@ let rec string_of_expr_list = function
 	| hd::tl -> (string_of_expr hd) ^ ", " ^ string_of_expr_list tl
 and
 string_of_expr = function
-	Id(id), _  -> id
+	Id(id), _ -> id
 	| Literal(lit), _ -> string_of_literal lit
-	| Assign(id, expr), t -> (lowercase t) ^ " " ^ id ^ " = " ^ (string_of_expr expr)
+	| Assign(id, expr), t ->  (type_to_str t) ^ " " ^ id ^ " = " ^ (string_of_expr expr)
 	| Binop(expr1, op, expr2), _ -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
-	| TableAccess(id, expr), _ -> (*id ^ "[" ^ (string_of_expr expr) ^ "]"*) ""
+	| TableAccess(id, expr), _ -> id ^ "[" ^ (string_of_expr expr) ^ "]"
+
+let rec string_of_func_decl func_decl  =
+	func_decl.fname ^ "(" ^ (String.concat "," func_decl.params) ^ ")" ^ (string_of_stmt_list func_decl.body)
+and
+string_of_stmt_list = function
+	[] -> ""
+	| hd::tl -> (string_of_stmt hd) ^ "\n" ^ (string_of_stmt_list tl)
+and string_of_stmt = function
+	Block(stmt_list) -> "{\n" ^ (string_of_stmt_list stmt_list) ^ "\n}"
+	| Expr(expr) -> (string_of_expr expr) ^ ";"
+	| Func(func_decl) -> string_of_func_decl func_decl
+	| Return(expr) -> "Return " ^ (string_of_expr expr) ^ ";"
+	| If(expr, stmt1, stmt2) -> "if(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt1) ^ "else" ^ (string_of_stmt stmt2)
+	| While(expr, stmt) -> "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt)
+	| For(str1, str2, stmt) -> "for(" ^ str1 ^ " in " ^ str2 ^ ")" ^ (string_of_stmt stmt)
 
 let string_of_pattern pat =
 	let inner_pat = match pat with
-		CssPattern(css_selector) -> "for(int i = 0; i < 1; i++)"(*"@" ^ (string_of_css_selector css_selector) ^ "@"*)
-		| RegexPattern(regex_seq) -> "for(int i = 0; i < 1; i++)"(*"/" ^ (String.concat " " (List.map string_of_regex regex_seq)) ^ "/"
-	in "[" ^ inner_pat ^ "]"*)
+		Ast.CssPattern(css_selector) -> "for(int i = 0; i < 1; i++)"(*"@" ^ (string_of_css_selector css_selector) ^ "@"*)
+		| Ast.RegexPattern(regex_seq) -> "/" ^ (String.concat " " (List.map string_of_regex regex_seq)) ^ "/"
+	in (* "[" ^ inner_pat ^ "]" *) inner_pat 
 
 let string_of_pattern_action (pattern,action) =
-	(string_of_stmt action)
+	(string_of_pattern pattern) ^ (string_of_stmt action)
+
+let string_of_program prog =
+	"BEGIN " ^ (string_of_stmt prog.begin_stmt) ^ "\n"
+	^ (String.concat "\n" (List.map string_of_pattern_action prog.pattern_actions)) ^"\n"
+	^ "END" ^ (string_of_stmt prog.end_stmt)
