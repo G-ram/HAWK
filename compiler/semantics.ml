@@ -28,7 +28,7 @@ let rec check_expr env = function
     let (v, typ) = vdecl in
     Id(v), typ
   | Ast.Assign(v, e) ->
-    let (_, typ) = check_expr env e in
+    let (e, typ) = check_expr env e in
     let vdecl = try (*Reassigning a variable to a different type is okay because assigment = declaration*)
       let decl = find env.scope v in (*Add it in the symbol table if its a different type*)
         if snd decl != typ then env.scope.variables <- (decl :: env.scope.variables) ;
@@ -37,7 +37,7 @@ let rec check_expr env = function
       let decl = (v, typ) in env.scope.variables <- (decl :: env.scope.variables) ; decl
       in
     let (v, typ) = vdecl in
-    Id(v), typ
+    Assign(v, (e, typ)), typ
   | Ast.Binop(e1, op, e2) ->
     let e1 = check_expr env e1
     and e2 = check_expr env e2 in

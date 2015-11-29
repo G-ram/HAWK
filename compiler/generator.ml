@@ -1,5 +1,4 @@
 open Sast
-open String
 
 let type_to_str = function
     Int -> "int"
@@ -70,7 +69,6 @@ let rec string_of_css_selector css_selector = match css_selector with
 	| Ast.SingleSelector(seq) -> (string_of_simple_selector_seq seq)
 	| Ast.ChainedSelectors(selector,comb,seq) -> (string_of_css_selector selector) ^ (string_of_combinator comb) ^ (string_of_simple_selector_seq seq)
 
-
 let string_of_op = function
 	Ast.Plus ->  " + "
 	| Ast.Minus ->  " - "
@@ -113,7 +111,7 @@ and
 string_of_expr = function
 	Id(id), _ -> id
 	| Literal(lit), _ -> string_of_literal lit
-	| Assign(id, expr), t ->  (type_to_str t) ^ " " ^ id ^ " = " ^ (string_of_expr expr)
+	| Assign(id, expr), t -> (type_to_str t) ^ " " ^ id ^ " = " ^ (string_of_expr expr)
 	| Binop(expr1, op, expr2), _ -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
@@ -145,9 +143,8 @@ let string_of_pattern_action (pattern,action) =
 
 let string_of_program prog =
 	"public class Program {\n" ^
-	"public static void main(String[] args){" ^
+	"public static void main(String[] args)" ^
 	(string_of_stmt prog.begin_stmt) ^ "\n"
 	^ (String.concat "\n" (List.map string_of_pattern_action prog.pattern_actions)) ^"\n"
 	^ (string_of_stmt prog.end_stmt) ^
-										"}\n" ^
-										"}"
+										"}\n"
