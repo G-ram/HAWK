@@ -137,13 +137,17 @@ and string_of_stmt = function
 let string_of_pattern pat =
 	let inner_pat = match pat with
 		Ast.CssPattern(css_selector) -> "for(int i = 0; i < 1; i++)"(*"@" ^ (string_of_css_selector css_selector) ^ "@"*)
-		| Ast.RegexPattern(regex_seq) -> "/" ^ (String.concat " " (List.map string_of_regex regex_seq)) ^ "/"
-	in (* "[" ^ inner_pat ^ "]" *) inner_pat 
+		| Ast.RegexPattern(regex_seq) -> "for(int i = 0; i < 1; i++)" (*"/" ^ (String.concat " " (List.map string_of_regex regex_seq)) ^ "/"*)
+	in (* "[" ^ inner_pat ^ "]" *) inner_pat
 
 let string_of_pattern_action (pattern,action) =
 	(string_of_pattern pattern) ^ (string_of_stmt action)
 
 let string_of_program prog =
-	"BEGIN " ^ (string_of_stmt prog.begin_stmt) ^ "\n"
+	"public class Program {\n" ^
+	"public static void main(String[] args){" ^
+	(string_of_stmt prog.begin_stmt) ^ "\n"
 	^ (String.concat "\n" (List.map string_of_pattern_action prog.pattern_actions)) ^"\n"
-	^ "END" ^ (string_of_stmt prog.end_stmt)
+	^ (string_of_stmt prog.end_stmt) ^
+										"}\n" ^
+										"}"
