@@ -1,6 +1,4 @@
 BEGIN{
-  print("hello world");
-  print(42);
-  print(42.00);
+  a = 2+2;
 }
 END{}

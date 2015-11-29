@@ -8,4 +8,5 @@
 *.o
 parser.ml parser.mli
 scanner.ml
+prog
 .DS_Store
