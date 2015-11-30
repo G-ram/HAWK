@@ -94,11 +94,11 @@ let rec string_of_table_literal table_lit =
 	in "{" ^ inner_part ^ "}"
 and
 string_of_literal = function
-	IntLiteral(x) -> string_of_int x
-	| StringLiteral(str) -> str
-	| DoubleLiteral(dbl) -> string_of_float dbl
-	| This-> "This"
-	| TableLiteral(tbl_lit) -> string_of_table_literal tbl_lit
+	Ast.IntLiteral(x) -> string_of_int x
+	| Ast.StringLiteral(str) -> str
+	| Ast.DoubleLiteral(dbl) -> string_of_float dbl
+	| Ast.This-> "This"
+	| Ast.TableLiteral(tbl_lit) -> string_of_table_literal tbl_lit
 and
 string_of_keyval_literal (key,v) =
 	(string_of_key_literal key) ^ ":" ^ (string_of_literal v)
