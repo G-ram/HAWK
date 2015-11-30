@@ -74,7 +74,7 @@ let string_of_op = function
 	| Ast.Minus ->  " - "
 	| Ast.Times ->  " * "
 	| Ast.Divides ->  " / "
-	| Ast.Equal ->  " = "
+	| Ast.Equal ->  " == "
 	| Ast.NotEqual ->  " != "
 	| Ast.Less ->  " < "
 	| Ast.LessEqual ->  " <= "
@@ -111,7 +111,8 @@ and
 string_of_expr = function
 	Id(id), _ -> id
 	| Literal(lit), _ -> string_of_literal lit
-	| Assign(id, expr), t -> (type_to_str t) ^ " " ^ id ^ " = " ^ (string_of_expr expr)
+  | VAssign(id, expr), t -> (type_to_str t) ^ " " ^ id ^ " = " ^ (string_of_expr expr)
+	| Assign(id, expr), t -> id ^ " = " ^ (string_of_expr expr)
 	| Binop(expr1, op, expr2), _ -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
@@ -143,8 +144,8 @@ let string_of_pattern_action (pattern,action) =
 
 let string_of_program prog =
 	"public class Program {\n" ^
-	"public static void main(String[] args)" ^
+	"public static void main(String[] args){" ^
 	(string_of_stmt prog.begin_stmt) ^ "\n"
 	^ (String.concat "\n" (List.map string_of_pattern_action prog.pattern_actions)) ^"\n"
 	^ (string_of_stmt prog.end_stmt) ^
-										"}\n"
+										"\n}" ^ "}"

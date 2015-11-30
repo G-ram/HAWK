@@ -31,13 +31,12 @@ let rec check_expr env = function
     let (e, typ) = check_expr env e in
     let vdecl = try (*Reassigning a variable to a different type is okay because assigment = declaration*)
       let decl = find env.scope v in (*Add it in the symbol table if its a different type*)
-        if snd decl != typ then env.scope.variables <- (decl :: env.scope.variables) ;
-        decl
+      if snd decl != typ then raise (Failure("identifier type does not match previously declared type " ^ v))
+      else Assign(v, (e, typ)), typ
     with Not_found -> (*Declaring/Defining a new variable*)
-      let decl = (v, typ) in env.scope.variables <- (decl :: env.scope.variables) ; decl
-      in
-    let (v, typ) = vdecl in
-    Assign(v, (e, typ)), typ
+      let decl = (v, typ) in env.scope.variables <- (decl :: env.scope.variables) ;
+      VAssign(v, (e, typ)), typ in
+    vdecl
   | Ast.Binop(e1, op, e2) ->
     let e1 = check_expr env e1
     and e2 = check_expr env e2 in
@@ -81,7 +80,7 @@ let rec check_stmt env = function
   Ast.Block(sl) -> (*This may or may not be correct!*)
     let scopeT = { parent = Some(env.scope); variables = [] } in
     let envT = { env with scope = scopeT} in
-    let sl = List.map (fun s -> (check_stmt env s)) sl in
+    let sl = List.map (fun s -> (check_stmt envT s)) sl in
     Block(sl)
   | Ast.Expr(e) -> Expr(check_expr env e)
   | Ast.Func(f) -> Expr((Id("dummy"),Int)) (*This is not correct!*)

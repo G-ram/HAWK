@@ -3,6 +3,7 @@ type t = Int | String | Double | Table
 type expr_det =
   Id of string
   |Literal of Ast.literal
+  |VAssign of string * expr_t
   |Assign of string * expr_t
   |Binop of expr_t * Ast.op * expr_t
   |Uminus of expr_t
