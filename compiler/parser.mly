@@ -3,7 +3,7 @@
 %{ open Ast %}
 
 %token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE
-%token PLUS MINUS TIMES DIVIDES
+%token PLUS MINUS TIMES DIVIDES MOD
 %token LT GT LEQ GEQ EQ NEQ
 %token PERIOD ASSIGN HASH TILDE COMMA COLON UNDER QUEST CARROT VERT
 %token FUN
@@ -34,7 +34,7 @@
 %left EQ NEQ
 %left LT GT LEQ GEQ
 %left PLUS MINUS
-%left TIMES DIVIDES VERT QUEST
+%left TIMES DIVIDES MOD VERT QUEST
 %nonassoc UMINUS
 
 %start program
@@ -89,6 +89,7 @@ expr_no_brace:
 	| literal {Literal($1)}
 	| expr_no_brace TIMES expr_no_brace {Binop($1,Times,$3)}
 	| expr_no_brace DIVIDES expr_no_brace {Binop($1,Divides,$3)}
+	| expr_no_brace MOD expr_no_brace {Binop($1,Mod,$3)}
 	| expr_no_brace MINUS expr_no_brace {Binop($1,Minus,$3)}
 	| expr_no_brace PLUS expr_no_brace {Binop($1,Plus,$3)}
 	| expr_no_brace EQ expr_no_brace {Binop($1,Equal,$3)}
