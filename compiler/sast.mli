@@ -1,4 +1,4 @@
-type t = Int | String | Double | Table
+type t = Int | String | Double | Table of t | Void
 
 type expr_det =
   Id of string
@@ -39,7 +39,7 @@ type symbol_table = {
   mutable variables: (string*t) list
 }
 
-type environment = {
+type translation_environment = {
   scope: symbol_table;
   return: t option (*Not implemented*)
 }

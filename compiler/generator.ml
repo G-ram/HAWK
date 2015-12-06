@@ -3,7 +3,7 @@ open Sast
 let type_to_str = function
     Int -> "int"
     | Double -> "double"
-    | Table -> ""
+    | Table(_) -> ""
     | String -> "String"
 
 let rec repeat str n =
@@ -111,7 +111,7 @@ and
 string_of_expr = function
 	Id(id), _ -> id
 	| Literal(lit), _ -> string_of_literal lit
-  | VAssign(id, expr), t -> (type_to_str t) ^ " " ^ id ^ " = " ^ (string_of_expr expr)
+	| VAssign(id, expr), t -> (type_to_str t) ^ " " ^ id ^ " = " ^ (string_of_expr expr)
 	| Assign(id, expr), t -> id ^ " = " ^ (string_of_expr expr)
 	| Binop(expr1, op, expr2), _ -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
