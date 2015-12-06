@@ -14,10 +14,10 @@ let rec find_built_in name = try
 let is_table = function
 	|Table(_) -> true
 	| _ -> false
-	
 
 
-	
+
+
 let rec check_expr env = function
   Ast.Literal(l) ->(
     match l with
@@ -42,7 +42,7 @@ let rec check_expr env = function
       else Assign(v, (e, typ)), typ
     with Not_found -> (*Declaring/Defining a new variable*)
       let decl = (v, typ) in env.scope.variables <- (decl :: env.scope.variables) ;
-      VAssign(v, (e, typ)), typ 
+      VAssign(v, (e, typ)), typ
 	in
     vdecl
   | Ast.Binop(e1, op, e2) ->
@@ -81,40 +81,40 @@ let rec check_expr env = function
   | Ast.TableAccess(v, e) -> (*This is not correct!*)
     let (_, _) = check_expr env e in
     (*Check for int or string*)
-    Id("dummy"), Int	
-	
-and check_table_literal env tl = 
+    Id("dummy"), Int
+
+and check_table_literal env tl =
 	let all_the_same = function
 		| [] -> true
-		| lst -> 
+		| lst ->
 			(let hd = (List.hd lst) in
 			List.for_all ((=) hd) lst)
 	in
 	let all_types = match tl with (*Get all the types of the inner literals *)
 		| Ast.EmptyTable -> []
-		| Ast.ArrayLiteral(lit_list)->  
+		| Ast.ArrayLiteral(lit_list)->
 			(let exprs = List.map (fun l -> Ast.Literal(l)) lit_list
 			in (List.map snd (List.map (check_expr env) exprs)))
-		| Ast.KeyValueLiteral(kv_list) -> 
+		| Ast.KeyValueLiteral(kv_list) ->
 			(let values = (List.map snd kv_list) in
 			let exprs = List.map (fun l -> Ast.Literal(l)) values in
 			List.map snd (List.map (check_expr env) exprs))
 	in
 	let sast_expr = Literal(Ast.TableLiteral(tl))
 	in
-	match all_types with 
+	match all_types with
 		| [] -> sast_expr, UnassignedTable
 		| lst -> if not (all_the_same lst) then (*If literal types are not all the same, fail*)
 					raise (Failure("Mismatched element types in table literal"))
-				 else 
+				 else
 					let table_type = (List.hd all_types) in sast_expr, Table(table_type)
-	
+
 let rec check_stmt env = function
   Ast.Block(sl) -> (*This may or may not be correct!*)
     let scopeT = { parent = Some(env.scope); variables = [] } in
     let envT = { env with scope = scopeT} in
-    let sl = List.map (fun s -> (check_stmt envT s)) sl in
-    Block(sl)
+    let sl = List.map (fun s -> (check_stmt envT s)) sl in envT.scope.variables <- List.rev scopeT.variables;
+    Block(sl, envT)
   | Ast.Expr(e) -> Expr(check_expr env e)
   | Ast.Func(f) -> Expr((Id("dummy"),Int)) (*This is not correct!*)
   | Ast.Return(e) -> Return(check_expr env e)
@@ -137,7 +137,13 @@ let init_env =
     { scope = s; return = None; }
 
 let check_program p =
-  let env = init_env in
-    {begin_stmt = check_stmt env p.Ast.begin_stmt;
-    pattern_actions = List.map (fun (pattern, action) -> pattern, (check_pattern env action)) p.Ast.pattern_actions;
-    end_stmt = check_stmt env p.Ast.end_stmt;}
+  let (begin_block, env) = match check_stmt init_env p.Ast.begin_stmt with
+    Block(begin_block, env) -> begin_block, env
+    | _ -> raise (Failure("begin is not a block")) in
+  let pattern_actions = List.map (fun (pattern, action) -> pattern, (check_pattern env action)) p.Ast.pattern_actions in
+  let (end_block, env) = match check_stmt env p.Ast.end_stmt with
+    Block(end_block, env) -> end_block, env
+    | _ -> raise (Failure("end is not a block")) in
+  {begin_stmt = Block(begin_block, env);
+  pattern_actions = pattern_actions;
+  end_stmt = Block(end_block, env);}

@@ -126,13 +126,17 @@ string_of_stmt_list = function
 	[] -> ""
 	| hd::tl -> (string_of_stmt hd) ^ "\n" ^ (string_of_stmt_list tl)
 and string_of_stmt = function
-	Block(stmt_list) -> "{\n" ^ (string_of_stmt_list stmt_list) ^ "\n}"
+	Block(stmt_list, _) -> "{\n" ^ (string_of_stmt_list stmt_list) ^ "\n}"
 	| Expr(expr) -> (string_of_expr expr) ^ ";"
 	| Func(func_decl) -> string_of_func_decl func_decl
 	| Return(expr) -> "Return " ^ (string_of_expr expr) ^ ";"
 	| If(expr, stmt1, stmt2) -> "if(checkIf(" ^ (string_of_expr expr) ^ "))" ^ (string_of_stmt stmt1) ^ "else" ^ (string_of_stmt stmt2)
 	| While(expr, stmt) -> "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt)
 	| For(str1, str2, stmt) -> "for(" ^ str1 ^ " in " ^ str2 ^ ")" ^ (string_of_stmt stmt)
+
+let string_of_begin_end = function
+  Block(stmt_list, _) -> string_of_stmt_list stmt_list
+  | _ -> ""
 
 let string_of_pattern pat =
 	let inner_pat = match pat with
@@ -158,8 +162,8 @@ let string_of_program prog =
   (string_of_file "Imports.java") ^
 	"public class Program {\n" ^
 	"public static void main(String[] args){" ^
-	(string_of_stmt prog.begin_stmt) ^ "\n"
+	(string_of_begin_end prog.begin_stmt) ^ "\n"
 	^ (String.concat "\n" (List.map string_of_pattern_action prog.pattern_actions)) ^"\n"
-	^ (string_of_stmt prog.end_stmt) ^ "\n}"
+	^ (string_of_begin_end prog.end_stmt) ^ "\n}"
   ^ (string_of_file "BuiltIn.java")
   ^ "}"

@@ -1,5 +1,15 @@
 type t = Int | String | Double | Table of t | UnassignedTable | Void
 
+type symbol_table = {
+  parent: symbol_table option;
+  mutable variables: (string*t) list
+}
+
+type translation_environment = {
+  scope: symbol_table;
+  return: t option (*Not implemented*)
+}
+
 type expr_det =
   Id of string
   |Literal of Ast.literal
@@ -12,7 +22,7 @@ type expr_det =
   and expr_t = expr_det * t
 
 type stmt_t =
-  Block of stmt_t list
+  Block of stmt_t list * translation_environment
   | Expr of expr_t
   | Func of func_decl_t
   | Return of expr_t
@@ -32,14 +42,4 @@ type program_t = {
   	begin_stmt : stmt_t;
   	pattern_actions : pattern_action_t list;
   	end_stmt : stmt_t;
-}
-
-type symbol_table = {
-  parent: symbol_table option;
-  mutable variables: (string*t) list
-}
-
-type translation_environment = {
-  scope: symbol_table;
-  return: t option (*Not implemented*)
 }
