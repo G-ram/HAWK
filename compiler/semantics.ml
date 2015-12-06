@@ -11,14 +11,18 @@ let rec find (scope : symbol_table) name = try
 let rec find_built_in name = try
   List.find (fun (s, _) -> s = name) built_in with Not_found -> raise Not_found
 
+let is_table = function
+	|Table(_) -> true
+	| _ -> false
+	
 let rec check_expr env = function
   Ast.Literal(l) ->(
     match l with
      Ast.IntLiteral(v) -> Literal(l), Int
      | Ast.StringLiteral(v) -> Literal(l), String
      | Ast.DoubleLiteral(v) -> Literal(l), Double
-     | Ast.This -> Literal(l), Table
-     | Ast.TableLiteral(v) -> Literal(l), Table
+     | Ast.This -> Literal(l), Table(String)
+     | Ast.TableLiteral(v) -> Literal(l), Table(String) (*TODO: wrong*)
      )
   | Ast.Id(v) ->
     let vdecl = try
@@ -48,7 +52,7 @@ let rec check_expr env = function
       match op with
       Ast.Plus -> (
         match t1, t2 with
-        x, y when x = y && x != Table -> Binop(e1, op, e2), x
+        x, y when x = y && not (is_table x) -> Binop(e1, op, e2), x
         | x, y when x = String || y = String -> Binop(e1, op, e2), String
         | Int, Double -> Binop(e1, op, e2), Double
         | Double, Int -> Binop(e1, op, e2), Double
@@ -56,7 +60,7 @@ let rec check_expr env = function
         )
       | _ -> (
         match t1, t2 with
-        x, y when x = y && x != Table && x != String -> Binop(e1, op, e2), x
+        x, y when x = y && not (is_table x) && x != String -> Binop(e1, op, e2), x
         | Int, Double -> Binop(e1, op, e2), Double
         | Double, Int -> Binop(e1, op, e2), Double
         | _ , _ -> raise (Failure("binary operation type mismatch or operation does not support these types"))
@@ -97,7 +101,7 @@ let rec check_stmt env = function
 
 let check_pattern env a = check_stmt env a
 
-let init_env : environment =
+let init_env =
     let s = {
       parent = None;
       variables = [] } in
