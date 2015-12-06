@@ -1,4 +1,4 @@
 BEGIN{
-  print("test" + "test";)
+  print("test" + "test");
 }
 END{}
