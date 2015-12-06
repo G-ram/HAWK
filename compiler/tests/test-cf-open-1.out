@@ -1,7 +1,1 @@
-BEGIN {
-open("a");
-
-}
-END{
-
-}
+open 1 test successful

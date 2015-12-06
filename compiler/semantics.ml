@@ -75,11 +75,9 @@ let rec check_expr env = function
     (*Check for int or double*)
     if typ != Int && typ != Double then raise (Failure("unary minus operation does not support this type")) ;
     Uminus((e, typ)), typ
-  | Ast.Call(v, e) -> (*This is not correct!*)
-    (*Walk through function body and infer*)
-	(*TODO: Make sure that we also update inferred type of empty table if this is passed in and modified in function*)
-    Id("dummy"), Int
-
+  | Ast.Call(v, el) -> (*This is not entirely correct! Still needs to infer*)
+    let el = List.map (fun e -> (check_expr env e)) el in
+    Call(v, el), Int
   | Ast.TableAccess(v, e) -> (*This is not correct!*)
     let (_, _) = check_expr env e in
     (*Check for int or string*)
