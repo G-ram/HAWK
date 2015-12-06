@@ -9,5 +9,6 @@ BEGIN{
   while(a > 5){
     d = c*2;
   }
+  print(a);
 }
 END{}
