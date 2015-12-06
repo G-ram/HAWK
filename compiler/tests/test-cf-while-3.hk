@@ -1,7 +1,8 @@
 BEGIN{
     i = 0;
     while(i < 1){
-        ;
+        print(hello);
+        i = i + 1;
     }
 }
 END{}

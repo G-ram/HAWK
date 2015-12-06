@@ -1,7 +1,1 @@
-BEGIN {
-"test" + "test";
-
-}
-END{
-
-}
+testtest
