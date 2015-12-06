@@ -1,4 +1,4 @@
-type t = Int | String | Double | Table of t | Void
+type t = Int | String | Double | Table of t | UnassignedTable | Void
 
 type expr_det =
   Id of string
