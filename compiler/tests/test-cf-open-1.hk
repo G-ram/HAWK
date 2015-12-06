@@ -1,4 +1,5 @@
 BEGIN{
     open("a");
+    print("open 1 test successful");
 }
 END{}

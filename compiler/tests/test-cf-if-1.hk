@@ -2,6 +2,8 @@ BEGIN{
     i = 0;
     if(i < 0){
         baz = 1 + 1;
+        print(baz);
     }
+    print("I should be here");
 }
 END{}

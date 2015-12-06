@@ -1,4 +1,4 @@
 BEGIN{
-  1.0 + "test";
+  print(1.0 + "test");
 }
 END{}
