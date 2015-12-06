@@ -65,7 +65,7 @@ type literal =
 	IntLiteral of int
 	|StringLiteral of string
 	|DoubleLiteral of float
-  |This
+	|This
 	|TableLiteral of table_literal
 and
 table_literal =
