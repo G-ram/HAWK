@@ -77,7 +77,7 @@ let rec check_expr env = function
     Uminus((e, typ)), typ
   | Ast.Call(v, el) -> (*This is not entirely correct! Still needs to infer*)
     let el = List.map (fun e -> (check_expr env e)) el in
-    let test = if List.length el = 1 then begin
+    let _ = if List.length el = 1 then begin
       let (e, typ) = List.hd el in
       let typ = match typ with (*Check for correct type*)
         Table(_) -> BTable
@@ -88,7 +88,7 @@ let rec check_expr env = function
       with Not_found -> ( (*Check if its a type error or a new function*)
           try
             let (built_in_name, _) = find_built_in v BAny in
-            raise (Failure("parameter type does not match in built-in function parameter type " ^ built_in_name)) ; ()
+            raise (Failure("parameter type does not match built-in function parameter type " ^ built_in_name))
           with Not_found -> ()
         )
     end in

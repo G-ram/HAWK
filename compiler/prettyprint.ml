@@ -70,6 +70,7 @@ let string_of_op = function
 	| Times ->  " * "
 	| Divides ->  " / "
 	| Equal ->  " = "
+	| Mod -> "%"
 	| NotEqual ->  " != "
 	| Less ->  " < "
 	| LessEqual ->  " <= "
