@@ -1,6 +1,9 @@
 open Sast
 
-let built_in = [("print", String)]
+type b_arg_types = BAny | BString | BTable
+
+let built_in = [("print", BAny); ("open", BString); ("exits", BAny);
+                ("length", BTable); ("keys", BTable); ("children", BTable); ("inner_html", BTable)]
 
 let rec find (scope : symbol_table) name = try
   List.find (fun (s, _) -> s = name) scope.variables with Not_found ->
@@ -8,15 +11,12 @@ let rec find (scope : symbol_table) name = try
     Some(parent) -> find parent name
     | _ -> raise Not_found
 
-let rec find_built_in name = try
-  List.find (fun (s, _) -> s = name) built_in with Not_found -> raise Not_found
+let rec find_built_in name typ = try
+  List.find (fun (s, t) -> (s = name && t = BAny) || (s = name && t = typ)) built_in with Not_found -> raise Not_found
 
 let is_table = function
 	|Table(_) -> true
 	| _ -> false
-
-
-
 
 let rec check_expr env = function
   Ast.Literal(l) ->(
@@ -77,6 +77,21 @@ let rec check_expr env = function
     Uminus((e, typ)), typ
   | Ast.Call(v, el) -> (*This is not entirely correct! Still needs to infer*)
     let el = List.map (fun e -> (check_expr env e)) el in
+    let test = if List.length el = 1 then begin
+      let (e, typ) = List.hd el in
+      let typ = match typ with (*Check for correct type*)
+        Table(_) -> BTable
+        | String -> BString
+        | _ -> BAny in
+      try (*Test to see if user is trying to call built-in function and check for type*)
+        ignore(find_built_in v typ) ; ()
+      with Not_found -> ( (*Check if its a type error or a new function*)
+          try
+            let (built_in_name, _) = find_built_in v BAny in
+            raise (Failure("parameter type does not match in built-in function parameter type " ^ built_in_name)) ; ()
+          with Not_found -> ()
+        )
+    end in
     Call(v, el), Int
   | Ast.TableAccess(v, e) -> (*This is not correct!*)
     let (_, _) = check_expr env e in
@@ -105,9 +120,9 @@ and check_table_literal env tl =
 	match all_types with
 		| [] -> sast_expr, UnassignedTable
 		| lst -> if not (all_the_same lst) then (*If literal types are not all the same, fail*)
-					raise (Failure("Mismatched element types in table literal"))
-				 else
-					let table_type = (List.hd all_types) in sast_expr, Table(table_type)
+					      raise (Failure("Mismatched element types in table literal"))
+				     else
+					      let table_type = (List.hd all_types) in sast_expr, Table(table_type)
 
 let rec check_stmt env = function
   Ast.Block(sl) -> (*This may or may not be correct!*)
@@ -116,7 +131,13 @@ let rec check_stmt env = function
     let sl = List.map (fun s -> (check_stmt envT s)) sl in envT.scope.variables <- List.rev scopeT.variables;
     Block(sl, envT)
   | Ast.Expr(e) -> Expr(check_expr env e)
-  | Ast.Func(f) -> Expr((Id("dummy"),Int)) (*This is not correct!*)
+  | Ast.Func(f) ->(
+    try (*Test to see if user is trying to overwrite built-in function*)
+      ignore(find_built_in f.Ast.fname BAny) ;
+      raise (Failure("function is overwrites built-in function " ^ f.Ast.fname))
+    with Not_found -> (*valid function*)
+      Expr((Id("dummy"),Int)) (*This is not correct!*)
+    )
   | Ast.Return(e) -> Return(check_expr env e)
   | Ast.If(e, s1, s2) ->
     let (e, typ) = check_expr env e in
