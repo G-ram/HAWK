@@ -130,19 +130,17 @@ and string_of_stmt = function
 	| Expr(expr) -> (string_of_expr expr) ^ ";"
 	| Func(func_decl) -> string_of_func_decl func_decl
 	| Return(expr) -> "Return " ^ (string_of_expr expr) ^ ";"
-	| If(expr, stmt1, stmt2) -> "if(checkIf(" ^ (string_of_expr expr) ^ "))" ^ (string_of_stmt stmt1) ^ "else" ^ (string_of_stmt stmt2)
+	| If(expr, stmt1, stmt2) -> "if(_checkIf(" ^ (string_of_expr expr) ^ "))" ^ (string_of_stmt stmt1) ^ "else" ^ (string_of_stmt stmt2)
 	| While(expr, stmt) -> "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt)
-	| For(str1, str2, stmt) -> "for(" ^ str1 ^ " in " ^ str2 ^ ")" ^ (string_of_stmt stmt)
+	| For(str1, str2, stmt) -> "for(" ^ str1 ^ " : " ^ str2 ^ ")" ^ (string_of_stmt stmt)
 
 let string_of_begin_end = function
   Block(stmt_list, _) -> string_of_stmt_list stmt_list
   | _ -> ""
 
-let string_of_pattern pat =
-	let inner_pat = match pat with
+let string_of_pattern pat = match pat with
 		Ast.CssPattern(css_selector) -> "for(int i = 0; i < 1; i++)"(*"@" ^ (string_of_css_selector css_selector) ^ "@"*)
-		| Ast.RegexPattern(regex_seq) -> "for(int i = 0; i < 1; i++)" (*"/" ^ (String.concat " " (List.map string_of_regex regex_seq)) ^ "/"*)
-	in (* "[" ^ inner_pat ^ "]" *) inner_pat
+		| Ast.RegexPattern(regex_seq) -> "for(String _this : _regexMatcher._match(\""^(String.concat " " (List.map string_of_regex regex_seq))^"\"))"
 
 let string_of_pattern_action (pattern,action) =
 	(string_of_pattern pattern) ^ (string_of_stmt action)
@@ -159,10 +157,11 @@ let string_of_file file =
   !file_string
 
 let string_of_program prog =
-  (string_of_file "Imports.java") ^
-	"public class Program {\n" ^
-	"public static void main(String[] args){" ^
-	(string_of_begin_end prog.begin_stmt) ^ "\n"
+  (string_of_file "Imports.java")
+	^ "public class Program {\n"
+	^ "public static void main(String[] _args){"
+  ^ (string_of_file "Setup.java")
+	^ (string_of_begin_end prog.begin_stmt) ^ "\n"
 	^ (String.concat "\n" (List.map string_of_pattern_action prog.pattern_actions)) ^"\n"
 	^ (string_of_begin_end prog.end_stmt) ^ "\n}"
   ^ (string_of_file "BuiltIn.java")

@@ -1,8 +1,8 @@
 open Sast
 
-type b_arg_types = BAny | BString | BTable
+type b_arg_types = BAny | BTable
 
-let built_in = [("print", BAny); ("open", BString); ("exits", BAny);
+let built_in = [("print", BAny); ("exits", BAny);
                 ("length", BTable); ("keys", BTable); ("children", BTable); ("inner_html", BTable)]
 
 let rec find (scope : symbol_table) name = try
@@ -81,7 +81,6 @@ let rec check_expr env = function
       let (e, typ) = List.hd el in
       let typ = match typ with (*Check for correct type*)
         Table(_) -> BTable
-        | String -> BString
         | _ -> BAny in
       try (*Test to see if user is trying to call built-in function and check for type*)
         ignore(find_built_in v typ) ; ()
@@ -125,7 +124,7 @@ and check_table_literal env tl =
 					      let table_type = (List.hd all_types) in sast_expr, Table(table_type)
 
 let rec check_stmt env = function
-  Ast.Block(sl) -> (*This may or may not be correct!*)
+  Ast.Block(sl) ->
     let scopeT = { parent = Some(env.scope); variables = [] } in
     let envT = { env with scope = scopeT} in
     let sl = List.map (fun s -> (check_stmt envT s)) sl in envT.scope.variables <- List.rev scopeT.variables;

@@ -6,9 +6,21 @@ BEGIN{
   if(a == c){
     d = b+2;
   }
-  while(a > 5){
-    d = c*2;
+  i = 0;
+  d = c;
+  while(i < 10){
+    d = d*2;
+    print(d);
+    i = i +1;
+  }
+  if(1){
+    print("yeah this works");
   }
   print(a);
 }
-END{}
+[/['a']?/]{
+  print("Hey pattern matching is here to stay");
+}
+END{
+  print(b);
+}
