@@ -89,7 +89,7 @@ let string_of_key_literal = function
 (*TODO: these don't need to all be mutually recursive*)
 let rec string_of_table_literal table_lit =
 	let inner_part = match table_lit with
-		Ast.EmptyTable -> ""
+		|Ast.TypedEmptyTableLiteral(s) -> ""
 		| Ast.ArrayLiteral(lit_list) ->  (String.concat "," (List.map string_of_literal lit_list))
 		| Ast.KeyValueLiteral(keyval_list) -> (String.concat "," (List.map string_of_keyval_literal keyval_list))
 	in "{" ^ inner_part ^ "}"

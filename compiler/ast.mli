@@ -69,7 +69,7 @@ type literal =
 	|TableLiteral of table_literal
 and
 table_literal =
-    EmptyTable
+    TypedEmptyTableLiteral of string (*string denotes the type of table*)
 	|ArrayLiteral of literal list
 	|KeyValueLiteral of (key_literal * literal) list
 

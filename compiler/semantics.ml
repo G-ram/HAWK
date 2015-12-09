@@ -18,6 +18,25 @@ let is_table = function
 	|Table(_) -> true
 	| _ -> false
 
+(* empty table literals  begin with type prefixes.
+ s{} denotes table of string
+ i{} denotes table of int
+ d{} denotes table of double
+ Can precede s,i, or d with additional t's for nesting:
+ ti{} denotes table of table of int
+ ttd{} denotes table of table of table of double, etc...
+ *)
+let rec get_empty_table_type prefix =
+	let len = (String.length prefix) in
+	match prefix with
+		"s" -> String
+		| "i" -> Int
+		| "d" -> Double
+		| p when p.[0]='t' && len>1 -> 
+			let rest = (String.sub p 1 (len -1)) in 
+			get_empty_table_type rest
+		| _ -> raise (Failure("Invalid table prefix " ^ prefix))
+	
 let rec check_expr env = function
   Ast.Literal(l) ->(
     match l with
@@ -105,7 +124,7 @@ and check_table_literal env tl =
 			List.for_all ((=) hd) lst)
 	in
 	let all_types = match tl with (*Get all the types of the inner literals *)
-		| Ast.EmptyTable -> []
+		| Ast.TypedEmptyTableLiteral(prefix) -> [ (get_empty_table_type prefix) ]
 		| Ast.ArrayLiteral(lit_list)->
 			(let exprs = List.map (fun l -> Ast.Literal(l)) lit_list
 			in (List.map snd (List.map (check_expr env) exprs)))
@@ -116,12 +135,10 @@ and check_table_literal env tl =
 	in
 	let sast_expr = Literal(Ast.TableLiteral(tl))
 	in
-	match all_types with
-		| [] -> sast_expr, UnassignedTable
-		| lst -> if not (all_the_same lst) then (*If literal types are not all the same, fail*)
-					      raise (Failure("Mismatched element types in table literal"))
-				     else
-					      let table_type = (List.hd all_types) in sast_expr, Table(table_type)
+	if not (all_the_same all_types) then (*If literal types are not all the same, fail*)
+		raise (Failure("Mismatched element types in table literal"))
+	else
+		let table_type = (List.hd all_types) in sast_expr, Table(table_type)
 
 let rec check_stmt env = function
   Ast.Block(sl) ->
