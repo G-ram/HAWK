@@ -81,7 +81,7 @@ type expr =
 	|Binop of expr * op * expr
   |Uminus of expr
 	|Call of string * expr list
-	|TableAccess of string * expr
+	|TableAccess of expr * expr (* e.g t[1] or (t[2][3])[4]  *)
 
 (*Program Structure and Action Syntax*)
 type stmt =

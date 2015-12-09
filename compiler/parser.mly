@@ -97,7 +97,7 @@ expr:
 	| expr NEQ expr {Binop($1,NotEqual,$3)}
 	| ID ASSIGN expr {Assign($1,$3)}
 	| ID LPAREN expr_list RPAREN {Call($1,$3)}
-	| ID LBRACK expr RBRACK {TableAccess($1,$3)}
+	| expr LBRACK expr RBRACK {TableAccess($1,$3)}
     | LPAREN expr RPAREN {$2}
     | MINUS expr %prec UMINUS {Uminus($2)}
 

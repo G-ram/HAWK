@@ -111,7 +111,7 @@ string_of_expr = function
 	| Binop(expr1, op, expr2) -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr) -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list) -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
-	| TableAccess(id, expr) -> id ^ "[" ^ (string_of_expr expr) ^ "]"
+	| TableAccess(e1, e2) -> (string_of_expr e1) ^ "[" ^ (string_of_expr e2) ^ "]"
 
 let rec string_of_func_decl func_decl  =
 	func_decl.fname ^ "(" ^ (String.concat "," func_decl.params) ^ ")" ^ (string_of_stmt_list func_decl.body)
