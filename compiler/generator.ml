@@ -1,10 +1,11 @@
 open Sast
 
-let type_to_str = function
+let rec type_to_str = function
     Int -> "int"
     | Double -> "double"
-    | Table(_) -> ""
+    | Table(value_type) -> "HawkTable<" ^ (type_to_str value_type) ^ ">"
     | String -> "String"
+	| Void -> "void"
 
 let rec repeat str n =
 	match str,n with
@@ -89,7 +90,9 @@ let string_of_key_literal = function
 (*TODO: these don't need to all be mutually recursive*)
 let rec string_of_table_literal table_lit =
 	let inner_part = match table_lit with
-		|Ast.TypedEmptyTableLiteral(s) -> ""
+		|Ast.TypedEmptyTableLiteral(type_prefix) -> 
+			let value_type = (Semantics.get_empty_table_type type_prefix) in
+			"new " ^ (type_to_str (Table value_type)) ^ "()"
 		| Ast.ArrayLiteral(lit_list) ->  (String.concat "," (List.map string_of_literal lit_list))
 		| Ast.KeyValueLiteral(keyval_list) -> (String.concat "," (List.map string_of_keyval_literal keyval_list))
 	in "{" ^ inner_part ^ "}"
@@ -117,9 +120,9 @@ string_of_expr = function
 	| Binop(expr1, op, expr2), _ -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
-	| TableAccess(table_e, ind_e), -> 
+	| TableAccess(table_e, ind_e), _ -> 
 		let (_,index_type) = ind_e in
-		if ind_e = Int then
+		if index_type = Int then
 			(string_of_expr table_e) ^ "getIntKey(" ^ (string_of_expr ind_e) ^ ")"
 		else
 			(string_of_expr table_e) ^ "getStringKey(" ^ (string_of_expr ind_e) ^ ")"
