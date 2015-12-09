@@ -1,4 +1,4 @@
-type t = Int | String | Double | Table of t | UnassignedTable | Void
+type t = Int | String | Double | Table of t | Void
 
 type symbol_table = {
   parent: symbol_table option;
@@ -18,7 +18,7 @@ type expr_det =
   |Binop of expr_t * Ast.op * expr_t
   |Uminus of expr_t
   |Call of string * expr_t list
-  |TableAccess of string * expr_t
+  |TableAccess of expr_t * expr_t
   and expr_t = expr_det * t
 
 type stmt_t =

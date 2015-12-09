@@ -111,11 +111,15 @@ let rec check_expr env = function
         )
     end in
     Call(v, el), Int
-  | Ast.TableAccess(v, e) -> (*This is not correct!*)
-    let (_, _) = check_expr env e in
-    (*Check for int or string*)
-    Id("dummy"), Int
-
+  | Ast.TableAccess(table_expr,index_expr) -> 
+    let (table_e, table_t) = (check_expr env table_expr) in
+	let (ind_e, ind_t) = (check_expr env index_expr) in
+	match table_t with
+		| Table(value_type) ->
+			match value_type with
+				Int | String -> TableAccess((table_e,table_t), (ind_e,ind_t)), value_type
+				| _ -> raise (Failure("Must index table with int or string."))
+		| _ -> raise (Failure("Attempting to do table access on non-table"))
 and check_table_literal env tl =
 	let all_the_same = function
 		| [] -> true
