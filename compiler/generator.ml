@@ -117,7 +117,12 @@ string_of_expr = function
 	| Binop(expr1, op, expr2), _ -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
-	| TableAccess(table_e, ind_e), _ -> (string_of_expr table_e) ^ "[" ^ (string_of_expr ind_e) ^ "]"
+	| TableAccess(table_e, ind_e), -> 
+		let (_,index_type) = ind_e in
+		if ind_e = Int then
+			(string_of_expr table_e) ^ "getIntKey(" ^ (string_of_expr ind_e) ^ ")"
+		else
+			(string_of_expr table_e) ^ "getStringKey(" ^ (string_of_expr ind_e) ^ ")"
 
 let rec string_of_func_decl func_decl  =
 	func_decl.fname ^ "(" ^ (String.concat "," func_decl.params) ^ ")" ^ (string_of_stmt_list func_decl.body)
