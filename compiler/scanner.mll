@@ -31,8 +31,8 @@ rule token = parse
 	| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 	| digits as lxm {INT(int_of_string lxm)}
 	| decimal as lxm {DOUBLE(float_of_string lxm)}
-	| '\''[^ '\'']'\'' as lxm {CHAR(lxm.[0])}
 	| '"' [^ '"']+ '"' as lxm {STRING(lxm)}
+	| _ as lxm {CHAR(lxm)}
 	| eof {EOF}
 
 	and comment = parse

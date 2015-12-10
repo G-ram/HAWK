@@ -22,13 +22,14 @@ let string_for_indent indent =
 	repeat "\t" indent
 
 let rec string_of_regex_set = function
-	| Ast.RegexStringSet(str) -> str
-	| Ast.RegexCharSet(ch) -> (Char.escaped ch)
-	| Ast.RegexCharRangeSet(ch1,ch2) -> (Char.escaped ch1) ^ "-" ^ (Char.escaped ch2)
-	| Ast.RegexComplementSet(set) -> "^" ^ (string_of_regex_set set)
-	| Ast.RegexAnyCharSet -> "*"
+  Ast.RegexCharSet(ch) -> (Char.escaped ch)
+  | Ast.RegexStringSet(str) -> str
+  | Ast.RegexCharRangeSet(ch1,ch2) -> (Char.escaped ch1) ^ "-" ^ (Char.escaped ch2)
+  | Ast.RegexComplementSet(set) -> "^" ^ (string_of_regex_set set)
+  | Ast.RegexAnyCharSet -> "_"
+  | Ast.RegexNestedSet(set) -> (string_of_regex_set_sequence set)
 
-let string_of_regex_set_sequence seq =
+and string_of_regex_set_sequence seq =
 	let all_together = String.concat " " (List.map string_of_regex_set seq) in
 	"[" ^ all_together ^ "]"
 
@@ -40,11 +41,12 @@ let string_of_regex_op op =
 		| Ast.KleeneTimes -> "*"
 
 let rec string_of_regex regex = match regex with
-	| Ast.RegexString(str) -> str
-	| Ast.RegexNested(re) -> "(" ^ (string_of_regex re) ^ ")"
-	| Ast.RegexSet(sequence) -> string_of_regex_set_sequence sequence
-	| Ast.RegexUnOp(re,op) -> (string_of_regex re) ^ (string_of_regex_op op)
-	| Ast.RegexBinOp(re1,op,re2) -> (string_of_regex re1) ^ (string_of_regex_op op) ^ (string_of_regex re1)
+  Ast.RegexChar(ch) -> (Char.escaped ch)
+  | Ast.RegexString(str) -> str
+  | Ast.RegexNested(re) -> "(" ^ (string_of_regex re) ^ ")"
+  | Ast.RegexSet(sequence) -> string_of_regex_set_sequence sequence
+  | Ast.RegexUnOp(re,op) -> (string_of_regex re) ^ (string_of_regex_op op)
+  | Ast.RegexBinOp(re1,op,re2) -> (string_of_regex re1) ^ (string_of_regex_op op) ^ (string_of_regex re1)
 
 
 let string_of_property prop = match prop with

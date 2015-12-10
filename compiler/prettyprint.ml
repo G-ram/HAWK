@@ -9,13 +9,14 @@ let string_for_indent indent =
 	repeat "\t" indent
 
 let rec string_of_regex_set = function
+	RegexCharSet(ch) -> (Char.escaped ch)
 	| RegexStringSet(str) -> str
-	| RegexCharSet(ch) -> (Char.escaped ch)
-	| RegexCharRangeSet(ch1,ch2) -> (Char.escaped ch1) ^ "-" ^ (Char.escaped ch2)
+	| RegexCharRangeSet(ch1, ch2) -> (Char.escaped ch1) ^ "-" ^ (Char.escaped ch2)
 	| RegexComplementSet(set) -> "^" ^ (string_of_regex_set set)
-	| RegexAnyCharSet -> "*"
+	| RegexAnyCharSet -> "_"
+	| RegexNestedSet(set) -> (string_of_regex_set_sequence set)
 
-let string_of_regex_set_sequence seq =
+and string_of_regex_set_sequence seq =
 	let all_together = String.concat " " (List.map string_of_regex_set seq) in
 	"[" ^ all_together ^ "]"
 
@@ -27,6 +28,7 @@ let string_of_regex_op op =
 		| KleeneTimes -> "*"
 
 let rec string_of_regex regex = match regex with
+	| RegexChar(ch) -> (Char.escaped ch)
 	| RegexString(str) -> str
 	| RegexNested(re) -> "(" ^ (string_of_regex re) ^ ")"
 	| RegexSet(sequence) -> string_of_regex_set_sequence sequence
@@ -45,7 +47,7 @@ let string_of_property prop = match prop with
 	| AttributeWhitespaceContains(attr,str) -> "[" ^ attr ^ "~=" ^ str ^ "]"
 
 let string_of_type_selector = function
-	|Elt(str) -> str
+	| Elt(str) -> str
 	| Universal -> "*"
 	| NoType -> ""
 
@@ -94,7 +96,7 @@ string_of_literal = function
 	| StringLiteral(str) -> str
 	| DoubleLiteral(dbl) -> string_of_float dbl
 	| This -> "This"
-	
+
 and
 string_of_keyval_literal (key,v) =
 	(string_of_key_literal key) ^ ":" ^ (string_of_expr v)
@@ -111,8 +113,8 @@ string_of_expr = function
 	| Binop(expr1, op, expr2) -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr) -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list) -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
-	| TableAccess(t, e_list) -> 
-		let e_strings =  (List.map (fun e -> "[" ^ (string_of_expr e) ^ "]") e_list) in 
+	| TableAccess(t, e_list) ->
+		let e_strings =  (List.map (fun e -> "[" ^ (string_of_expr e) ^ "]") e_list) in
 		let bracket_part = (String.concat "" e_strings) in
 		t ^ bracket_part
 
