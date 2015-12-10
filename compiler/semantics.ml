@@ -71,18 +71,25 @@ let rec update_table_type sym_t table_id new_type =
 	in
 	List.iter correct_linked_table_type table_links 
 
+
 (*
 let test_update  =
-	let sa = {parent=None; variables=["t",Table(EmptyTable)];
+	let sa = {parent=None; variables=["t",Table(Table(EmptyTable))];
 		update_table_links=[] } in
 		
-	let sb = {parent=Some(sa); variables=["s",EmptyTable];
+	let sb = {parent=Some(sa); variables=["s",Table(EmptyTable)];
 		update_table_links=["s",{link_id="t";link_scope=sa;nesting=1} ]} in 
 		
+	let sc = {parent=Some(sb); variables=["u",EmptyTable];
+		update_table_links=["u",{link_id="s";link_scope=sb;nesting=1} ]} in 
+		
 	sa.update_table_links<- ["t",{link_id="s";link_scope=sb;nesting=(-1)}];
+	sb.update_table_links<- ("s",{link_id="u";link_scope=sc;nesting=(-1)})::sb.update_table_links;
+
 	update_table_type sb "s" (Table Int);
-	sa.variables,sb.variables 
+	sa.variables,sb.variables,sc.variables --> should be  ([("t", Table (Table Int))], [("s", Table Int)], [("u", Int)])
 *)
+
 
 (*Closed-open range from a to b, e.g. range 1 5 = [1;2;3;4] *)
 let rec range a b =
