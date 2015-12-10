@@ -100,13 +100,13 @@ expr_no_brace:
 	| expr_no_brace NEQ expr_no_brace {Binop($1,NotEqual,$3)}
 	| ID ASSIGN expr {Assign($1,$3)}
 	| ID LPAREN expr_list RPAREN {Call($1,$3)}
+	| ID LPAREN  RPAREN {Call($1,[])}
 	| ID LBRACK bracket_expr_list RBRACK {TableAccess($1,$3)}
 	| ID LBRACK bracket_expr_list RBRACK ASSIGN expr {TableAssign($1,$3,$6)}
     | LPAREN expr RPAREN {$2}
     | MINUS expr_no_brace %prec UMINUS {Uminus($2)}
 
 expr_list:
-	/* */ { [] }
 	| expr { [$1] }
 	| expr_list COMMA expr { $3 :: $1 }
 
@@ -141,10 +141,6 @@ keyvalue:
 key:
     INT {IntKey($1)}
     |STRING {StringKey($1)}
-
-literal_list:
-	literal { [$1] }
-	| literal COMMA literal_list { $1 :: $3}
 
 func_decl:
 	ID LPAREN params_list RPAREN LBRACE stmt_list RBRACE { {fname=$1;

@@ -1,8 +1,25 @@
 type t = Int | String | Double | Table of t | EmptyTable | Void
 
-type symbol_table = {
+(*update_table_link represents table variables that a given variable is implicity attached to 
+consider this code:
+t = {}
+s = t 
+at that point, you will add {id:"t", nesting:0}
+when the type of s updated from EmptyTable to Table(something), type of t will become Table(something)
+
+Sometimes you need more nesting. Consider:
+t = {}
+t[3] = {}
+s = t[3]
+at that point you will add {id:"t", nesting:1}
+when type of s is updated from EmptyTable to Table(something), type of t will become Table(Table(something))
+*)
+type update_table_link = {link_id: string; link_scope: symbol_table; nesting:int}
+and symbol_table = {
   parent: symbol_table option;
-  mutable variables: (string*t) list
+  mutable variables: (string*t) list;
+  (*When an EmptyTable variable in this list has its type updated, must also update linked variables *)
+  mutable update_table_links: (string * update_table_link) list 
 }
 
 type translation_environment = {
