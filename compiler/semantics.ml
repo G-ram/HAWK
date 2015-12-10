@@ -34,12 +34,37 @@ let rec update_variable_type sym_t var_id new_type =
 			| Some(parent) -> update_variable_type parent var_id new_type
 		
 
-let remove_update_table_link table_id sym_t link_id link_scope =
+let remove_update_table_link table_id sym_tab link_id link_scope =
 	(* match on value equality for link id and reference equality for link scope *)
 	let keep_entry (t_id,update_link) =
 		not (t_id=table_id && update_link.link_id=link_id && update_link.link_scope == link_scope)
 	in 
-	sym_t.update_table_links<- List.filter keep_entry sym_t.update_table_links
+	sym_tab.update_table_links<- List.filter keep_entry sym_tab.update_table_links
+	
+let remove_mutual_update_table_links table_id sym_tab link_id link_scope =
+	remove_update_table_link table_id sym_tab link_id link_scope;
+	remove_update_table_link link_id link_scope table_id sym_tab
+	
+let add_update_table_link table_id sym_tab link_id link_scope nesting =
+	let new_update_link = {link_id=link_id;link_scope=link_scope;nesting=nesting} in
+	sym_tab.update_table_links <- (table_id,new_update_link)::sym_tab.update_table_links
+
+(* imagine:
+t = { {} }
+s = t[0]
+
+s is linked to t with nesting level 1
+t is linked to s with nesting level -1
+
+if you do:
+t[0][0] = 3, then t goes from Table(EmptyTable) to Table(Table(Int)), and s should go from EmptyTable to Table(Int)
+
+if you do:
+s[0] = 3, the end result should be the same 
+*)
+let add_mutual_update_table_link table_id sym_tab link_id link_scope nesting =
+	add_update_table_link table_id sym_tab link_id link_scope nesting;
+	add_update_table_link link_id link_scope table_id sym_tab (-nesting);
 	
 	
 (*nest or unnest a type with additional tables
@@ -64,8 +89,7 @@ let rec update_table_type sym_t table_id new_type =
 		let neighbor_id = update_link.link_id in
 		let neighbor_sym_t = update_link.link_scope in
 		(* remove links between current table and neighbor, then recursively update neighbor *)
-		remove_update_table_link table_id sym_t neighbor_id neighbor_sym_t;
-		remove_update_table_link neighbor_id neighbor_sym_t table_id sym_t;
+		remove_mutual_update_table_links table_id sym_t neighbor_id neighbor_sym_t;
 		let new_neighbor_type = (apply_nesting (new_type,update_link.nesting)) in
 		update_table_type neighbor_sym_t neighbor_id new_neighbor_type
 	in
