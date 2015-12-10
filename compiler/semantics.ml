@@ -36,16 +36,10 @@ let rec update_variable_type sym_t var_id new_type =
 
 let remove_update_table_link table_id sym_t link_id link_scope =
 	(* match on value equality for link id and reference equality for link scope *)
-	let not_same update_link =
-		not (update_link.link_id=link_id && update_link.link_scope == link_scope)
+	let keep_entry (t_id,update_link) =
+		not (t_id==table_id && update_link.link_id=link_id && update_link.link_scope == link_scope)
 	in 
-	let alter_entry (tab_id, update_links_lst) =
-		if tab_id=table_id then 
-			tab_id, (List.filter not_same update_links_lst)
-		else
-			(tab_id,update_links_lst)
-	in
-	sym_t.update_table_links<- List.map alter_entry sym_t.update_table_links
+	sym_t.update_table_links<- List.filter keep_entry sym_t.update_table_links
 	
 	
 (*nest or unnest a type with additional tables
@@ -65,11 +59,7 @@ let rec update_table_type sym_t table_id new_type =
 	(*First, update the table table itself *)
 	update_variable_type sym_t table_id new_type;
 	(*Next, update all pertinent links *)
-	let table_links = 
-		try 
-			snd (List.find (fun (t_id,_) -> t_id=table_id) sym_t.update_table_links)
-		with Not_found -> []
-	in 
+	let table_links = List.map snd (List.filter (fun (t_id,_) -> table_id=t_id) sym_t.update_table_links) in
 	let correct_linked_table_type update_link =
 		let neighbor_id = update_link.link_id in
 		let neighbor_sym_t = update_link.link_scope in

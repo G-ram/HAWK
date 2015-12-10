@@ -19,7 +19,7 @@ and symbol_table = {
   parent: symbol_table option;
   mutable variables: (string*t) list;
   (*When an EmptyTable variable in this list has its type updated, must also update linked variables *)
-  mutable update_table_links: (string * (update_table_link list)) list 
+  mutable update_table_links: (string * update_table_link) list 
 }
 
 type translation_environment = {
