@@ -29,15 +29,16 @@ type css_selector =
 type regex_op = Or | Optional | KleenePlus | KleeneTimes
 
 type regex_set =
-	 RegexStringSet of string
-	| RegexCharSet of char
+	RegexCharSet of char
+	| RegexStringSet of string
 	| RegexCharRangeSet of char * char
 	| RegexComplementSet of regex_set
 	| RegexAnyCharSet
-
-type regex_set_sequence = regex_set list
+	| RegexNestedSet of regex_set_sequence
+and regex_set_sequence = regex_set list
 
 type regex =
+		RegexChar of char
 		| RegexString of string
 		| RegexNested of regex
 		| RegexSet of regex_set_sequence

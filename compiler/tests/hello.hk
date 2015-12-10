@@ -1,5 +1,5 @@
 BEGIN{
-  a=2+2;
+  /*a=2+2;
   a = 5;
   b = a+"Hey";
   c = 3.0;
@@ -16,11 +16,11 @@ BEGIN{
   if(1){
     print("yeah this works");
   }
-  print(a);
+  print(a);*/
 }
-[/['a']?/]{
+[/$/]{
   print("Hey pattern matching is here to stay");
 }
 END{
-  print(b);
+  /*print(b);*/
 }

@@ -6,7 +6,7 @@ let rec type_to_str = function
     | Table(value_type) -> "_HAWKTable<" ^ (type_to_str value_type) ^ ">"
     | String -> "String"
 	| Void -> "void"
-	
+
 let rec type_to_boxed_str = function
     Int -> "Integer"
     | Double -> "Double"
@@ -22,13 +22,14 @@ let string_for_indent indent =
 	repeat "\t" indent
 
 let rec string_of_regex_set = function
-	| Ast.RegexStringSet(str) -> str
-	| Ast.RegexCharSet(ch) -> (Char.escaped ch)
-	| Ast.RegexCharRangeSet(ch1,ch2) -> (Char.escaped ch1) ^ "-" ^ (Char.escaped ch2)
-	| Ast.RegexComplementSet(set) -> "^" ^ (string_of_regex_set set)
-	| Ast.RegexAnyCharSet -> "*"
+  Ast.RegexCharSet(ch) -> (Char.escaped ch)
+  | Ast.RegexStringSet(str) -> str
+  | Ast.RegexCharRangeSet(ch1,ch2) -> (Char.escaped ch1) ^ "-" ^ (Char.escaped ch2)
+  | Ast.RegexComplementSet(set) -> "^" ^ (string_of_regex_set set)
+  | Ast.RegexAnyCharSet -> "_"
+  | Ast.RegexNestedSet(set) -> (string_of_regex_set_sequence set)
 
-let string_of_regex_set_sequence seq =
+and string_of_regex_set_sequence seq =
 	let all_together = String.concat " " (List.map string_of_regex_set seq) in
 	"[" ^ all_together ^ "]"
 
@@ -40,11 +41,12 @@ let string_of_regex_op op =
 		| Ast.KleeneTimes -> "*"
 
 let rec string_of_regex regex = match regex with
-	| Ast.RegexString(str) -> str
-	| Ast.RegexNested(re) -> "(" ^ (string_of_regex re) ^ ")"
-	| Ast.RegexSet(sequence) -> string_of_regex_set_sequence sequence
-	| Ast.RegexUnOp(re,op) -> (string_of_regex re) ^ (string_of_regex_op op)
-	| Ast.RegexBinOp(re1,op,re2) -> (string_of_regex re1) ^ (string_of_regex_op op) ^ (string_of_regex re1)
+  Ast.RegexChar(ch) -> (Char.escaped ch)
+  | Ast.RegexString(str) -> str
+  | Ast.RegexNested(re) -> "(" ^ (string_of_regex re) ^ ")"
+  | Ast.RegexSet(sequence) -> string_of_regex_set_sequence sequence
+  | Ast.RegexUnOp(re,op) -> (string_of_regex re) ^ (string_of_regex_op op)
+  | Ast.RegexBinOp(re1,op,re2) -> (string_of_regex re1) ^ (string_of_regex_op op) ^ (string_of_regex re1)
 
 
 let string_of_property prop = match prop with
@@ -81,7 +83,7 @@ let string_of_op = function
 	| Ast.Minus ->  " - "
 	| Ast.Times ->  " * "
 	| Ast.Divides ->  " / "
-    | Ast.Mod -> "%"
+  | Ast.Mod -> "%"
 	| Ast.Equal ->  " == "
 	| Ast.NotEqual ->  " != "
 	| Ast.Less ->  " < "
@@ -95,7 +97,7 @@ let string_of_key_literal = function
 
 (*TODO: these don't need to all be mutually recursive*)
 let rec string_of_table_literal kv_list table_t =
-	let string_of_kv = function 
+	let string_of_kv = function
 		| Ast.IntKey(i), expr -> ".setIntIndexChained(" ^ (string_of_int i) ^ "," ^ (string_of_expr expr) ^ ")"
 		| Ast.StringKey(s), expr -> ".setStringIndexChained(" ^ s ^ "," ^ (string_of_expr expr) ^ ")"
 	in
@@ -104,7 +106,7 @@ let rec string_of_table_literal kv_list table_t =
 and
 string_of_literal = function
 	Ast.IntLiteral(x), _ -> string_of_int x
-	| Ast.StringLiteral(str), _ -> "\"" ^ str ^ "\""
+	| Ast.StringLiteral(str), _ -> str
 	| Ast.DoubleLiteral(dbl), _ -> string_of_float dbl
 	| Ast.This, _-> "This"
 and string_of_expr_list = function
@@ -121,7 +123,7 @@ string_of_expr = function
 	| Binop(expr1, op, expr2), _ -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
-	| TableAccess(table_id, ind_list), _ -> 
+	| TableAccess(table_id, ind_list), _ ->
 		let string_of_index_expr = function
 			ind_e,Int as e -> ".getIntIndex(" ^ (string_of_expr e) ^ ")"
 			| ind_e,String as e -> ".getStringIndex(" ^ (string_of_expr e) ^ ")"

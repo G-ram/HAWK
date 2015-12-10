@@ -5,9 +5,13 @@ public class _HAWKRegexMatcher{
     input = aInput;
   }
   public String[] _match(String pat){
-      pattern = java.util.regex.Pattern.compile(pat);
-      return pattern.split(input);
+      matcher = java.util.regex.Pattern.compile(pat).matcher(input);
+      java.util.ArrayList<String> allMatches = new java.util.ArrayList<String>();
+      while(matcher.find()){
+        allMatches.add(matcher.group());
+      }
+      return allMatches.toArray(new String[allMatches.size()]);
   }
-  java.util.regex.Pattern pattern;
+  java.util.regex.Matcher matcher;
   String input;
 }
