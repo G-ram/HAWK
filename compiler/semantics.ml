@@ -22,7 +22,11 @@ let rec range a b =
 		a::(range (a+1) b)
 		
 let is_table = function
-	|Table(_) -> true
+	Table(_) | EmptyTable -> true
+	| _ -> false
+	
+let valid_table_index_type = function
+	Int | String -> true
 	| _ -> false
 
 (*Get the value type of a table type going n_indices levels of nesting
@@ -62,6 +66,41 @@ let rec check_expr env = function
       raise (Failure("undeclared identifier " ^ v)) in
     let (v, typ) = vdecl in
     Id(v), typ
+  | Ast.TableAssign(table_id, index_list, e) ->
+	let (assignee_e, assignee_typ) as assignee = check_expr env e in
+	let indices_sast = check_table_indices env index_list in
+	let (_,table_t) = try
+      find env.scope table_id
+    with Not_found ->
+      raise (Failure("undeclared table identifier " ^ table_id)) in
+	let rec get_nested_access_type = function
+		0, EmptyTable -> EmptyTable
+		| 0,Table(t) -> Table(t)
+		| n,Table(t) -> get_nested_access_type ((n-1),t)
+		| _ -> raise (Failure "Attempt to assign to table at too high a nesting level.")
+	in
+	let rec update_empty_table_type old_table_t new_type =
+		match old_table_t with
+			Table(t) -> (Table (update_empty_table_type t new_type))
+			| EmptyTable -> new_type
+			| t -> t
+	in
+	(match table_t with
+		Table(_) | EmptyTable ->
+			let num_nests = (List.length index_list) in
+			let nested_table_t = get_nested_access_type ((num_nests-1),table_t) in
+			match nested_table_t with 
+				EmptyTable ->
+					let new_table_type = (update_empty_table_type table_t assignee_typ) in
+					let decl = (table_id, new_table_type) in env.scope.variables <- (decl :: env.scope.variables) ;
+					NewTableAssign (table_id, indices_sast,assignee),assignee_typ
+				|Table(val_type) -> 
+					if val_type=assignee_typ then
+						TableAssign(table_id,indices_sast,assignee),assignee_typ
+					else
+						raise (Failure "Trying to assign value to table with different underlying type.")
+				| _ -> raise (Failure "check_expr TableAssign: Shouldn't be here. ")
+		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
   | Ast.Assign(v, e) ->
     let (e, typ) = check_expr env e in
     let vdecl = try (*Reassigning a variable to a different type is okay because assigment = declaration*)
@@ -129,18 +168,21 @@ let rec check_expr env = function
 	(*next ensure that its a table*)
 	match table_t with
 		 Table(_) ->
-			(* next get all index expressions and make sure they're all string or int *)
-			let index_sast = (List.map (check_expr env) index_exprs) in
+			let index_sast = check_table_indices env index_exprs in
 			let index_types = (List.map snd index_sast) in
-			if not (List.for_all (fun t -> t=String || t=Int) index_types) then
-				raise (Failure("All table indices must be string or int expressions"))
-			else
-				(*Next get the type of the variable we're acessing *) 
-				let access_type = (get_table_access_type table_t (List.length index_types)) in
-				match access_type with
-					Some(value_type) -> TableAccess (table_id,index_sast),value_type
-					| None -> raise (Failure "Table does not support this level of nesting")
+			(*Next get the type of the variable we're acessing *) 
+			let access_type = (get_table_access_type table_t (List.length index_types)) in
+			match access_type with
+				Some(value_type) -> TableAccess (table_id,index_sast),value_type
+				| None -> raise (Failure "Table does not support this level of nesting")
 		| _ -> raise (Failure "Cannot do table access on non-table")
+and check_table_indices env index_expr_lst =
+	let index_sast = (List.map (check_expr env) index_expr_lst) in
+	let index_types = (List.map snd index_sast) in
+	if not (List.for_all valid_table_index_type index_types) then
+		raise (Failure("All table indices must be string or int expressions"))
+	else
+		index_sast
 		
 and check_table_literal env tl = (*TODO: redo this shit*)
 	let get_unique_elt lst =

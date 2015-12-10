@@ -81,7 +81,7 @@ let string_of_op = function
 	| Ast.Minus ->  " - "
 	| Ast.Times ->  " * "
 	| Ast.Divides ->  " / "
-  | Ast.Mod -> "%"
+    | Ast.Mod -> "%"
 	| Ast.Equal ->  " == "
 	| Ast.NotEqual ->  " != "
 	| Ast.Less ->  " < "
