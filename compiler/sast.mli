@@ -1,8 +1,12 @@
 type t = Int | String | Double | Table of t | EmptyTable | Void
 
+type update_table_link = {id: string; nesting:int}
+
 type symbol_table = {
   parent: symbol_table option;
-  mutable variables: (string*t) list
+  mutable variables: (string*t) list;
+  (*When an EmptyTable variable in this list has its type updated, must also update linked variables *)
+  mutable update_table_links: (string * update_table_link) list 
 }
 
 type translation_environment = {

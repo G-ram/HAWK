@@ -14,7 +14,25 @@ let rec find (scope : symbol_table) name = try
 let rec find_built_in name typ = try
   List.find (fun (s, t) -> (s = name && t = BAny) || (s = name && t = typ)) built_in with Not_found -> raise Not_found
 
- (*Closed-open range from a to b, e.g. range 1 5 = [1;2;3;4] *)
+(*Update a variable type of a variable within a given symbol table,
+going up parent links until matching variable is found
+This function has side effects*)
+let rec update_variable_type sym_t var_id new_type =
+	try 
+		let var = (find sym_t var_id) in
+		let new_variable_list = List.map (fun (v_id,typ) -> if v_id=var_id then (v_id,new_type) else (v_id,typ)) sym_t.variables in
+		ignore (sym_t.variables <- new_variable_list)
+	with Not_found -> 
+		match sym_t.parent with
+			None -> raise (Failure "Couldn't find variable to update")
+			| Some(parent) -> update_variable_type parent var_id new_type
+		
+(*
+let rec update_table_type env table_id new_type =
+	let (_, exiting_type) = (find env.scope table_id) in
+*)
+
+(*Closed-open range from a to b, e.g. range 1 5 = [1;2;3;4] *)
 let rec range a b =
 	if a=b-1 then 
 		[a]
@@ -92,7 +110,7 @@ let rec check_expr env = function
 			match nested_table_t with 
 				EmptyTable ->
 					let new_table_type = (update_empty_table_type table_t assignee_typ) in
-					let decl = (table_id, new_table_type) in env.scope.variables <- (decl :: env.scope.variables) ;
+					update_variable_type env.scope table_id new_table_type;
 					NewTableAssign (table_id, indices_sast,assignee),assignee_typ
 				|Table(val_type) -> 
 					if val_type=assignee_typ then
@@ -207,7 +225,7 @@ and check_table_literal env tl = (*TODO: redo this shit*)
 			check_keys_exprs env keys exprs
 let rec check_stmt env = function
   Ast.Block(sl) ->
-    let scopeT = { parent = Some(env.scope); variables = [] } in
+    let scopeT = { parent = Some(env.scope); variables = []; update_table_links=[] } in
     let envT = { env with scope = scopeT} in
     let sl = List.map (fun s -> (check_stmt envT s)) sl in envT.scope.variables <- List.rev scopeT.variables;
     Block(sl, envT)
@@ -235,7 +253,8 @@ let check_pattern env a = check_stmt env a
 let init_env =
     let s = {
       parent = None;
-      variables = [] } in
+      variables = [];
+	  update_table_links = []} in
     { scope = s; return = None; }
 
 let check_program p =
