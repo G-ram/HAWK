@@ -84,8 +84,8 @@ let string_of_key_literal = function
 (*TODO: these don't need to all be mutually recursive*)
 let rec string_of_table_literal table_lit =
 	let inner_part = match table_lit with
-		TypedEmptyTableLiteral(s) -> s ^ "{}"
-		| ArrayLiteral(lit_list) ->  (String.concat "," (List.map string_of_literal lit_list))
+		EmptyTable -> "{}"
+		| ArrayLiteral(expr_list) ->  (String.concat "," (List.map string_of_expr expr_list))
 		| KeyValueLiteral(keyval_list) -> (String.concat "," (List.map string_of_keyval_literal keyval_list))
 	in "{" ^ inner_part ^ "}"
 and
@@ -94,12 +94,11 @@ string_of_literal = function
 	| StringLiteral(str) -> str
 	| DoubleLiteral(dbl) -> string_of_float dbl
 	| This -> "This"
-	| TableLiteral(tbl_lit) -> string_of_table_literal tbl_lit
+	
 and
 string_of_keyval_literal (key,v) =
-	(string_of_key_literal key) ^ ":" ^ (string_of_literal v)
-
-let rec string_of_expr_list = function
+	(string_of_key_literal key) ^ ":" ^ (string_of_expr v)
+and string_of_expr_list = function
 	[] -> ""
 	| [hd] -> string_of_expr hd
 	| hd::tl -> (string_of_expr hd) ^ ", " ^ string_of_expr_list tl
@@ -107,11 +106,15 @@ and
 string_of_expr = function
 	Id(id) -> id
 	| Literal(lit) -> string_of_literal lit
+	| TableLiteral(tbl_lit) -> string_of_table_literal tbl_lit
 	| Assign(id, expr) -> id ^ " = " ^ (string_of_expr expr)
 	| Binop(expr1, op, expr2) -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr) -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list) -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
-	| TableAccess(e1, e2) -> (string_of_expr e1) ^ "[" ^ (string_of_expr e2) ^ "]"
+	| TableAccess(t, e_list) -> 
+		let e_strings =  (List.map (fun e -> "[" ^ (string_of_expr e) ^ "]") e_list) in 
+		let bracket_part = (String.concat "" e_strings) in
+		t ^ bracket_part
 
 let rec string_of_func_decl func_decl  =
 	func_decl.fname ^ "(" ^ (String.concat "," func_decl.params) ^ ")" ^ (string_of_stmt_list func_decl.body)

@@ -28,7 +28,6 @@ rule token = parse
 	| "[/" {LBRACK_FSLASH} | "/]" {FSLASH_RBRACK}
 	| "[@" {LBRACK_AMP} | "@]" {AMP_RBRACK}
 	| "*=" {TIMES_EQ} | "^=" {XOR_EQ} | "$=" {DOLLAR_EQ} | "~=" {TILDE_EQ}
-	| ('t'* ['i' 's' 'd'] as prefix) "{}" {EMPTY_TABLE(prefix)}
 	| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 	| digits as lxm {INT(int_of_string lxm)}
 	| decimal as lxm {DOUBLE(float_of_string lxm)}

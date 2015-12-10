@@ -3,9 +3,15 @@ open Sast
 let rec type_to_str = function
     Int -> "int"
     | Double -> "double"
-    | Table(value_type) -> "HawkTable<" ^ (type_to_str value_type) ^ ">"
+    | Table(value_type) -> "_HAWKTable<" ^ (type_to_str value_type) ^ ">"
     | String -> "String"
 	| Void -> "void"
+	
+let rec type_to_boxed_str = function
+    Int -> "Integer"
+    | Double -> "Double"
+    | Table(value_type) -> "_HAWKTable<" ^ (type_to_boxed_str value_type) ^ ">"
+    | t -> type_to_str t
 
 let rec repeat str n =
 	match str,n with
@@ -88,46 +94,42 @@ let string_of_key_literal = function
 	| Ast.StringKey(key) -> key
 
 (*TODO: these don't need to all be mutually recursive*)
-let rec string_of_table_literal table_lit =
-	let inner_part = match table_lit with
-		|Ast.TypedEmptyTableLiteral(type_prefix) -> 
-			let value_type = (Semantics.get_empty_table_type type_prefix) in
-			"new " ^ (type_to_str (Table value_type)) ^ "()"
-		| Ast.ArrayLiteral(lit_list) ->  (String.concat "," (List.map string_of_literal lit_list))
-		| Ast.KeyValueLiteral(keyval_list) -> (String.concat "," (List.map string_of_keyval_literal keyval_list))
-	in "{" ^ inner_part ^ "}"
+let rec string_of_table_literal kv_list table_t =
+	let string_of_kv = function 
+		| Ast.IntKey(i), expr -> ".setIntIndexChained(" ^ (string_of_int i) ^ "," ^ (string_of_expr expr) ^ ")"
+		| Ast.StringKey(s), expr -> ".setStringIndexChained(" ^ s ^ "," ^ (string_of_expr expr) ^ ")"
+	in
+	let kv_part = String.concat "" (List.map string_of_kv kv_list) in
+	"(new _HAWKTable<" ^ (type_to_boxed_str table_t) ^ ">)" ^ kv_part
 and
 string_of_literal = function
-	Ast.IntLiteral(x) -> string_of_int x
-	| Ast.StringLiteral(str) -> str
-	| Ast.DoubleLiteral(dbl) -> string_of_float dbl
-	| Ast.This-> "This"
-	| Ast.TableLiteral(tbl_lit) -> string_of_table_literal tbl_lit
-and
-string_of_keyval_literal (key,v) =
-	(string_of_key_literal key) ^ ":" ^ (string_of_literal v)
-
-let rec string_of_expr_list = function
+	Ast.IntLiteral(x), _ -> string_of_int x
+	| Ast.StringLiteral(str), _ -> "\"" ^ str ^ "\""
+	| Ast.DoubleLiteral(dbl), _ -> string_of_float dbl
+	| Ast.This, _-> "This"
+and string_of_expr_list = function
 	[] -> ""
 	| [hd] -> string_of_expr hd
 	| hd::tl -> (string_of_expr hd) ^ ", " ^ string_of_expr_list tl
 and
 string_of_expr = function
 	Id(id), _ -> id
-	| Literal(lit), _ -> string_of_literal lit
+	| Literal(lit), t -> string_of_literal (lit,t)
+	| TableLiteral(kv_list), Table(val_type) -> string_of_table_literal kv_list val_type
 	| VAssign(id, expr), t -> (type_to_str t) ^ " " ^ id ^ " = " ^ (string_of_expr expr)
-	| Assign(id, expr), t -> id ^ " = " ^ (string_of_expr expr)
+	| Assign(id, expr), _ -> id ^ " = " ^ (string_of_expr expr)
 	| Binop(expr1, op, expr2), _ -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
-	| TableAccess(table_e, ind_e), _ -> 
-		let (_,index_type) = ind_e in
-		if index_type = Int then
-			(string_of_expr table_e) ^ "getIntKey(" ^ (string_of_expr ind_e) ^ ")"
-		else
-			(string_of_expr table_e) ^ "getStringKey(" ^ (string_of_expr ind_e) ^ ")"
-
-let rec string_of_func_decl func_decl  =
+	| TableAccess(table_id, ind_list), _ -> 
+		let string_of_index_expr = function
+			ind_e,Int as e -> ".getIntIndex(" ^ (string_of_expr e) ^ ")"
+			| ind_e,String as e -> ".getStringIndex(" ^ (string_of_expr e) ^ ")"
+			| _ -> raise (Failure "This type of table indexing should not happen. Semantic stage must have failed.")
+		in
+		table_id ^ (String.concat "" (List.map string_of_index_expr ind_list))
+	| _ -> raise (Failure "We shouldn't be here.")
+and string_of_func_decl func_decl  =
 	func_decl.fname ^ "(" ^ (String.concat "," func_decl.params) ^ ")" ^ (string_of_stmt_list func_decl.body)
 and
 string_of_stmt_list = function

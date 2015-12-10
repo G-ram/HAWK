@@ -14,37 +14,46 @@ let rec find (scope : symbol_table) name = try
 let rec find_built_in name typ = try
   List.find (fun (s, t) -> (s = name && t = BAny) || (s = name && t = typ)) built_in with Not_found -> raise Not_found
 
+ (*Closed-open range from a to b, e.g. range 1 5 = [1;2;3;4] *)
+let rec range a b =
+	if a=b-1 then 
+		[a]
+	else
+		a::(range (a+1) b)
+		
 let is_table = function
 	|Table(_) -> true
 	| _ -> false
 
-(* empty table literals  begin with type prefixes.
- s{} denotes table of string
- i{} denotes table of int
- d{} denotes table of double
- Can precede s,i, or d with additional t's for nesting:
- ti{} denotes table of table of int
- ttd{} denotes table of table of table of double, etc...
- *)
-let rec get_empty_table_type prefix =
-	let len = (String.length prefix) in
-	match prefix with
-		"s" -> String
-		| "i" -> Int
-		| "d" -> Double
-		| p when p.[0]='t' && len>1 -> 
-			let rest = (String.sub p 1 (len -1)) in 
-			get_empty_table_type rest
-		| _ -> raise (Failure("Invalid table prefix " ^ prefix))
+(*Get the value type of a table type going n_indices levels of nesting
+e.g. if table_t = Table(int) and n_indices=1 then return Some int
+if table_t = Table(Table(Table(string))) and n_indices=2, return Some Table(string)
+if table_t is not a table, return none *)
+let rec get_table_access_type table_t n_indices =
+	match table_t,n_indices with 
+		Table(val_type), 1 -> Some val_type
+		| Table(val_type), n -> 
+			match (get_table_access_type val_type (n-1)) with
+				None -> None
+				| x -> x
+		| _ -> None
+		
+	
+(*Are all the elements of a list the same? *)
+let all_the_same = function
+	| [] -> true
+	| lst ->
+		(let hd = (List.hd lst) in
+		List.for_all ((=) hd) lst)
 	
 let rec check_expr env = function
-  Ast.Literal(l) ->(
+  Ast.TableLiteral(tl) -> check_table_literal env tl   
+  | Ast.Literal(l) ->(
     match l with
      Ast.IntLiteral(v) -> Literal(l), Int
      | Ast.StringLiteral(v) -> Literal(l), String
      | Ast.DoubleLiteral(v) -> Literal(l), Double
      | Ast.This -> Literal(l), Table(String)
-     | Ast.TableLiteral(tl) -> check_table_literal env tl   (*Literal(l), Table(String)*)
      )
   | Ast.Id(v) ->
     let vdecl = try
@@ -111,39 +120,49 @@ let rec check_expr env = function
         )
     end in
     Call(v, el), Int
-  | Ast.TableAccess(table_expr,index_expr) -> 
-    let (table_e, table_t) = (check_expr env table_expr) in
-	let (ind_e, ind_t) = (check_expr env index_expr) in
+  | Ast.TableAccess(table_id,index_exprs) -> 
+	(*First, get table, if it exists *)
+	let (_,table_t) = try
+      find env.scope table_id
+    with Not_found ->
+      raise (Failure("undeclared identifier " ^ table_id)) in
+	(*next ensure that its a table*)
 	match table_t with
-		| Table(value_type) ->
-			match value_type with
-				Int | String -> TableAccess((table_e,table_t), (ind_e,ind_t)), value_type
-				| _ -> raise (Failure("Must index table with int or string."))
-		| _ -> raise (Failure("Attempting to do table access on non-table"))
-and check_table_literal env tl =
-	let all_the_same = function
-		| [] -> true
-		| lst ->
-			(let hd = (List.hd lst) in
-			List.for_all ((=) hd) lst)
+		 Table(_) ->
+			(* next get all index expressions and make sure they're all string or int *)
+			let index_sast = (List.map (check_expr env) index_exprs) in
+			let index_types = (List.map snd index_sast) in
+			if not (List.for_all (fun t -> t=String || t=Int) index_types) then
+				raise (Failure("All table indices must be string or int expressions"))
+			else
+				(*Next get the type of the variable we're acessing *) 
+				let access_type = (get_table_access_type table_t (List.length index_types)) in
+				match access_type with
+					Some(value_type) -> TableAccess (table_id,index_sast),value_type
+					| None -> raise (Failure "Table does not support this level of nesting")
+		| _ -> raise (Failure "Cannot do table access on non-table")
+		
+and check_table_literal env tl = (*TODO: redo this shit*)
+	let get_unique_elt lst =
+		if (all_the_same lst) && (List.length lst)>0 then
+			(List.hd lst)
+		else
+			raise (Failure("Array literal values must be the same types"))
 	in
-	let all_types = match tl with (*Get all the types of the inner literals *)
-		| Ast.TypedEmptyTableLiteral(prefix) -> [ (get_empty_table_type prefix) ]
-		| Ast.ArrayLiteral(lit_list)->
-			(let exprs = List.map (fun l -> Ast.Literal(l)) lit_list
-			in (List.map snd (List.map (check_expr env) exprs)))
+	let check_keys_exprs env keys exprs =
+		let values_sast = (List.map (check_expr env) exprs) in
+		let value_type = (get_unique_elt (List.map snd values_sast)) in
+		(TableLiteral (List.combine keys values_sast)), (Table value_type)
+	in
+	match tl with 
+		Ast.EmptyTable -> (TableLiteral []),EmptyTable
+		| Ast.ArrayLiteral(exprs) -> 
+			let keys = List.map (fun i -> (Ast.IntKey i)) (range 0 (List.length exprs ))  in
+			check_keys_exprs env keys exprs
 		| Ast.KeyValueLiteral(kv_list) ->
-			(let values = (List.map snd kv_list) in
-			let exprs = List.map (fun l -> Ast.Literal(l)) values in
-			List.map snd (List.map (check_expr env) exprs))
-	in
-	let sast_expr = Literal(Ast.TableLiteral(tl))
-	in
-	if not (all_the_same all_types) then (*If literal types are not all the same, fail*)
-		raise (Failure("Mismatched element types in table literal"))
-	else
-		let table_type = (List.hd all_types) in sast_expr, Table(table_type)
-
+			let keys = (List.map fst kv_list) in
+			let exprs = (List.map snd kv_list) in
+			check_keys_exprs env keys exprs
 let rec check_stmt env = function
   Ast.Block(sl) ->
     let scopeT = { parent = Some(env.scope); variables = [] } in

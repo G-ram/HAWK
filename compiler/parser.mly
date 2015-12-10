@@ -13,7 +13,6 @@
 %token LBRACK_AMP
 %token AMP_RBRACK
 %token EOF
-%token <string> EMPTY_TABLE
 %token <string> STRING
 %token <char> CHAR
 %token <int> INT
@@ -70,7 +69,7 @@ stmt_list:
 	| stmt stmt_list {$1 :: $2}
 
 stmt:
-	expr SEMI {Expr($1)}
+	expr_no_brace SEMI {Expr($1)}
 	| RETURN expr SEMI {Return($2)}
 	| LBRACE stmt_list RBRACE {Block($2)}
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3,$5, Block([]))}
@@ -79,32 +78,41 @@ stmt:
 	| FOR LPAREN ID IN ID RPAREN stmt { For($3,$5,$7) }
 	| FUN func_decl {Func($2)}
 
-/*TODO: relational operators*/
 expr:
-    ID {Id($1)} 
-	| table_literal {Literal(TableLiteral($1))}
+    table_literal {TableLiteral($1)}
+    /*below fixes S/R error. Basically, do all arithmetic before this reduction */
+    | expr_no_brace {$1} %prec ASSIGN
+
+/*TODO: relational operators*/
+expr_no_brace:
+    ID {Id($1)}
 	| literal {Literal($1)}
-	| expr TIMES expr {Binop($1,Times,$3)}
-	| expr DIVIDES expr {Binop($1,Divides,$3)}
-	| expr MOD expr {Binop($1,Mod,$3)}
-	| expr MINUS expr {Binop($1,Minus,$3)}
-	| expr PLUS expr {Binop($1,Plus,$3)}
-	| expr EQ expr {Binop($1,Equal,$3)}
-	| expr LT expr {Binop($1,Less,$3)}
-	| expr GT expr {Binop($1,Greater,$3)}
-	| expr LEQ expr {Binop($1,LessEqual,$3)}
-	| expr GEQ expr {Binop($1,GreaterEqual,$3)}
-	| expr NEQ expr {Binop($1,NotEqual,$3)}
+	| expr_no_brace TIMES expr_no_brace {Binop($1,Times,$3)}
+	| expr_no_brace DIVIDES expr_no_brace {Binop($1,Divides,$3)}
+	| expr_no_brace MOD expr_no_brace {Binop($1,Mod,$3)}
+	| expr_no_brace MINUS expr_no_brace {Binop($1,Minus,$3)}
+	| expr_no_brace PLUS expr_no_brace {Binop($1,Plus,$3)}
+	| expr_no_brace EQ expr_no_brace {Binop($1,Equal,$3)}
+	| expr_no_brace LT expr_no_brace {Binop($1,Less,$3)}
+	| expr_no_brace GT expr_no_brace {Binop($1,Greater,$3)}
+	| expr_no_brace LEQ expr_no_brace {Binop($1,LessEqual,$3)}
+	| expr_no_brace GEQ expr_no_brace {Binop($1,GreaterEqual,$3)}
+	| expr_no_brace NEQ expr_no_brace {Binop($1,NotEqual,$3)}
 	| ID ASSIGN expr {Assign($1,$3)}
 	| ID LPAREN expr_list RPAREN {Call($1,$3)}
-	| expr LBRACK expr RBRACK {TableAccess($1,$3)}
+	| ID LBRACK bracket_expr_list RBRACK {TableAccess($1,$3)}
+	| ID LBRACK bracket_expr_list RBRACK ASSIGN expr {TableAssign($1,$3,$6)}
     | LPAREN expr RPAREN {$2}
-    | MINUS expr %prec UMINUS {Uminus($2)}
+    | MINUS expr_no_brace %prec UMINUS {Uminus($2)}
 
 expr_list:
 	/* */ { [] }
 	| expr { [$1] }
 	| expr_list COMMA expr { $3 :: $1 }
+	
+bracket_expr_list:
+	| LBRACK expr RBRACK {[$2]}
+	| bracket_expr_list LBRACK expr RBRACK { $3 :: $1}
 
 literal:
 	INT {IntLiteral($1)}
@@ -117,8 +125,8 @@ table_literal:
 	|keyvalue_literal {KeyValueLiteral($1)}
 
 array_literal:
-    EMPTY_TABLE {TypedEmptyTableLiteral($1)}
-	|LBRACE literal_list RBRACE {ArrayLiteral($2)}
+    LBRACE RBRACE { EmptyTable }
+	|LBRACE expr_list RBRACE {ArrayLiteral($2)}
 
 keyvalue_literal:
 	LBRACE keyvalue_list RBRACE {$2}
@@ -128,7 +136,7 @@ keyvalue_list:
 	|keyvalue_list COMMA keyvalue { $3 :: $1}
 
 keyvalue:
-	key COLON literal  { ($1,$3) }
+	key COLON expr  { ($1,$3) }
 
 key:
     INT {IntKey($1)}

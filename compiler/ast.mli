@@ -66,22 +66,20 @@ type literal =
 	|StringLiteral of string
 	|DoubleLiteral of float
 	|This
-	|TableLiteral of table_literal
-and
-table_literal =
-    TypedEmptyTableLiteral of string (*string denotes the type of table*)
-	|ArrayLiteral of literal list
-	|KeyValueLiteral of (key_literal * literal) list
-
-(* Expressions *)
-type expr =
+and table_literal =
+    EmptyTable
+	|ArrayLiteral of expr list
+	|KeyValueLiteral of (key_literal * expr) list
+and expr =
 	Id of string
 	|Literal of literal
+	|TableLiteral of table_literal
 	|Assign of string * expr
 	|Binop of expr * op * expr
-  |Uminus of expr
+	|Uminus of expr
 	|Call of string * expr list
-	|TableAccess of expr * expr (* e.g t[1] or (t[2][3])[4]  *)
+	|TableAccess of string * (expr list)(* e.g t[1] or (t[2][3])[4]  *)
+	|TableAssign of string * (expr list) * expr
 
 (*Program Structure and Action Syntax*)
 type stmt =
