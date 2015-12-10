@@ -37,7 +37,7 @@ let rec update_variable_type sym_t var_id new_type =
 let remove_update_table_link table_id sym_t link_id link_scope =
 	(* match on value equality for link id and reference equality for link scope *)
 	let keep_entry (t_id,update_link) =
-		not (t_id==table_id && update_link.link_id=link_id && update_link.link_scope == link_scope)
+		not (t_id=table_id && update_link.link_id=link_id && update_link.link_scope == link_scope)
 	in 
 	sym_t.update_table_links<- List.filter keep_entry sym_t.update_table_links
 	
@@ -64,13 +64,25 @@ let rec update_table_type sym_t table_id new_type =
 		let neighbor_id = update_link.link_id in
 		let neighbor_sym_t = update_link.link_scope in
 		(* remove links between current table and neighbor, then recursively update neighbor *)
-		remove_update_table_link table_id sym_t neighbor_id;
-		remove_update_table_link neighbor_id neighbor_sym_t table_id;
+		remove_update_table_link table_id sym_t neighbor_id neighbor_sym_t;
+		remove_update_table_link neighbor_id neighbor_sym_t table_id sym_t;
 		let new_neighbor_type = (apply_nesting (new_type,update_link.nesting)) in
 		update_table_type neighbor_sym_t neighbor_id new_neighbor_type
 	in
 	List.iter correct_linked_table_type table_links 
 
+(*
+let test_update  =
+	let sa = {parent=None; variables=["t",Table(EmptyTable)];
+		update_table_links=[] } in
+		
+	let sb = {parent=Some(sa); variables=["s",EmptyTable];
+		update_table_links=["s",{link_id="t";link_scope=sa;nesting=1} ]} in 
+		
+	sa.update_table_links<- ["t",{link_id="s";link_scope=sb;nesting=(-1)}];
+	update_table_type sb "s" (Table Int);
+	sa.variables,sb.variables 
+*)
 
 (*Closed-open range from a to b, e.g. range 1 5 = [1;2;3;4] *)
 let rec range a b =
