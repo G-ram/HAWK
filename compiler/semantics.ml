@@ -5,11 +5,15 @@ type b_arg_types = BAny | BTable
 let built_in = [("print", BAny); ("exits", BAny);
                 ("length", BTable); ("keys", BTable); ("children", BTable); ("inner_html", BTable)]
 
-let rec find (scope : symbol_table) name = try
-  List.find (fun (s, _) -> s = name) scope.variables with Not_found ->
+let rec find_var_and_scope (scope : symbol_table) name = try
+  (List.find (fun (s, _) -> s = name) scope.variables),scope with Not_found ->
   match scope.parent with
-    Some(parent) -> find parent name
+    Some(parent) -> find_var_and_scope parent name
     | _ -> raise Not_found
+	
+
+let rec find (scope : symbol_table) name = 
+	fst (find_var_and_scope scope name )
 
 let rec find_built_in name typ = try
   List.find (fun (s, t) -> (s = name && t = BAny) || (s = name && t = typ)) built_in with Not_found -> raise Not_found
@@ -20,17 +24,63 @@ This function has side effects*)
 let rec update_variable_type sym_t var_id new_type =
 	try 
 		let var = (find sym_t var_id) in
-		let new_variable_list = List.map (fun (v_id,typ) -> if v_id=var_id then (v_id,new_type) else (v_id,typ)) sym_t.variables in
+		let new_variable_list = 
+			List.map (fun (v_id,typ) -> if v_id=var_id then (v_id,new_type) else (v_id,typ)) sym_t.variables
+		in
 		ignore (sym_t.variables <- new_variable_list)
 	with Not_found -> 
 		match sym_t.parent with
 			None -> raise (Failure "Couldn't find variable to update")
 			| Some(parent) -> update_variable_type parent var_id new_type
 		
-(*
-let rec update_table_type env table_id new_type =
-	let (_, exiting_type) = (find env.scope table_id) in
+
+let remove_update_table_link table_id sym_t link_id link_scope =
+	(* match on value equality for link id and reference equality for link scope *)
+	let not_same update_link =
+		not (update_link.link_id=link_id && update_link.link_scope == link_scope)
+	in 
+	let alter_entry (tab_id, update_links_lst) =
+		if tab_id=table_id then 
+			tab_id, (List.filter not_same update_links_lst)
+		else
+			(tab_id,update_links_lst)
+	in
+	sym_t.update_table_links<- List.map alter_entry sym_t.update_table_links
+	
+	
+(*nest or unnest a type with additional tables
+e.g.
+apply_nesting Int 1 = Table(Int)
+apply_nesting Table(Table(Int)) -1 = Table(Int)
 *)
+let rec apply_nesting = function
+	t, 0 -> t 
+	| t, n when n>0 -> Table (apply_nesting (t,n-1))
+	| Table(t),n when n<0 -> (apply_nesting (t,n+1))
+	| _ -> raise (Failure "Attempting to unnest non-table.")
+	
+(* Update the type of a table variable within a given symbol scope 
+Need to ensure that table update links are respected *)
+let rec update_table_type sym_t table_id new_type =
+	(*First, update the table table itself *)
+	update_variable_type sym_t table_id new_type;
+	(*Next, update all pertinent links *)
+	let table_links = 
+		try 
+			snd (List.find (fun (t_id,_) -> t_id=table_id) sym_t.update_table_links)
+		with Not_found -> []
+	in 
+	let correct_linked_table_type update_link =
+		let neighbor_id = update_link.link_id in
+		let neighbor_sym_t = update_link.link_scope in
+		(* remove links between current table and neighbor, then recursively update neighbor *)
+		remove_update_table_link table_id sym_t neighbor_id;
+		remove_update_table_link neighbor_id neighbor_sym_t table_id;
+		let new_neighbor_type = (apply_nesting (new_type,update_link.nesting)) in
+		update_table_type neighbor_sym_t neighbor_id new_neighbor_type
+	in
+	List.iter correct_linked_table_type table_links 
+
 
 (*Closed-open range from a to b, e.g. range 1 5 = [1;2;3;4] *)
 let rec range a b =
