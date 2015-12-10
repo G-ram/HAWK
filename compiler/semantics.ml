@@ -11,6 +11,10 @@ let rec find_var_and_scope (scope : symbol_table) name = try
     Some(parent) -> find_var_and_scope parent name
     | _ -> raise Not_found
 	
+let rec is_empty_table_container = function
+	EmptyTable -> true 
+	| Table(t) -> (is_empty_table_container t)
+	| _ -> false 
 
 let rec find (scope : symbol_table) name = 
 	fst (find_var_and_scope scope name )
@@ -203,18 +207,20 @@ let rec check_expr env = function
 				| _ -> raise (Failure "check_expr TableAssign: Shouldn't be here. ")
 		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
   | Ast.Assign(v, assignee) ->
-    let (e, typ) = check_expr env assignee in
-    let vdecl = try (*Reassigning a variable to a different type is okay because assigment = declaration*)
-      let decl = find env.scope v in (*Add it in the symbol table if its a different type*)
-      if snd decl != typ then raise (Failure("identifier type does not match previously declared type " ^ v))
-      else  
-		(* if right hand side is an id of an EmptyTable container, link v and the other id together *)
-		(match e with 
+	let create_linkage_if_applicable assignee =
+		match assignee with 
 			Id(other_id) ->
 				let ((_,other_typ), other_scope) = find_var_and_scope env.scope other_id in
 				if (is_empty_table_container other_typ) then 
-					add_mutual_update_table_link v env.scope other_id other_scope 
-		);
+					add_mutual_update_table_link v env.scope other_id other_scope 0
+	in 
+    let (e, typ) = check_expr env assignee in
+    let vdecl = try (*Reassigning a variable to a different type is okay because assigment = declaration*)
+      let (_,other_typ) = find env.scope v in (*Add it in the symbol table if its a different type*)
+      if other_typ != typ then raise (Failure("identifier type does not match previously declared type " ^ v))
+      else  
+		(* if right hand side is an id of an EmptyTable container, link v and the other id together *)
+		create_linkage_if_applicable e;
 		Assign(v, (e, typ)), typ
     with Not_found -> (*Declaring/Defining a new variable*)
       let decl = (v, typ) in env.scope.variables <- (decl :: env.scope.variables) ;
