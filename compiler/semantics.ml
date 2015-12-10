@@ -64,7 +64,7 @@ s[0] = 3, the end result should be the same
 *)
 let add_mutual_update_table_link table_id sym_tab link_id link_scope nesting =
 	add_update_table_link table_id sym_tab link_id link_scope nesting;
-	add_update_table_link link_id link_scope table_id sym_tab (-nesting);
+	add_update_table_link link_id link_scope table_id sym_tab (-nesting)
 	
 	
 (*nest or unnest a type with additional tables
@@ -202,12 +202,20 @@ let rec check_expr env = function
 						raise (Failure "Trying to assign value to table with different underlying type.")
 				| _ -> raise (Failure "check_expr TableAssign: Shouldn't be here. ")
 		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
-  | Ast.Assign(v, e) ->
-    let (e, typ) = check_expr env e in
+  | Ast.Assign(v, assignee) ->
+    let (e, typ) = check_expr env assignee in
     let vdecl = try (*Reassigning a variable to a different type is okay because assigment = declaration*)
       let decl = find env.scope v in (*Add it in the symbol table if its a different type*)
       if snd decl != typ then raise (Failure("identifier type does not match previously declared type " ^ v))
-      else Assign(v, (e, typ)), typ
+      else  
+		(* if right hand side is an id of an EmptyTable container, link v and the other id together *)
+		(match e with 
+			Id(other_id) ->
+				let ((_,other_typ), other_scope) = find_var_and_scope env.scope other_id in
+				if (is_empty_table_container other_typ) then 
+					add_mutual_update_table_link v env.scope other_id other_scope 
+		);
+		Assign(v, (e, typ)), typ
     with Not_found -> (*Declaring/Defining a new variable*)
       let decl = (v, typ) in env.scope.variables <- (decl :: env.scope.variables) ;
       VAssign(v, (e, typ)), typ
