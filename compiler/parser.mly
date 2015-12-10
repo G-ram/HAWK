@@ -109,7 +109,7 @@ expr_list:
 	/* */ { [] }
 	| expr { [$1] }
 	| expr_list COMMA expr { $3 :: $1 }
-	
+
 bracket_expr_list:
 	| LBRACK expr RBRACK {[$2]}
 	| bracket_expr_list LBRACK expr RBRACK { $3 :: $1}
@@ -165,7 +165,7 @@ pattern:
 /*Start of Regex*/
 
 regex:
-	STRING {RegexString($1)}
+	ID {RegexString($1)}
 	| LPAREN regex RPAREN {RegexNested($2)}
 	| LBRACK regex_set_sequence RBRACK {RegexSet($2)}
 	| regex QUEST {RegexUnOp($1,Optional)}
@@ -178,7 +178,7 @@ regex_sequence:
 	| regex regex_sequence {$1 :: $2}
 
 regex_set:
- 	STRING {RegexStringSet($1)}
+ 	ID {RegexStringSet($1)}
 	| CHAR {RegexCharSet($1)}
 	| CHAR MINUS CHAR  {RegexCharRangeSet($1, $3)}
 	| UNDER {RegexAnyCharSet}

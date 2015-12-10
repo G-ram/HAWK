@@ -16,15 +16,15 @@ let rec find_built_in name typ = try
 
  (*Closed-open range from a to b, e.g. range 1 5 = [1;2;3;4] *)
 let rec range a b =
-	if a=b-1 then 
+	if a=b-1 then
 		[a]
 	else
 		a::(range (a+1) b)
-		
+
 let is_table = function
 	Table(_) | EmptyTable -> true
 	| _ -> false
-	
+
 let valid_table_index_type = function
 	Int | String -> true
 	| _ -> false
@@ -34,24 +34,24 @@ e.g. if table_t = Table(int) and n_indices=1 then return Some int
 if table_t = Table(Table(Table(string))) and n_indices=2, return Some Table(string)
 if table_t is not a table, return none *)
 let rec get_table_access_type table_t n_indices =
-	match table_t,n_indices with 
+	match table_t,n_indices with
 		Table(val_type), 1 -> Some val_type
-		| Table(val_type), n -> 
+		| Table(val_type), n ->
 			match (get_table_access_type val_type (n-1)) with
 				None -> None
 				| x -> x
 		| _ -> None
-		
-	
+
+
 (*Are all the elements of a list the same? *)
 let all_the_same = function
 	| [] -> true
 	| lst ->
 		(let hd = (List.hd lst) in
 		List.for_all ((=) hd) lst)
-	
+
 let rec check_expr env = function
-  Ast.TableLiteral(tl) -> check_table_literal env tl   
+  Ast.TableLiteral(tl) -> check_table_literal env tl
   | Ast.Literal(l) ->(
     match l with
      Ast.IntLiteral(v) -> Literal(l), Int
@@ -89,12 +89,12 @@ let rec check_expr env = function
 		Table(_) | EmptyTable ->
 			let num_nests = (List.length index_list) in
 			let nested_table_t = get_nested_access_type ((num_nests-1),table_t) in
-			match nested_table_t with 
+			match nested_table_t with
 				EmptyTable ->
 					let new_table_type = (update_empty_table_type table_t assignee_typ) in
 					let decl = (table_id, new_table_type) in env.scope.variables <- (decl :: env.scope.variables) ;
 					NewTableAssign (table_id, indices_sast,assignee),assignee_typ
-				|Table(val_type) -> 
+				|Table(val_type) ->
 					if val_type=assignee_typ then
 						TableAssign(table_id,indices_sast,assignee),assignee_typ
 					else
@@ -159,7 +159,7 @@ let rec check_expr env = function
         )
     end in
     Call(v, el), Int
-  | Ast.TableAccess(table_id,index_exprs) -> 
+  | Ast.TableAccess(table_id,index_exprs) ->
 	(*First, get table, if it exists *)
 	let (_,table_t) = try
       find env.scope table_id
@@ -170,7 +170,7 @@ let rec check_expr env = function
 		 Table(_) ->
 			let index_sast = check_table_indices env index_exprs in
 			let index_types = (List.map snd index_sast) in
-			(*Next get the type of the variable we're acessing *) 
+			(*Next get the type of the variable we're acessing *)
 			let access_type = (get_table_access_type table_t (List.length index_types)) in
 			match access_type with
 				Some(value_type) -> TableAccess (table_id,index_sast),value_type
@@ -183,7 +183,7 @@ and check_table_indices env index_expr_lst =
 		raise (Failure("All table indices must be string or int expressions"))
 	else
 		index_sast
-		
+
 and check_table_literal env tl = (*TODO: redo this shit*)
 	let get_unique_elt lst =
 		if (all_the_same lst) && (List.length lst)>0 then
@@ -196,9 +196,9 @@ and check_table_literal env tl = (*TODO: redo this shit*)
 		let value_type = (get_unique_elt (List.map snd values_sast)) in
 		(TableLiteral (List.combine keys values_sast)), (Table value_type)
 	in
-	match tl with 
+	match tl with
 		Ast.EmptyTable -> (TableLiteral []),EmptyTable
-		| Ast.ArrayLiteral(exprs) -> 
+		| Ast.ArrayLiteral(exprs) ->
 			let keys = List.map (fun i -> (Ast.IntKey i)) (range 0 (List.length exprs ))  in
 			check_keys_exprs env keys exprs
 		| Ast.KeyValueLiteral(kv_list) ->
