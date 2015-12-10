@@ -6,6 +6,7 @@
 *.cmx
 *.exe
 *.o
+*.class
 parser.ml parser.mli
 scanner.ml
 prog
