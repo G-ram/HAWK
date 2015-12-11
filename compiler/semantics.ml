@@ -356,23 +356,20 @@ let rec check_expr env = function
         )
     end in
     Call(v, el), Int
-  | Ast.TableAccess(table_id,index_exprs) -> (*TODO: THIS SHIT*)
+  | Ast.TableAccess(table_id,index_exprs) -> 
 	(*First, get table, if it exists *)
 	let (_,table_t) = try
       find env.scope table_id
     with Not_found ->
       raise (Failure("undeclared identifier " ^ table_id)) in
 	(*next ensure that its a table*)
-	match table_t with
-		Int ->
-			let index_sast = check_table_indices env index_exprs in
-			let index_types = (List.map snd index_sast) in
-			(*Next get the type of the variable we're acessing *)
-			let access_type = (get_table_access_type table_t (List.length index_types)) in
-			(match access_type with
-				Some(value_type) -> TableAccess (table_id,index_sast),value_type
-				| None -> raise (Failure "Table does not support this level of nesting") )
-		| _ -> raise (Failure "Cannot do table access on non-table")
+	if (is_table table_t) then
+		let indices_sast = check_table_indices env index_exprs in
+		let nesting = (List.length index_exprs) in
+		let final_table_t = apply_nesting (table_t,-(nesting)) in
+		TableAccess (table_id,indices_sast),final_table_t
+	else
+		raise (Failure ("Attempting to index non-table"))
 and check_table_indices env index_expr_lst =
 	let index_sast = (List.map (check_expr env) index_expr_lst) in
 	let index_types = (List.map snd index_sast) in
