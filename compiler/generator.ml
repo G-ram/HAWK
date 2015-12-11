@@ -112,6 +112,15 @@ and string_of_expr_list = function
 	[] -> ""
 	| [hd] -> string_of_expr hd
 	| hd::tl -> (string_of_expr hd) ^ ", " ^ string_of_expr_list tl
+and string_of_get_index_expr = function
+	ind_e,Int as e -> ".getIntIndex(" ^ (string_of_expr e) ^ ")"
+	| ind_e,String as e -> ".getStringIndex(" ^ (string_of_expr e) ^ ")"
+	| _ -> raise (Failure "This type of table indexing should not happen. Semantic stage must have failed.")
+and string_of_set_index_expr ind value = 
+	match ind, value with
+		ind_e, value_e -> ".setIntIndex(" ^ (string_of_expr_list [ind_e;value_e]) ^ ")"
+		| ind_e, value_e -> ".setStringIndex(" ^ (string_of_expr_list [ind_e;value_e]) ^ ")"
+		| _ -> raise (Failure "This type of table indexing should not happen. Semantic stage must have failed.")
 and
 string_of_expr = function
 	Id(id), _ -> id
@@ -130,12 +139,21 @@ string_of_expr = function
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
 	| TableAccess(table_id, ind_list), _ ->
-		let string_of_index_expr = function
-			ind_e,Int as e -> ".getIntIndex(" ^ (string_of_expr e) ^ ")"
-			| ind_e,String as e -> ".getStringIndex(" ^ (string_of_expr e) ^ ")"
-			| _ -> raise (Failure "This type of table indexing should not happen. Semantic stage must have failed.")
+		table_id ^ (String.concat "" (List.map string_of_get_index_expr ind_list))
+	| TableAssign(table_id,ind_list,assignee), _ ->
+		let nesting_level = (List.length ind_list) in
+		let nestings = (Util.range 1 (nesting_level+1)) in
+		let enum_ind_list = (List.combine ind_list nestings) in
+		(*
+		a[1][2][3] = 4 gets an inner table, which gets an inner table, which then sets index 3 to 4
+		*)
+		let ind_to_string (ind_expr,nesting) = 
+			match ind_expr,nesting with
+				ind_e,n when n=nesting_level -> string_of_set_index_expr ind_e assignee
+				|ind_e,_ -> string_of_get_index_expr ind_e
 		in
-		table_id ^ (String.concat "" (List.map string_of_index_expr ind_list))
+		table_id ^ (String.concat "" (List.map ind_to_string enum_ind_list))
+		
 	| _ -> raise (Failure "We shouldn't be here.")
 and string_of_func_decl func_decl  =
 	func_decl.fname ^ "(" ^ (String.concat "," func_decl.params) ^ ")" ^ (string_of_stmt_list func_decl.body)

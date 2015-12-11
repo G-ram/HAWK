@@ -140,14 +140,6 @@ let test_update  =
 	sa.variables,sb.variables,sc.variables (*--> should be  ([("t", Table (Table Int))], [("s", Table Int)], [("u", Int)])*)
 *)
 
-
-(*Closed-open range from a to b, e.g. range 1 5 = [1;2;3;4] *)
-let rec range a b =
-	if a=b-1 then
-		[a]
-	else
-		a::(range (a+1) b)
-
 let is_table = function
 	Table(_) | EmptyTable -> true
 	| _ -> false
@@ -354,7 +346,7 @@ and check_table_literal env tl =
 	match tl with
 		Ast.EmptyTable -> (TableLiteral []),EmptyTable
 		| Ast.ArrayLiteral(exprs) ->
-			let keys = List.map (fun i -> (Ast.IntKey i)) (range 0 (List.length exprs ))  in
+			let keys = List.map (fun i -> (Ast.IntKey i)) (Util.range 0 (List.length exprs ))  in
 			check_keys_exprs env keys exprs
 		| Ast.KeyValueLiteral(kv_list) ->
 			let keys = (List.map fst kv_list) in
