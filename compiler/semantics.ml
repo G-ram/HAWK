@@ -47,7 +47,7 @@ going up parent links until matching variable is found
 This function has side effects*)
 let rec update_variable_type sym_t var_id new_type =
 	try 
-		let var = (find sym_t var_id) in
+		let _ = (find sym_t var_id) in (* this will raise exception if variable doesn't exist *)
 		let new_variable_list = 
 			List.map (fun (v_id,typ) -> if v_id=var_id then (v_id,new_type) else (v_id,typ)) sym_t.variables
 		in
@@ -177,12 +177,21 @@ let all_the_same = function
 		List.for_all ((=) hd) lst)
 		
 let create_linkage_if_applicable var_id sym_t assignee =
-	match assignee with 
+	let other_info = match assignee with 
 		Id(other_id) ->
-			let ((_,other_typ), other_scope) = find_var_and_scope sym_t other_id in
-			if (is_empty_table_container other_typ) then 
-				add_mutual_update_table_link var_id sym_t other_id other_scope 0
-
+			let ((_,other_type), other_scope) = find_var_and_scope sym_t other_id in
+			Some (other_id,other_type,other_scope,0)
+		| TableAccess(other_id, indices) ->
+			let ((_,outer_type), other_scope) = find_var_and_scope sym_t other_id in
+			let other_nesting = List.length indices in
+			let other_type = (apply_nesting (outer_type,-(other_nesting))) in
+			Some (other_id,other_type,other_scope,other_nesting)
+		| _ -> None
+	
+	in match other_info with
+		| Some(other_id,other_type,other_scope,other_nesting) when (is_empty_table_container other_type) ->
+			add_mutual_update_table_link var_id sym_t other_id other_scope other_nesting
+				
 let rec check_expr env = function
   Ast.TableLiteral(tl) -> check_table_literal env tl
   | Ast.Literal(l) ->(
@@ -226,7 +235,7 @@ let rec check_expr env = function
 				EmptyTable ->
 					let new_table_type = (update_empty_table_type table_t assignee_typ) in
 					update_variable_type env.scope table_id new_table_type;
-					NewTableAssign (table_id, indices_sast,assignee),assignee_typ
+					TableAssign (table_id, indices_sast,assignee),assignee_typ
 				|Table(val_type) ->
 					if val_type=assignee_typ then
 						TableAssign(table_id,indices_sast,assignee),assignee_typ
@@ -239,18 +248,21 @@ let rec check_expr env = function
     let (new_e,new_type) as vdecl = 
 	try (*Reassigning a variable to a different type is okay because assigment = declaration*)
       let (_,prev_typ) = find env.scope v in (*Add it in the symbol table if its a different type*)
-      if (not (can_assign prev_typ typ)) then raise (Failure ("identifier type cannot be assigned to previously declared type " ^ v))
+      if (not (can_assign prev_typ typ)) then 
+		raise (Failure ("identifier type cannot be assigned to previously declared type " ^ v))
       else  
-		(* if right hand side is an id of an EmptyTable container, link v and the other id together *)
 		Assign(v, (e, typ)), typ
     with Not_found -> (*Declaring/Defining a new variable*)
       let decl = (v, typ) in env.scope.variables <- (decl :: env.scope.variables) ;
       VAssign(v, (e, typ)), typ
 	in
-	if (is_table new_type) then
+	(if (is_table new_type) then
 		create_linkage_if_applicable v env.scope e;
-		update_table_type env.scope v new_type;
-    vdecl
+		update_table_type env.scope v new_type);
+	if (is_empty_table_container new_type) then
+		(DeferredCreation (v,env.scope)),new_type (* Type should get resolved somewhere down the line *)
+	else
+		vdecl
   | Ast.Binop(e1, op, e2) ->
     let e1 = check_expr env e1
     and e2 = check_expr env e2 in
@@ -322,7 +334,6 @@ and check_table_indices env index_expr_lst =
 		raise (Failure("All table indices must be string or int expressions"))
 	else
 		index_sast
-
 and check_table_literal env tl = (*TODO: redo this shit*)
 	let get_unique_elt lst =
 		if (all_the_same lst) && (List.length lst)>0 then

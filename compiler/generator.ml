@@ -3,11 +3,10 @@ open Sast
 let rec type_to_str = function
     Int -> "int"
     | Double -> "double"
-    | Table(value_type) -> "_HAWKTable<" ^ (type_to_str value_type) ^ ">"
+    | Table(value_type) as t -> (type_to_boxed_str t)
     | String -> "String"
 	| Void -> "void"
-
-let rec type_to_boxed_str = function
+and type_to_boxed_str = function
     Int -> "Integer"
     | Double -> "Double"
     | Table(value_type) -> "_HAWKTable<" ^ (type_to_boxed_str value_type) ^ ">"
@@ -102,7 +101,7 @@ let rec string_of_table_literal kv_list table_t =
 		| Ast.StringKey(s), expr -> ".setStringIndexChained(" ^ s ^ "," ^ (string_of_expr expr) ^ ")"
 	in
 	let kv_part = String.concat "" (List.map string_of_kv kv_list) in
-	"(new" ^ (type_to_boxed_str table_t) ^ ")" ^ kv_part
+	"(new" ^ (type_to_str table_t) ^ ")" ^ kv_part
 and
 string_of_literal = function
 	Ast.IntLiteral(x), _ -> string_of_int x
@@ -120,6 +119,12 @@ string_of_expr = function
 	| TableLiteral(kv_list), Table(val_type) -> string_of_table_literal kv_list val_type
 	| VAssign(id, expr), t -> (type_to_str t) ^ " " ^ id ^ " = " ^ (string_of_expr expr)
 	| Assign(id, expr), _ -> id ^ " = " ^ (string_of_expr expr)
+	| DeferredCreation(id, sym_table), _ ->
+		let (_,vtype) = Semantics.find sym_table id in
+		if (Semantics.is_empty_table_container vtype) then
+			"" (* This table never got assigned any value so it practically doesn't exist*)
+		else
+			id ^ " = new  " ^ (type_to_str vtype) ^ "()"
 	| Binop(expr1, op, expr2), _ -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"

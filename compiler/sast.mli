@@ -33,8 +33,8 @@ type expr_det =
   |TableLiteral of (Ast.key_literal * expr_t) list (*Every table literal, at the end of the day, is keys and values (possibly none) *)
   |VAssign of string * expr_t
   |Assign of string * expr_t
+  |DeferredCreation of string * symbol_table (*Used when assigning an emtpy table to a variable... symbol table should have full type after generating SAST *)
   |TableAssign of string * (expr_t list) * expr_t
-  |NewTableAssign of string * (expr_t list) * expr_t (*Useful for designating assignment to previously empty tables*)
   |Binop of expr_t * Ast.op * expr_t
   |Uminus of expr_t
   |Call of string * expr_t list
