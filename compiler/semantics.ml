@@ -122,8 +122,34 @@ b = a
 b = a should not be deferred. Even though we don't know b's type, this should just generate
 "b=a" in java just like a normal assignment
 *)
-let should_defer_creation assignee_e assignee_type=
+let should_defer_assignment assignee_e assignee_type=
 	(is_empty_table_container assignee_type) && (not (is_identifier_expr assignee_e)) 
+	
+let get_assignment_type assign_mode default_t =
+	match assign_mode with
+		| DeferredId(scope,s) -> 
+			let (v,t) = (find scope s) in t
+		| DeferredCreation(scope,s) ->
+			let (v,t) = (find scope s) in t
+		| DeferredTableAccess (scope,s,nesting) ->
+			let (v,table_t) = (find scope s) in
+			apply_nesting (table_t,(-nesting))
+		| _ -> default_t
+			
+
+let get_assignment_mode scope var_id assignee_e assignee_type = 
+	let is_et = (is_empty_table_container assignee_type) in
+	match assignee_e with
+		Id(s) when is_et -> DeferredId (scope,s)
+		| TableAccess(s,indices) when is_et -> 
+			let nesting = (List.length indices) in
+			DeferredTableAccess (scope,s,nesting)
+		| Assign(s,_,_) when is_et -> DeferredId (scope,s)
+		| TableAssign(s,indices,_,_) when is_et ->
+			let nesting = (List.length indices) in
+			DeferredTableAccess (scope,s,nesting)
+		| _ when is_et -> DeferredCreation (scope,var_id)
+		| _ -> Immediate
 	
 (* Update the type of a table variable within a given symbol scope 
 Need to ensure that table update links are respected *)
@@ -225,6 +251,7 @@ let rec check_expr env = function
     Id(v), typ
   | Ast.TableAssign(table_id, index_list, e) -> (*TODO: MAKE THIS SHIT MORE LIKE ASSIGN WITH TABLE LINX AND SHIT *)
 	let (assignee_e, assignee_type) as assignee = check_expr env e in
+	let assign_mode = get_assignment_mode env.scope table_id assignee_e assignee_type in
 	let indices_sast = check_table_indices env index_list in
 	let (_,table_t) = try
       find env.scope table_id
@@ -245,10 +272,10 @@ let rec check_expr env = function
 				EmptyTable -> (* Going from a nested empty table to a different level of nesting, update *)
 					let new_table_type = (update_empty_table_container_type table_t assignee_type) in
 					update_table_type env.scope table_id new_table_type;
-					TableAssign (table_id, indices_sast,assignee),assignee_type
+					TableAssign (table_id, indices_sast,assignee,assign_mode),assignee_type
 				|Table(val_type) ->
 					if val_type=assignee_type then
-						TableAssign(table_id,indices_sast,assignee),assignee_type
+						TableAssign (table_id,indices_sast,assignee, assign_mode),assignee_type
 					else
 						raise (Failure "Trying to assign value to table with different underlying type.")
 				| _ -> raise (Failure "check_expr TableAssign: Shouldn't be here. ")
@@ -256,33 +283,32 @@ let rec check_expr env = function
 			(if (is_table assignee_type) then
 				create_linkage_if_applicable table_id nesting env.scope assignee_e 
 			);
-			(* if RHS expr's type is empty table AND RHS is not something that should have been initialized previously *)
-			if (should_defer_creation assignee_e assignee_type) then
-				(DeferredCreation (table_id,env.scope)),assignee_type (* Type should get resolved somewhere down the line *)
-			else
-				vdecl
+			(* if RHS expr's type is empty table AND RHS is not something that should have been initialized previously 
+			if (should_defer_assignment assignee_e assignee_type) then
+				(DeferredAssign (table_id,env.scope)),assignee_type (* Type should get resolved somewhere down the line *)
+			
+			*)
+			vdecl
 				
 		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
   | Ast.Assign(v, assignee) ->
     let (assignee_e, assignee_type) as assignee = check_expr env assignee in
+	let assign_mode = get_assignment_mode env.scope v assignee_e assignee_type in
     let (new_e,new_type) as vdecl = 
 	try (*Reassigning a variable to a different type is okay because assigment = declaration*)
       let (_,prev_typ) = find env.scope v in (*Add it in the symbol table if its a different type*)
       if (not (can_assign prev_typ assignee_type)) then 
 		raise (Failure ("identifier type cannot be assigned to previously declared type " ^ v))
       else  
-		Assign(v, assignee), assignee_type
+		Assign (v, assignee, assign_mode), assignee_type
     with Not_found -> (*Declaring/Defining a new variable*)
       let decl = (v, assignee_type) in env.scope.variables <- (decl :: env.scope.variables) ;
-      VAssign(v, assignee), assignee_type
+      VAssign (v, assignee, assign_mode), assignee_type
 	in
 	(if (is_table new_type) then
 		create_linkage_if_applicable v 0 env.scope assignee_e;
 		update_table_type env.scope v new_type);
-	if (should_defer_creation assignee_e assignee_type) then
-		(DeferredCreation (v,env.scope)),new_type (* Type should get resolved somewhere down the line *)
-	else
-		vdecl
+	vdecl
   | Ast.Binop(e1, op, e2) ->
     let e1 = check_expr env e1
     and e2 = check_expr env e2 in

@@ -6,6 +6,8 @@ let rec type_to_str = function
     | Table(value_type) as t -> (type_to_boxed_str t)
     | String -> "String"
 	| Void -> "void"
+	| EmptyTable -> "wtf" (*raise (Failure "EmptyTable should never be generated. semantics messed up") *)
+	
 and type_to_boxed_str = function
     Int -> "Integer"
     | Double -> "Double"
@@ -95,6 +97,7 @@ let string_of_key_literal = function
 	Ast.IntKey(key) -> string_of_int key
 	| Ast.StringKey(key) -> key
 
+		
 (*TODO: these don't need to all be mutually recursive*)
 let rec string_of_table_literal kv_list table_t =
 	let string_of_kv = function
@@ -123,37 +126,47 @@ and string_of_set_index_expr ind value =
 		| ind_e, value_e -> ".setStringIndex(" ^ (string_of_expr_list [ind_e;value_e]) ^ ")"
 		| _ -> raise (Failure "This type of table indexing should not happen. Semantic stage must have failed.")
 and
+	string_of_assignment_rhs expr t mode =
+	(match mode with
+		| DeferredCreation(_,_) -> "new " ^ (type_to_str t) ^ "()"
+		| _ -> (string_of_expr expr)
+		
+	)
+and
 string_of_expr = function
 	Id(id), _ -> id
 	| Literal(lit), t -> string_of_literal (lit,t)
 	| TableLiteral(kv_list), Table(val_type) -> string_of_table_literal kv_list val_type
-	| VAssign(id, expr), t -> (type_to_str t) ^ " " ^ id ^ " = " ^ (string_of_expr expr)
-	| Assign(id, expr), _ -> id ^ " = " ^ (string_of_expr expr)
-	| DeferredCreation(id, sym_table), _ ->
-		let (_,vtype) = Semantics.find sym_table id in
-		if (Semantics.is_empty_table_container vtype) then
-			"" (* This table never got assigned any value so it practically doesn't exist*)
-		else
-			let type_str = (type_to_str vtype) in
-			type_str ^ " " ^ id ^ " = new  " ^ type_str ^ "()"
+	| VAssign(id, expr, assign_mode), t -> 
+		let typ = Semantics.get_assignment_type assign_mode t in
+		(type_to_str typ) ^ " " ^ id ^ " = " ^ (string_of_assignment_rhs expr typ assign_mode) (*(string_of_expr expr) *)
+	| Assign(id, expr, assign_mode), t -> 
+		let typ = Semantics.get_assignment_type assign_mode t in
+		id ^ " = " ^ (string_of_assignment_rhs expr typ assign_mode) (* (string_of_expr expr) *)
 	| Binop(expr1, op, expr2), _ -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
 	| TableAccess(table_id, ind_list), _ ->
 		table_id ^ (String.concat "" (List.map string_of_get_index_expr ind_list))
-	| TableAssign(table_id,ind_list,assignee), _ ->
-		let nesting_level = (List.length ind_list) in
-		let nestings = (Util.range 1 (nesting_level+1)) in
-		let enum_ind_list = (List.combine ind_list nestings) in
-		(*
-		a[1][2][3] = 4 gets an inner table, which gets an inner table, which then sets index 3 to 4
-		*)
-		let ind_to_string (ind_expr,nesting) = 
-			match ind_expr,nesting with
-				ind_e,n when n=nesting_level -> string_of_set_index_expr ind_e assignee
-				|ind_e,_ -> string_of_get_index_expr ind_e
-		in
-		table_id ^ (String.concat "" (List.map ind_to_string enum_ind_list))
+	| TableAssign(table_id,ind_list,assignee, assign_mode), t ->
+		match assign_mode with
+			| DeferredCreation(_,_) -> 
+				let typ = Semantics.get_assignment_type assign_mode t in
+				let type_str = (type_to_str typ)  in
+				type_str ^ " " ^ table_id ^ "= new " ^ type_str ^ "()"
+			| _ ->
+				let nesting_level = (List.length ind_list) in
+				let nestings = (Util.range 1 (nesting_level+1)) in
+				let enum_ind_list = (List.combine ind_list nestings) in
+				(*
+				a[1][2][3] = 4 gets an inner table, which gets an inner table, which then sets index 3 to 4
+				*)
+				let ind_to_string (ind_expr,nesting) = 
+					match ind_expr,nesting with
+						ind_e,n when n=nesting_level -> string_of_set_index_expr ind_e assignee
+						|ind_e,_ -> string_of_get_index_expr ind_e
+				in
+				table_id ^ (String.concat "" (List.map ind_to_string enum_ind_list))
 		
 	| _ -> raise (Failure "We shouldn't be here.")
 and string_of_func_decl func_decl  =
