@@ -102,7 +102,7 @@ let rec string_of_table_literal kv_list table_t =
 		| Ast.StringKey(s), expr -> ".setStringIndexChained(" ^ s ^ "," ^ (string_of_expr expr) ^ ")"
 	in
 	let kv_part = String.concat "" (List.map string_of_kv kv_list) in
-	"(new _HAWKTable<" ^ (type_to_boxed_str table_t) ^ ">)" ^ kv_part
+	"(new" ^ (type_to_boxed_str table_t) ^ ")" ^ kv_part
 and
 string_of_literal = function
 	Ast.IntLiteral(x), _ -> string_of_int x

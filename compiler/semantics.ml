@@ -18,6 +18,26 @@ let rec is_empty_table_container = function
 
 let rec find (scope : symbol_table) name = 
 	fst (find_var_and_scope scope name )
+	
+(*
+if a variable is of type t1, can it be assigned to a variable of type t2?
+obviously if:
+
+a=3
+then you can do 
+a=10 (both are Int)
+
+but also if:
+a = {}
+then 
+a = {{3}} is allowable too
+*)
+let rec can_assign t1 t2 =
+	match t1,t2 with
+		t1,t2 when t1=t2 -> true
+		| EmptyTable, Table(t) -> true
+		| Table(s), Table(t) -> (can_assign s t)
+		| _ -> false
 
 let rec find_built_in name typ = try
   List.find (fun (s, t) -> (s = name && t = BAny) || (s = name && t = typ)) built_in with Not_found -> raise Not_found
@@ -101,7 +121,7 @@ let rec update_table_type sym_tab table_id new_type =
 			
 	in update_linked_table_types table_id sym_tab new_type []	
 	
-
+(*
 let test_update  =
 	let sa = {parent=None; variables=["t",Table(Table(EmptyTable))];
 		update_table_links=[] } in
@@ -117,7 +137,7 @@ let test_update  =
 
 	update_table_type sb "s" (Table Int);
 	sa.variables,sb.variables,sc.variables (*--> should be  ([("t", Table (Table Int))], [("s", Table Int)], [("u", Int)])*)
-
+*)
 
 
 (*Closed-open range from a to b, e.g. range 1 5 = [1;2;3;4] *)
@@ -155,6 +175,13 @@ let all_the_same = function
 	| lst ->
 		(let hd = (List.hd lst) in
 		List.for_all ((=) hd) lst)
+		
+let create_linkage_if_applicable var_id sym_t assignee =
+	match assignee with 
+		Id(other_id) ->
+			let ((_,other_typ), other_scope) = find_var_and_scope sym_t other_id in
+			if (is_empty_table_container other_typ) then 
+				add_mutual_update_table_link var_id sym_t other_id other_scope 0
 
 let rec check_expr env = function
   Ast.TableLiteral(tl) -> check_table_literal env tl
@@ -208,25 +235,21 @@ let rec check_expr env = function
 				| _ -> raise (Failure "check_expr TableAssign: Shouldn't be here. ")
 		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
   | Ast.Assign(v, assignee) ->
-	let create_linkage_if_applicable assignee =
-		match assignee with 
-			Id(other_id) ->
-				let ((_,other_typ), other_scope) = find_var_and_scope env.scope other_id in
-				if (is_empty_table_container other_typ) then 
-					add_mutual_update_table_link v env.scope other_id other_scope 0
-	in 
     let (e, typ) = check_expr env assignee in
-    let vdecl = try (*Reassigning a variable to a different type is okay because assigment = declaration*)
-      let (_,other_typ) = find env.scope v in (*Add it in the symbol table if its a different type*)
-      if other_typ != typ then raise (Failure("identifier type does not match previously declared type " ^ v))
+    let (new_e,new_type) as vdecl = 
+	try (*Reassigning a variable to a different type is okay because assigment = declaration*)
+      let (_,prev_typ) = find env.scope v in (*Add it in the symbol table if its a different type*)
+      if (not (can_assign prev_typ typ)) then raise (Failure ("identifier type cannot be assigned to previously declared type " ^ v))
       else  
 		(* if right hand side is an id of an EmptyTable container, link v and the other id together *)
-		create_linkage_if_applicable e;
 		Assign(v, (e, typ)), typ
     with Not_found -> (*Declaring/Defining a new variable*)
       let decl = (v, typ) in env.scope.variables <- (decl :: env.scope.variables) ;
       VAssign(v, (e, typ)), typ
 	in
+	if (is_table new_type) then
+		create_linkage_if_applicable v env.scope e;
+		update_table_type env.scope v new_type;
     vdecl
   | Ast.Binop(e1, op, e2) ->
     let e1 = check_expr env e1
