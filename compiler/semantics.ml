@@ -318,14 +318,14 @@ let rec check_expr env = function
       raise (Failure("undeclared identifier " ^ table_id)) in
 	(*next ensure that its a table*)
 	match table_t with
-		 Table(_) ->
+		Int ->
 			let index_sast = check_table_indices env index_exprs in
 			let index_types = (List.map snd index_sast) in
 			(*Next get the type of the variable we're acessing *)
 			let access_type = (get_table_access_type table_t (List.length index_types)) in
-			match access_type with
+			(match access_type with
 				Some(value_type) -> TableAccess (table_id,index_sast),value_type
-				| None -> raise (Failure "Table does not support this level of nesting")
+				| None -> raise (Failure "Table does not support this level of nesting") )
 		| _ -> raise (Failure "Cannot do table access on non-table")
 and check_table_indices env index_expr_lst =
 	let index_sast = (List.map (check_expr env) index_expr_lst) in
