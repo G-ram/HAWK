@@ -14,6 +14,7 @@ and type_to_boxed_str = function
 
 let rec repeat str n =
 	match str,n with
+		|s,0 -> ""
 		|s,1 -> s
 		|s,n -> s ^ (repeat str (n-1))
 
@@ -138,49 +139,49 @@ string_of_expr = function
 		table_id ^ (String.concat "" (List.map string_of_index_expr ind_list))
 	| _ -> raise (Failure "We shouldn't be here.")
 and string_of_func_decl func_decl  =
-	func_decl.fname ^ "(" ^ (String.concat "," func_decl.params) ^ ")" ^ (string_of_stmt_list func_decl.body)
+	func_decl.fname ^ "(" ^ (String.concat "," func_decl.params) ^ ")" ^ (string_of_stmt_list func_decl.body 0)
 and
-string_of_stmt_list = function
+string_of_stmt_list stmt_list nested = match stmt_list with 
 	[] -> ""
-	| hd::tl -> (string_of_stmt hd) ^ "\n" ^ (string_of_stmt_list tl)
-and string_of_stmt = function
-	Block(stmt_list, _) -> "{\n" ^ (string_of_stmt_list stmt_list) ^ "\n}"
-	| Expr(expr) -> (string_of_expr expr) ^ ";"
-	| Func(func_decl) -> string_of_func_decl func_decl
-	| Return(expr) -> "Return " ^ (string_of_expr expr) ^ ";"
-	| If(expr, stmt1, stmt2) -> "if(_checkIf(" ^ (string_of_expr expr) ^ "))" ^ (string_of_stmt stmt1) ^ "else" ^ (string_of_stmt stmt2)
-	| While(expr, stmt) -> "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt)
-	| For(str1, str2, stmt) -> "for(" ^ str1 ^ " : " ^ str2 ^ ")" ^ (string_of_stmt stmt)
+	| hd::tl -> (string_of_stmt hd nested) ^ "\n" ^ (string_of_stmt_list tl nested)
+and string_of_stmt stmt nested = match stmt with 
+	Block(stmt_list, _) -> "{\n" ^ (string_of_stmt_list stmt_list nested) ^ "\n" ^ (string_for_indent (nested - 1)) ^ "}"
+	| Expr(expr) -> (string_for_indent nested) ^ (string_of_expr expr) ^ ";"
+	| Func(func_decl) -> (string_for_indent nested) ^ string_of_func_decl func_decl
+	| Return(expr) -> (string_for_indent nested) ^ "Return " ^ (string_of_expr expr) ^ ";"
+	| If(expr, stmt1, stmt2) -> (string_for_indent nested) ^ "if(_checkIf(" ^ (string_of_expr expr) ^ "))" ^ (string_of_stmt stmt1 nested) ^ "else" ^ (string_of_stmt stmt2 nested)
+	| While(expr, stmt) -> (string_for_indent nested) ^ "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt (nested + 1))
+	| For(str1, str2, stmt) -> (string_for_indent nested) ^ "for(" ^ str1 ^ " : " ^ str2 ^ ")" ^ (string_of_stmt stmt nested)
 
-let string_of_begin_end = function
-  Block(stmt_list, _) -> string_of_stmt_list stmt_list
+let string_of_begin_end block nested= match block with 
+  Block(stmt_list, _) -> string_of_stmt_list stmt_list nested
   | _ -> ""
 
 let string_of_pattern pat = match pat with
 		Ast.CssPattern(css_selector) -> "for(int i = 0; i < 1; i++)"(*"@" ^ (string_of_css_selector css_selector) ^ "@"*)
 		| Ast.RegexPattern(regex_seq) -> "for(String _this : _regexMatcher._match(\""^(String.concat " " (List.map string_of_regex regex_seq))^"\"))"
 
-let string_of_pattern_action (pattern,action) =
-	(string_of_pattern pattern) ^ (string_of_stmt action)
+let string_of_pattern_action nested (pattern,action) =
+	(string_of_pattern pattern) ^ (string_of_stmt action nested)
 
-let string_of_file file =
+let string_of_file file nested =
   let file_string = ref "" in
   let ic = open_in file in
     try
       while true; do
-        file_string := !file_string ^ (input_line ic);
+        file_string :=  !file_string ^ (string_for_indent nested) ^ (input_line ic) ^ "\n";
       done; !file_string
     with End_of_file ->
       close_in ic;
   !file_string
 
 let string_of_program prog =
-  (string_of_file "Imports.java")
-	^ "public class Program {\n"
-	^ "public static void main(String[] _args){"
-  ^ (string_of_file "Setup.java")
-	^ (string_of_begin_end prog.begin_stmt) ^ "\n"
-	^ (String.concat "\n" (List.map string_of_pattern_action prog.pattern_actions)) ^"\n"
-	^ (string_of_begin_end prog.end_stmt) ^ "\n}"
-  ^ (string_of_file "BuiltIn.java")
+  (string_of_file "Imports.java" 0)
+	^  "public class Program {\n"
+	^ (string_for_indent 1) ^ "public static void main(String[] _args){" ^ "\n"
+  ^  (string_of_file "Setup.java" 2)
+	^ (string_of_begin_end prog.begin_stmt 2) 
+	^ (String.concat "\n" (List.map (string_of_pattern_action 2) prog.pattern_actions)) ^"\n"
+	^ (string_of_begin_end prog.end_stmt 2) ^ "\n" ^ (string_for_indent 1) ^ "}\n"
+  ^ (string_of_file "BuiltIn.java" 1)
   ^ "}"
