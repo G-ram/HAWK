@@ -84,23 +84,24 @@ let rec apply_nesting = function
 	
 (* Update the type of a table variable within a given symbol scope 
 Need to ensure that table update links are respected *)
-let rec update_table_type sym_t table_id new_type =
-	(*First, update the table table itself *)
-	update_variable_type sym_t table_id new_type;
-	(*Next, update all pertinent links *)
-	let table_links = List.map snd (List.filter (fun (t_id,_) -> table_id=t_id) sym_t.update_table_links) in
-	let correct_linked_table_type update_link =
-		let neighbor_id = update_link.link_id in
-		let neighbor_sym_t = update_link.link_scope in
-		(* remove links between current table and neighbor, then recursively update neighbor *)
-		remove_mutual_update_table_links table_id sym_t neighbor_id neighbor_sym_t;
-		let new_neighbor_type = (apply_nesting (new_type,update_link.nesting)) in
-		update_table_type neighbor_sym_t neighbor_id new_neighbor_type
-	in
-	List.iter correct_linked_table_type table_links 
+let rec update_table_type sym_tab table_id new_type =
+	(* update all table links in depth first search style *)
+	let rec update_linked_table_types table_id sym_tab new_type visited =
+		(*First do the neccesary mutation and update our variable type *)
+		update_variable_type sym_tab table_id new_type;
+		let already_visited t_id sym_tab visited =
+			List.exists (fun (t,s) -> t=t_id && s==sym_tab) visited
+		in
+		let visited = (table_id,sym_tab)::visited in
+		let neighbors = List.map snd (List.filter (fun (t_id,_) -> table_id=t_id) sym_tab.update_table_links) in
+		let unvisited_neighbors = List.filter (fun n -> not (already_visited n.link_id n.link_scope visited)) neighbors in
+		let new_neighbor_types = List.map (fun n-> apply_nesting (new_type,n.nesting)) unvisited_neighbors in
+		let folder = (fun visited (neighb,neighb_t) -> update_linked_table_types neighb.link_id neighb.link_scope neighb_t visited) in
+		List.fold_left folder visited (List.combine unvisited_neighbors new_neighbor_types)
+			
+	in update_linked_table_types table_id sym_tab new_type []	
+	
 
-
-(*
 let test_update  =
 	let sa = {parent=None; variables=["t",Table(Table(EmptyTable))];
 		update_table_links=[] } in
@@ -115,8 +116,8 @@ let test_update  =
 	sb.update_table_links<- ("s",{link_id="u";link_scope=sc;nesting=(-1)})::sb.update_table_links;
 
 	update_table_type sb "s" (Table Int);
-	sa.variables,sb.variables,sc.variables --> should be  ([("t", Table (Table Int))], [("s", Table Int)], [("u", Int)])
-*)
+	sa.variables,sb.variables,sc.variables (*--> should be  ([("t", Table (Table Int))], [("s", Table Int)], [("u", Int)])*)
+
 
 
 (*Closed-open range from a to b, e.g. range 1 5 = [1;2;3;4] *)
