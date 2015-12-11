@@ -87,6 +87,7 @@ if you do:
 s[0] = 3, the end result should be the same 
 *)
 let add_mutual_update_table_link table_id sym_tab link_id link_scope nesting =
+	remove_mutual_update_table_links table_id sym_tab link_id link_scope;
 	add_update_table_link table_id sym_tab link_id link_scope nesting;
 	add_update_table_link link_id link_scope table_id sym_tab (-nesting)
 	
@@ -176,16 +177,16 @@ let all_the_same = function
 		(let hd = (List.hd lst) in
 		List.for_all ((=) hd) lst)
 		
-let create_linkage_if_applicable var_id sym_t assignee =
+let create_linkage_if_applicable var_id var_nesting sym_t assignee = (* TODO: this will have to also take in nesting of var_id *)
 	let other_info = match assignee with 
 		Id(other_id) ->
 			let ((_,other_type), other_scope) = find_var_and_scope sym_t other_id in
-			Some (other_id,other_type,other_scope,0)
+			Some (other_id,other_type,other_scope, -var_nesting)
 		| TableAccess(other_id, indices) ->
 			let ((_,outer_type), other_scope) = find_var_and_scope sym_t other_id in
 			let other_nesting = List.length indices in
 			let other_type = (apply_nesting (outer_type,-(other_nesting))) in
-			Some (other_id,other_type,other_scope,other_nesting)
+			Some (other_id,other_type,other_scope,other_nesting-var_nesting)
 		| _ -> None
 	in match other_info with
 		| Some(other_id,other_type,other_scope,other_nesting) when (is_empty_table_container other_type) ->
@@ -208,40 +209,44 @@ let rec check_expr env = function
       raise (Failure("undeclared identifier " ^ v)) in
     let (v, typ) = vdecl in
     Id(v), typ
-  | Ast.TableAssign(table_id, index_list, e) ->
-	let (assignee_e, assignee_typ) as assignee = check_expr env e in
+  | Ast.TableAssign(table_id, index_list, e) -> (*TODO: MAKE THIS SHIT MORE LIKE ASSIGN WITH TABLE LINX AND SHIT *)
+	let (assignee_e, assignee_type) as assignee = check_expr env e in
 	let indices_sast = check_table_indices env index_list in
 	let (_,table_t) = try
       find env.scope table_id
     with Not_found ->
       raise (Failure("undeclared table identifier " ^ table_id)) in
-	let rec get_nested_access_type = function
-		0, EmptyTable -> EmptyTable
-		| 0,Table(t) -> Table(t)
-		| n,Table(t) -> get_nested_access_type ((n-1),t)
-		| _ -> raise (Failure "Attempt to assign to table at too high a nesting level.")
-	in
-	let rec update_empty_table_type old_table_t new_type =
+	let nesting = (List.length indices_sast) in
+	(* Most nested part of *)
+	let final_table_t = apply_nesting (table_t,-(nesting - 1)) in
+	let rec update_empty_table_container_type old_table_t new_type =
 		match old_table_t with
-			Table(t) -> (Table (update_empty_table_type t new_type))
-			| EmptyTable -> new_type
+			Table(t) -> (Table (update_empty_table_container_type t new_type))
+			| EmptyTable -> Table(new_type)
 			| t -> t
 	in
 	(match table_t with
 		Table(_) | EmptyTable ->
-			let num_nests = (List.length index_list) in
-			let nested_table_t = get_nested_access_type ((num_nests-1),table_t) in
-			match nested_table_t with
-				EmptyTable ->
-					let new_table_type = (update_empty_table_type table_t assignee_typ) in
-					update_variable_type env.scope table_id new_table_type;
-					TableAssign (table_id, indices_sast,assignee),assignee_typ
+			let vdecl = match final_table_t with (*TODO: check assignment compatibility somewhere in here *)
+				EmptyTable -> (* Going from a nested empty table to a different level of nesting, update *)
+					let new_table_type = (update_empty_table_container_type table_t assignee_type) in
+					update_table_type env.scope table_id new_table_type;
+					TableAssign (table_id, indices_sast,assignee),assignee_type
 				|Table(val_type) ->
-					if val_type=assignee_typ then
-						TableAssign(table_id,indices_sast,assignee),assignee_typ
+					if val_type=assignee_type then
+						TableAssign(table_id,indices_sast,assignee),assignee_type
 					else
 						raise (Failure "Trying to assign value to table with different underlying type.")
 				| _ -> raise (Failure "check_expr TableAssign: Shouldn't be here. ")
+			in
+			(if (is_table assignee_type) then
+				create_linkage_if_applicable table_id nesting env.scope assignee_e (*TODO: THIS IS FUCKED*)
+			);
+			if (is_empty_table_container assignee_type) then
+				(DeferredCreation (table_id,env.scope)),assignee_type (* Type should get resolved somewhere down the line *)
+			else
+				vdecl
+				
 		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
   | Ast.Assign(v, assignee) ->
     let (e, typ) = check_expr env assignee in
@@ -257,7 +262,7 @@ let rec check_expr env = function
       VAssign(v, (e, typ)), typ
 	in
 	(if (is_table new_type) then
-		create_linkage_if_applicable v env.scope e;
+		create_linkage_if_applicable v 0 env.scope e;
 		update_table_type env.scope v new_type);
 	if (is_empty_table_container new_type) then
 		(DeferredCreation (v,env.scope)),new_type (* Type should get resolved somewhere down the line *)
@@ -310,7 +315,7 @@ let rec check_expr env = function
         )
     end in
     Call(v, el), Int
-  | Ast.TableAccess(table_id,index_exprs) ->
+  | Ast.TableAccess(table_id,index_exprs) -> (*TODO: THIS SHIT*)
 	(*First, get table, if it exists *)
 	let (_,table_t) = try
       find env.scope table_id
@@ -334,7 +339,7 @@ and check_table_indices env index_expr_lst =
 		raise (Failure("All table indices must be string or int expressions"))
 	else
 		index_sast
-and check_table_literal env tl = (*TODO: redo this shit*)
+and check_table_literal env tl = 
 	let get_unique_elt lst =
 		if (all_the_same lst) && (List.length lst)>0 then
 			(List.hd lst)
@@ -372,7 +377,7 @@ let rec check_stmt env = function
   | Ast.Return(e) -> Return(check_expr env e)
   | Ast.If(e, s1, s2) ->
     let (e, typ) = check_expr env e in
-    if typ != Int && typ != Double then raise (Failure("unary minus operation does not support this type")) ;
+    if typ != Int && typ != Double then raise (Failure("If statement does not support this type")) ;
     If((e, typ), check_stmt env s1, check_stmt env s2)
   | Ast.While(e, s) ->
     let (e, typ) = check_expr env e in
