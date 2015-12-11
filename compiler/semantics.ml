@@ -103,6 +103,28 @@ let rec apply_nesting = function
 	| Table(t),n when n<0 -> (apply_nesting (t,n+1))
 	| _ -> raise (Failure "Attempting to unnest non-table.")
 	
+
+let is_identifier_expr = function
+	| Id(_) -> true
+	| TableAccess(_) -> true
+	| Assign(_) -> true
+	| TableAssign(_) -> true
+	| _ -> false
+	
+(*  Consider a statement like
+a = {} 
+this should be deferred... we don't know how to construct 'a' until we know it's type
+
+but if we have:
+a = {}
+b = a
+
+b = a should not be deferred. Even though we don't know b's type, this should just generate
+"b=a" in java just like a normal assignment
+*)
+let should_defer_creation assignee_e assignee_type=
+	(is_empty_table_container assignee_type) && (not (is_identifier_expr assignee_e)) 
+	
 (* Update the type of a table variable within a given symbol scope 
 Need to ensure that table update links are respected *)
 let rec update_table_type sym_tab table_id new_type =
@@ -120,7 +142,7 @@ let rec update_table_type sym_tab table_id new_type =
 		let folder = (fun visited (neighb,neighb_t) -> update_linked_table_types neighb.link_id neighb.link_scope neighb_t visited) in
 		List.fold_left folder visited (List.combine unvisited_neighbors new_neighbor_types)
 			
-	in update_linked_table_types table_id sym_tab new_type []	
+	in ignore (update_linked_table_types table_id sym_tab new_type [])
 	
 (*
 let test_update  =
@@ -156,9 +178,9 @@ let rec get_table_access_type table_t n_indices =
 	match table_t,n_indices with
 		Table(val_type), 1 -> Some val_type
 		| Table(val_type), n ->
-			match (get_table_access_type val_type (n-1)) with
+			(match (get_table_access_type val_type (n-1)) with
 				None -> None
-				| x -> x
+				| x -> x)
 		| _ -> None
 
 
@@ -183,7 +205,7 @@ let create_linkage_if_applicable var_id var_nesting sym_t assignee = (* TODO: th
 	in match other_info with
 		| Some(other_id,other_type,other_scope,other_nesting) when (is_empty_table_container other_type) ->
 			add_mutual_update_table_link var_id sym_t other_id other_scope other_nesting
-		| None -> ()
+		| _ -> ()
 				
 let rec check_expr env = function
   Ast.TableLiteral(tl) -> check_table_literal env tl
@@ -232,31 +254,32 @@ let rec check_expr env = function
 				| _ -> raise (Failure "check_expr TableAssign: Shouldn't be here. ")
 			in
 			(if (is_table assignee_type) then
-				create_linkage_if_applicable table_id nesting env.scope assignee_e (*TODO: THIS IS FUCKED*)
+				create_linkage_if_applicable table_id nesting env.scope assignee_e 
 			);
-			if (is_empty_table_container assignee_type) then
+			(* if RHS expr's type is empty table AND RHS is not something that should have been initialized previously *)
+			if (should_defer_creation assignee_e assignee_type) then
 				(DeferredCreation (table_id,env.scope)),assignee_type (* Type should get resolved somewhere down the line *)
 			else
 				vdecl
 				
 		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
   | Ast.Assign(v, assignee) ->
-    let (e, typ) = check_expr env assignee in
+    let (assignee_e, assignee_type) as assignee = check_expr env assignee in
     let (new_e,new_type) as vdecl = 
 	try (*Reassigning a variable to a different type is okay because assigment = declaration*)
       let (_,prev_typ) = find env.scope v in (*Add it in the symbol table if its a different type*)
-      if (not (can_assign prev_typ typ)) then 
+      if (not (can_assign prev_typ assignee_type)) then 
 		raise (Failure ("identifier type cannot be assigned to previously declared type " ^ v))
       else  
-		Assign(v, (e, typ)), typ
+		Assign(v, assignee), assignee_type
     with Not_found -> (*Declaring/Defining a new variable*)
-      let decl = (v, typ) in env.scope.variables <- (decl :: env.scope.variables) ;
-      VAssign(v, (e, typ)), typ
+      let decl = (v, assignee_type) in env.scope.variables <- (decl :: env.scope.variables) ;
+      VAssign(v, assignee), assignee_type
 	in
 	(if (is_table new_type) then
-		create_linkage_if_applicable v 0 env.scope e;
+		create_linkage_if_applicable v 0 env.scope assignee_e;
 		update_table_type env.scope v new_type);
-	if (is_empty_table_container new_type) then
+	if (should_defer_creation assignee_e assignee_type) then
 		(DeferredCreation (v,env.scope)),new_type (* Type should get resolved somewhere down the line *)
 	else
 		vdecl
