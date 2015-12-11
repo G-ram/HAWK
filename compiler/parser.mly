@@ -101,8 +101,8 @@ expr_no_brace:
 	| ID ASSIGN expr {Assign($1,$3)}
 	| ID LPAREN expr_list RPAREN {Call($1,$3)}
 	| ID LPAREN  RPAREN {Call($1,[])}
-	| ID LBRACK bracket_expr_list RBRACK {TableAccess($1,$3)}
-	| ID LBRACK bracket_expr_list RBRACK ASSIGN expr {TableAssign($1,$3,$6)}
+	| ID bracket_expr_list {TableAccess($1,$2)}
+	| ID bracket_expr_list ASSIGN expr {TableAssign($1,$2,$4)}
     | LPAREN expr RPAREN {$2}
     | MINUS expr_no_brace %prec UMINUS {Uminus($2)}
 
@@ -112,7 +112,7 @@ expr_list:
 
 bracket_expr_list:
 	| LBRACK expr RBRACK {[$2]}
-	| bracket_expr_list LBRACK expr RBRACK { $3 :: $1}
+	| LBRACK expr RBRACK bracket_expr_list { $2 :: $4}
 
 literal:
 	INT {IntLiteral($1)}
