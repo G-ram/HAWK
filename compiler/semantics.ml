@@ -187,10 +187,10 @@ let create_linkage_if_applicable var_id sym_t assignee =
 			let other_type = (apply_nesting (outer_type,-(other_nesting))) in
 			Some (other_id,other_type,other_scope,other_nesting)
 		| _ -> None
-	
 	in match other_info with
 		| Some(other_id,other_type,other_scope,other_nesting) when (is_empty_table_container other_type) ->
 			add_mutual_update_table_link var_id sym_t other_id other_scope other_nesting
+		| None -> ()
 				
 let rec check_expr env = function
   Ast.TableLiteral(tl) -> check_table_literal env tl

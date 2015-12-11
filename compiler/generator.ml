@@ -101,7 +101,7 @@ let rec string_of_table_literal kv_list table_t =
 		| Ast.StringKey(s), expr -> ".setStringIndexChained(" ^ s ^ "," ^ (string_of_expr expr) ^ ")"
 	in
 	let kv_part = String.concat "" (List.map string_of_kv kv_list) in
-	"(new" ^ (type_to_str table_t) ^ ")" ^ kv_part
+	"(new " ^ (type_to_str (Table (table_t))) ^ "())" ^ kv_part
 and
 string_of_literal = function
 	Ast.IntLiteral(x), _ -> string_of_int x
@@ -124,7 +124,8 @@ string_of_expr = function
 		if (Semantics.is_empty_table_container vtype) then
 			"" (* This table never got assigned any value so it practically doesn't exist*)
 		else
-			id ^ " = new  " ^ (type_to_str vtype) ^ "()"
+			let type_str = (type_to_str vtype) in
+			type_str ^ " " ^ id ^ " = new  " ^ type_str ^ "()"
 	| Binop(expr1, op, expr2), _ -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
