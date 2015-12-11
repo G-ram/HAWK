@@ -32,7 +32,7 @@ let rec string_of_regex_set = function
   | Ast.RegexNestedSet(set) -> (string_of_regex_set_sequence set)
 
 and string_of_regex_set_sequence seq =
-	let all_together = String.concat " " (List.map string_of_regex_set seq) in
+	let all_together = String.concat "" (List.map string_of_regex_set seq) in
 	"[" ^ all_together ^ "]"
 
 let string_of_regex_op op =

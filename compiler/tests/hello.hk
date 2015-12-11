@@ -18,7 +18,7 @@ BEGIN{
   }
   print(a);*/
 }
-[/$/]{
+[/[a]hey/]{
   print("Hey pattern matching is here to stay");
 }
 END{
