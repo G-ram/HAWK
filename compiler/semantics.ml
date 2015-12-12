@@ -440,8 +440,8 @@ let get_func_decls_stmt stmt =
 	if (Util.have_duplicates names) then
 		raise (Failure "Duplicate function names declared!")
 	else
-	(*Make sure we aren't using any built-in names*)
-	if (Util.any_overlap names )
+		func_decls
+	
 		
 let check_program p =
 	let func_decls = get_func_decls p.Ast.begin_stmt in
