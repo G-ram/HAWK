@@ -107,7 +107,7 @@ expr_no_brace:
 
 expr_list:
 	| expr { [$1] }
-	| expr_list COMMA expr { $3 :: $1 }
+	| expr COMMA  expr_list { $1 :: $3 }
 
 bracket_expr_list:
 	| LBRACK expr RBRACK {[$2]}
