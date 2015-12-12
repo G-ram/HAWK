@@ -339,10 +339,12 @@ let rec check_expr env = function
     (*Check for int or double*)
     if typ != Int && typ != Double then raise (Failure("unary minus operation does not support this type")) ;
     Uminus((e, typ)), typ
-  | Ast.Call(v, el) -> (*This is not entirely correct! Still needs to infer*)
-    let el = List.map (fun e -> (check_expr env e)) el in
-    let _ = if List.length el = 1 then begin
-      let (e, typ) = List.hd el in
+  | Ast.Call(v, arg_list) -> (*This is not entirely correct! Still needs to infer*)
+    let arg_list = List.map (fun e -> (check_expr env e)) arg_list in
+	let arg_type_list = List.map snd arg_list in
+	let fdecl = find_fdecl env.fdecl_list in
+    let _ = if List.length arg_list = 1 then begin
+      let (e, typ) = List.hd arg_list in
       let typ = match typ with (*Check for correct type*)
         Table(_) -> BTable
         | _ -> BAny in
@@ -355,7 +357,7 @@ let rec check_expr env = function
           with Not_found -> ()
         )
     end in
-    Call(v, el), Int
+    Call(v, arg_list), Int
   | Ast.TableAccess(table_id,index_exprs) -> 
 	(*First, get table, if it exists *)
 	let (_,table_t) = try
@@ -425,21 +427,36 @@ let rec check_stmt env = function
 
 let check_pattern env a = check_stmt env a
 
-let init_env =
-    let s = {
+let get_func_decls_stmt stmt = 
+	let get_func_decls_stmt_unchecked stmt= 
+		let all_func_decls = match stmt with 
+			Ast.Block(stmt_list) -> List.concat (List.map get_func_decls stmt_list)
+			| Ast.Func({fname=s,params=_,body=_}) as fdecl -> [s,fdecl]
+			| _ -> []
+	in 
+	let func_decls = get_func_decls_stmt_unchecked stmt in
+	(*Make sure that there are no duplicates*)
+	let names = List.map fst func_decls in
+	if (Util.have_duplicates names) then
+		raise (Failure "Duplicate function names declared!")
+	else
+	(*Make sure we aren't using any built-in names*)
+	if (Util.any_overlap names )
+		
+let check_program p =
+	let func_decls = get_func_decls p.Ast.begin_stmt in
+    let init_scope = {
       parent = None;
       variables = [];
 	  update_table_links = []} in
-    { scope = s; return = None; }
-
-let check_program p =
-  let (begin_block, env) = match check_stmt init_env p.Ast.begin_stmt with
-    Block(begin_block, env) -> begin_block, env
-    | _ -> raise (Failure("begin is not a block")) in
-  let pattern_actions = List.map (fun (pattern, action) -> pattern, (check_pattern env action)) p.Ast.pattern_actions in
-  let (end_block, env) = match check_stmt env p.Ast.end_stmt with
-    Block(end_block, env) -> end_block, env
-    | _ -> raise (Failure("end is not a block")) in
-  {begin_stmt = Block(begin_block, env);
-  pattern_actions = pattern_actions;
-  end_stmt = Block(end_block, env);}
+    let init_env = { scope = init_scope; return = None; func_decls=func_decls } in
+	let (begin_block, env) = match check_stmt init_env p.Ast.begin_stmt with
+								Block(begin_block, env) -> begin_block, env
+								| _ -> raise (Failure("begin is not a block")) in
+	let pattern_actions = List.map (fun (pattern, action) -> pattern, (check_pattern env action)) p.Ast.pattern_actions in
+	let (end_block, env) = match check_stmt env p.Ast.end_stmt with
+								Block(end_block, env) -> end_block, env
+								| _ -> raise (Failure("end is not a block")) in
+	{begin_stmt = Block(begin_block, env);
+	pattern_actions = pattern_actions;
+	end_stmt = Block(end_block, env);}
