@@ -342,7 +342,6 @@ let rec check_expr env = function
   | Ast.Call(v, arg_list) -> (*This is not entirely correct! Still needs to infer*)
     let arg_list = List.map (fun e -> (check_expr env e)) arg_list in
 	let arg_type_list = List.map snd arg_list in
-	let fdecl = find_fdecl env.fdecl_list in
     let _ = if List.length arg_list = 1 then begin
       let (e, typ) = List.hd arg_list in
       let typ = match typ with (*Check for correct type*)
@@ -428,23 +427,23 @@ let rec check_stmt env = function
 let check_pattern env a = check_stmt env a
 
 let get_func_decls_stmt stmt = 
-	let get_func_decls_stmt_unchecked stmt= 
-		let all_func_decls = match stmt with 
-			Ast.Block(stmt_list) -> List.concat (List.map get_func_decls stmt_list)
-			| Ast.Func({fname=s,params=_,body=_}) as fdecl -> [s,fdecl]
+	let rec get_func_decls_stmt_unchecked stmt= 
+		match stmt with 
+			Ast.Block(stmt_list) -> List.concat (List.map get_func_decls_stmt_unchecked stmt_list)
+			| Ast.Func(fdecl) -> [fdecl.fname,fdecl]
 			| _ -> []
 	in 
 	let func_decls = get_func_decls_stmt_unchecked stmt in
 	(*Make sure that there are no duplicates*)
 	let names = List.map fst func_decls in
-	if (Util.have_duplicates names) then
+	if (Util.have_duplicates String.compare names) then
 		raise (Failure "Duplicate function names declared!")
 	else
 		func_decls
 	
 		
 let check_program p =
-	let func_decls = get_func_decls p.Ast.begin_stmt in
+	let func_decls = get_func_decls_stmt p.Ast.begin_stmt in
     let init_scope = {
       parent = None;
       variables = [];

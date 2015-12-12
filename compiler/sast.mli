@@ -23,7 +23,7 @@ and symbol_table = {
 }
 
 type translation_environment = {
-  func_decls: (string * Ast.func_decl)
+  func_decls: (string * Ast.func_decl) list;
   scope: symbol_table;
   return: t option (*Not implemented*)
 }
