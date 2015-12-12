@@ -7,7 +7,7 @@ public class _HAWKFileReader{
       for(String s : files){
         try {
             concatFile += org.jsoup.Jsoup.connect(s).get().toString();
-        } catch (java.io.IOException e) {
+        } catch (Exception e) {
             try{
               byte[] encoded = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(s));
               concatFile += new String(encoded, java.nio.charset.StandardCharsets.UTF_8);

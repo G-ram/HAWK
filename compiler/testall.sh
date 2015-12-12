@@ -68,7 +68,7 @@ Check() {
     generatedfiles=""
 
     generatedfiles="$generatedfiles ${basename}.i.out" &&
-    Run "$PROG" $1 ">" "Program.java && javac Program.java && java Program ./tests/testinput.txt>" ${basename}.i.out &&
+    Run "$PROG" $1 ">" "Program.java && javac Program.java && java -cp ./_hawk_lib/jsoup.jar: Program ./tests/testinput.txt>" ${basename}.i.out &&
     Compare ${basename}.i.out ${reffile}.out ${basename}.i.diff
 
     # Report the status and clean up the generated files
