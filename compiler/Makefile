@@ -1,8 +1,8 @@
-OBJS = util.cmo parser.cmo scanner.cmo prettyprint.cmo semantics.cmo generator.cmo main.cmo 
+OBJS = util.cmo parser.cmo scanner.cmo prettyprint.cmo semantics.cmo generator.cmo main.cmo
 
 prog : $(OBJS)
 	ocamlc -o prog $(OBJS)
-	#javac ./_hawk_lib/*.java
+	javac ./_hawk_lib/*.java
 
 .PHONY : test
 test : prog testall.sh

@@ -5,11 +5,15 @@ public class _HAWKFileReader{
     concatFile = "";
     if(files.length > 0){
       for(String s : files){
-        try{
-          byte[] encoded = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(s));
-          concatFile += new String(encoded, java.nio.charset.StandardCharsets.UTF_8);
-        }catch(java.io.IOException e){
-          System.out.println(s+" does not seem to be valid and/or exist");
+        try {
+            concatFile += org.jsoup.Jsoup.connect(s).get().toString();
+        } catch (java.io.IOException e) {
+            try{
+              byte[] encoded = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(s));
+              concatFile += new String(encoded, java.nio.charset.StandardCharsets.UTF_8);
+            }catch(java.io.IOException e1){
+              System.out.println(s+" does not seem to be valid and/or exist");
+            }
         }
       }
     }

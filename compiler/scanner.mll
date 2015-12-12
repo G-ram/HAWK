@@ -43,11 +43,11 @@ rule token pat = parse
 
 	and regex_scan pat = parse
 		"/]" {pat := NO ; FSLASH_RBRACK}
-		| ['\\']['"' '.' '?' '|' '^' ']' '[' '(' ')' '-' '\\' '$'] as lxm{print_endline(lxm);REGEX_STRING(lxm)}
-		| '.' {PERIOD} | '?' {QUEST} | '^' {CARROT} | '|' {VERT} | '-' {MINUS}
+		| ['\\']['"' '.' '?' '|' '^' ']' '[' '(' ')' '-' '\\' '$' '*' 'n' 't' 'r'] as lxm{print_endline(lxm);REGEX_STRING(lxm)}
+		| '.' {PERIOD} | '?' {QUEST} | '^' {CARROT} | '|' {VERT} | '-' {MINUS} | '*' {TIMES}
 		| '[' {LBRACK} | ']' {RBRACK}
 		| '(' {LPAREN} | ')' {RPAREN}
-		| [^'"' '/' '.' '?' '|' '^' ']' '[' '(' ')' '-' '\\' '$'] as lxm {REGEX_STRING((Char.escaped lxm))}
+		| [^'"' '/' '.' '?' '|' '^' ']' '[' '(' ')' '-' '\\' '$' '*'] as lxm {REGEX_STRING((Char.escaped lxm))}
 
 {
 	let next_token lexbuf = match !state_ref with

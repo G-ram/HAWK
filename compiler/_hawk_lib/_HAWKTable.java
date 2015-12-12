@@ -1,14 +1,12 @@
 package _hawk_lib;
 
-import java.util.*;
-
 public class _HAWKTable<T>{
-	private Hashtable<Integer,T> intPart;
-	private Hashtable<String,T> stringPart;
+	private java.util.Hashtable<Integer,T> intPart;
+	private java.util.Hashtable<String,T> stringPart;
 
 	public _HAWKTable(){
-		intPart = new Hashtable<Integer,T>();
-		stringPart = new Hashtable<String,T>();
+		intPart = new java.util.Hashtable<Integer,T>();
+		stringPart = new java.util.Hashtable<String,T>();
 	}
 
     public T getIntIndex(int i){
