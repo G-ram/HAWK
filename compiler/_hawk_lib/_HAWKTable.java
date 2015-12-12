@@ -19,12 +19,12 @@ public class _HAWKTable<T>{
         return stringPart.get(s);
     }
 
-    public _HAWKTable<T> setIntIndexChained(int i, T t){
+    public _HAWKTable setIntIndexChained(int i, T t){
         intPart.put(i,t);
         return this;
     }
 
-    public _HAWKTable<T> setStringIndexChained(String s, T t){
+    public _HAWKTable setStringIndexChained(String s, T t){
         stringPart.put(s,t);
         return this;
     }
@@ -33,8 +33,8 @@ public class _HAWKTable<T>{
         intPart.put(i,t);
     }
 
-    public _HAWKTable<T> setStringIndexString s, T t){
+    public _HAWKTable setStringIndex(String s, T t){
         stringPart.put(s,t);
+				return this;
     }
 }
-

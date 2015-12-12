@@ -1,26 +1,9 @@
 BEGIN{
-  /*a=2+2;
-  a = 5;
-  b = a+"Hey";
-  c = 3.0;
-  if(a == c){
-    d = b+2;
-  }
-  i = 0;
-  d = c;
-  while(i < 10){
-    d = d*2;
-    print(d);
-    i = i +1;
-  }
-  if(1){
-    print("yeah this works");
-  }
-  print(a);*/
+  a = 0;
 }
-[/[a]hey/]{
-  print("Hey pattern matching is here to stay");
+[/[a]|hey/]{
+  a = 6;
 }
 END{
-  /*print(b);*/
+  print(a);
 }

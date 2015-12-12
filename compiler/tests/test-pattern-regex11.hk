@@ -1,3 +1,9 @@
-BEGIN{}
-[/['a']|"hey"/]{}
-END{}
+BEGIN{
+  a = 0;
+}
+[/[a]|hey/]{
+  a = 6;
+}
+END{
+  print(a);
+}

@@ -5,16 +5,16 @@
 %token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE
 %token PLUS MINUS TIMES DIVIDES MOD
 %token LT GT LEQ GEQ EQ NEQ
-%token PERIOD ASSIGN HASH TILDE COMMA COLON UNDER QUEST CARROT VERT
+%token PERIOD ASSIGN HASH TILDE COMMA COLON PERIOD QUEST CARROT VERT
 %token FUN
 %token SEMI
-%token LBRACK_FSLASH
-%token FSLASH_RBRACK
 %token LBRACK_AMP
 %token AMP_RBRACK
+%token LBRACK_FSLASH
+%token FSLASH_RBRACK
 %token EOF
 %token <string> STRING
-%token <char> CHAR
+%token <string> REGEX_STRING
 %token <int> INT
 %token <float> DOUBLE
 %token <string> ID
@@ -83,7 +83,6 @@ expr:
     /*below fixes S/R error. Basically, do all arithmetic before this reduction */
     | expr_no_brace {$1} %prec ASSIGN
 
-/*TODO: relational operators*/
 expr_no_brace:
     ID {Id($1)}
 	| literal {Literal($1)}
@@ -161,10 +160,9 @@ pattern:
 /*Start of Regex*/
 
 regex:
-	CHAR {RegexChar($1)}
-	| ID {RegexString($1)}
-	| STRING {RegexString($1)}
-	| LPAREN regex RPAREN {RegexNested($2)}
+	REGEX_STRING {RegexString($1)}
+	| PERIOD {RegexAnyChar}
+	| LPAREN regex_sequence RPAREN {RegexNested($2)}
 	| LBRACK regex_set_sequence RBRACK {RegexSet($2)}
 	| regex QUEST {RegexUnOp($1,Optional)}
 	| regex PLUS {RegexUnOp($1,KleenePlus)}
@@ -176,11 +174,9 @@ regex_sequence:
 	| regex regex_sequence {$1 :: $2}
 
 regex_set:
-	CHAR {RegexCharSet($1)}
-	| ID {RegexStringSet($1)}
-	| UNDER {RegexAnyCharSet}
+	REGEX_STRING {RegexStringSet($1)}
+	| REGEX_STRING MINUS REGEX_STRING{RegexRangeSet($1,$3)}
 	| CARROT regex_set {RegexComplementSet($2)}
-	| CHAR MINUS CHAR {RegexCharRangeSet($1, $3)}
 	| LBRACK regex_set_sequence RBRACK {RegexNestedSet($2)}
 
 regex_set_sequence:

@@ -2,6 +2,7 @@ package _hawk_lib;
 
 public class _HAWKFileReader{
   public _HAWKFileReader(String[] files){
+    concatFile = "";
     if(files.length > 0){
       for(String s : files){
         try{
@@ -11,8 +12,6 @@ public class _HAWKFileReader{
           System.out.println(s+" does not seem to be valid and/or exist");
         }
       }
-    }else{
-      concatFile = "";
     }
   }
   public String _getConcatFile(){

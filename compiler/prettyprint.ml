@@ -9,11 +9,9 @@ let string_for_indent indent =
 	repeat "\t" indent
 
 let rec string_of_regex_set = function
-	RegexCharSet(ch) -> (Char.escaped ch)
-	| RegexStringSet(str) -> str
-	| RegexCharRangeSet(ch1, ch2) -> (Char.escaped ch1) ^ "-" ^ (Char.escaped ch2)
+	RegexStringSet(str) -> str
+	| RegexRangeSet(str1, str2) -> str1 ^ "-" ^ str2
 	| RegexComplementSet(set) -> "^" ^ (string_of_regex_set set)
-	| RegexAnyCharSet -> "_"
 	| RegexNestedSet(set) -> (string_of_regex_set_sequence set)
 
 and string_of_regex_set_sequence seq =
@@ -28,12 +26,14 @@ let string_of_regex_op op =
 		| KleeneTimes -> "*"
 
 let rec string_of_regex regex = match regex with
-	| RegexChar(ch) -> (Char.escaped ch)
-	| RegexString(str) -> str
-	| RegexNested(re) -> "(" ^ (string_of_regex re) ^ ")"
-	| RegexSet(sequence) -> string_of_regex_set_sequence sequence
-	| RegexUnOp(re,op) -> (string_of_regex re) ^ (string_of_regex_op op)
-	| RegexBinOp(re1,op,re2) -> (string_of_regex re1) ^ (string_of_regex_op op) ^ (string_of_regex re1)
+  RegexString(str) -> str
+  | RegexAnyChar -> "."
+  | RegexNested(sequence) -> "(" ^ (string_of_regex_sequence sequence) ^ ")"
+  | RegexSet(sequence) -> string_of_regex_set_sequence sequence
+  | RegexUnOp(re,op) -> (string_of_regex re) ^ (string_of_regex_op op)
+  | RegexBinOp(re1,op,re2) -> (string_of_regex re1) ^ (string_of_regex_op op) ^ (string_of_regex re1)
+
+and string_of_regex_sequence seq = String.concat "" (List.map string_of_regex seq)
 
 
 let string_of_property prop = match prop with
@@ -136,7 +136,7 @@ and string_of_stmt = function
 let string_of_pattern pat =
 	let inner_pat = match pat with
 		CssPattern(css_selector) -> "@" ^ (string_of_css_selector css_selector) ^ "@"
-		| RegexPattern(regex_seq) -> "/" ^ (String.concat " " (List.map string_of_regex regex_seq)) ^ "/"
+		| RegexPattern(regex_seq) -> "/" ^ (string_of_regex_sequence regex_seq) ^ "/"
 	in "[" ^ inner_pat ^ "]"
 
 let string_of_pattern_action (pattern,action) =

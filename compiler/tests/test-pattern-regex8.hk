@@ -1,3 +1,5 @@
 BEGIN{}
-[/['a']+/]{}
+[/[a]+/]{
+  print("Found seq of a's");
+}
 END{}

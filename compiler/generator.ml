@@ -1,13 +1,13 @@
 open Sast
 
 let rec type_to_str = function
-    Int -> "int"
-    | Double -> "double"
-    | Table(value_type) as t -> (type_to_boxed_str t)
-    | String -> "String"
+  Int -> "int"
+  | Double -> "double"
+  | Table(value_type) as t -> (type_to_boxed_str t)
+  | String -> "String"
 	| Void -> "void"
 	| EmptyTable -> "wtf" (*raise (Failure "EmptyTable should never be generated. semantics messed up") *)
-	
+
 and type_to_boxed_str = function
     Int -> "Integer"
     | Double -> "Double"
@@ -24,11 +24,9 @@ let string_for_indent indent =
 	repeat "\t" indent
 
 let rec string_of_regex_set = function
-  Ast.RegexCharSet(ch) -> (Char.escaped ch)
-  | Ast.RegexStringSet(str) -> str
-  | Ast.RegexCharRangeSet(ch1,ch2) -> (Char.escaped ch1) ^ "-" ^ (Char.escaped ch2)
+  Ast.RegexStringSet(str) -> str
+  | Ast.RegexRangeSet(str1, str2) -> str1 ^ "-" ^ str2
   | Ast.RegexComplementSet(set) -> "^" ^ (string_of_regex_set set)
-  | Ast.RegexAnyCharSet -> "_"
   | Ast.RegexNestedSet(set) -> (string_of_regex_set_sequence set)
 
 and string_of_regex_set_sequence seq =
@@ -43,13 +41,14 @@ let string_of_regex_op op =
 		| Ast.KleeneTimes -> "*"
 
 let rec string_of_regex regex = match regex with
-  Ast.RegexChar(ch) -> (Char.escaped ch)
-  | Ast.RegexString(str) -> str
-  | Ast.RegexNested(re) -> "(" ^ (string_of_regex re) ^ ")"
+  Ast.RegexString(str) -> str
+  | Ast.RegexAnyChar -> "."
+  | Ast.RegexNested(sequence) -> "(" ^ (string_of_regex_sequence sequence) ^ ")"
   | Ast.RegexSet(sequence) -> string_of_regex_set_sequence sequence
   | Ast.RegexUnOp(re,op) -> (string_of_regex re) ^ (string_of_regex_op op)
   | Ast.RegexBinOp(re1,op,re2) -> (string_of_regex re1) ^ (string_of_regex_op op) ^ (string_of_regex re1)
 
+and string_of_regex_sequence seq = String.concat "" (List.map string_of_regex seq)
 
 let string_of_property prop = match prop with
 	|Ast.ClassMatch(s) -> "." ^ s
@@ -97,7 +96,7 @@ let string_of_key_literal = function
 	Ast.IntKey(key) -> string_of_int key
 	| Ast.StringKey(key) -> key
 
-		
+
 (*TODO: these don't need to all be mutually recursive*)
 let rec string_of_table_literal kv_list table_t =
 	let string_of_kv = function
@@ -120,7 +119,7 @@ and string_of_get_index_expr = function
 	ind_e,Int as e -> ".getIntIndex(" ^ (string_of_expr e) ^ ")"
 	| ind_e,String as e -> ".getStringIndex(" ^ (string_of_expr e) ^ ")"
 	| _ -> raise (Failure "This type of table indexing should not happen. Semantic stage must have failed.")
-and string_of_set_index_expr ind value = 
+and string_of_set_index_expr ind value =
 	match ind, value with
 		ind_e, value_e -> ".setIntIndex(" ^ (string_of_expr_list [ind_e;value_e]) ^ ")"
 		| ind_e, value_e -> ".setStringIndex(" ^ (string_of_expr_list [ind_e;value_e]) ^ ")"
@@ -130,17 +129,17 @@ and
 	(match mode with
 		| DeferredCreation(_,_) -> "new " ^ (type_to_str t) ^ "()"
 		| _ -> (string_of_expr expr)
-		
+
 	)
 and
 string_of_expr = function
 	Id(id), _ -> id
 	| Literal(lit), t -> string_of_literal (lit,t)
 	| TableLiteral(kv_list), Table(val_type) -> string_of_table_literal kv_list val_type
-	| VAssign(id, expr, assign_mode), t -> 
+	| VAssign(id, expr, assign_mode), t ->
 		let typ = Semantics.get_assignment_type assign_mode t in
 		(type_to_str typ) ^ " " ^ id ^ " = " ^ (string_of_assignment_rhs expr typ assign_mode) (*(string_of_expr expr) *)
-	| Assign(id, expr, assign_mode), t -> 
+	| Assign(id, expr, assign_mode), t ->
 		let typ = Semantics.get_assignment_type assign_mode t in
 		id ^ " = " ^ (string_of_assignment_rhs expr typ assign_mode) (* (string_of_expr expr) *)
 	| Binop(expr1, op, expr2), _ -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
@@ -150,7 +149,7 @@ string_of_expr = function
 		table_id ^ (String.concat "" (List.map string_of_get_index_expr ind_list))
 	| TableAssign(table_id,ind_list,assignee, assign_mode), t ->
 		match assign_mode with
-			| DeferredCreation(_,_) -> 
+			| DeferredCreation(_,_) ->
 				let typ = Semantics.get_assignment_type assign_mode t in
 				let type_str = (type_to_str typ)  in
 				type_str ^ " " ^ table_id ^ "= new " ^ type_str ^ "()"
@@ -161,22 +160,21 @@ string_of_expr = function
 				(*
 				a[1][2][3] = 4 gets an inner table, which gets an inner table, which then sets index 3 to 4
 				*)
-				let ind_to_string (ind_expr,nesting) = 
+				let ind_to_string (ind_expr,nesting) =
 					match ind_expr,nesting with
 						ind_e,n when n=nesting_level -> string_of_set_index_expr ind_e assignee
 						|ind_e,_ -> string_of_get_index_expr ind_e
 				in
 				table_id ^ (String.concat "" (List.map ind_to_string enum_ind_list))
-		
 	| _ -> raise (Failure "We shouldn't be here.")
 and string_of_func_decl func_decl  =
 	let param_names = (List.map fst func_decl.params) in
 	func_decl.fname ^ "(" ^ (String.concat "," param_names) ^ ")" ^ (string_of_stmt_list func_decl.body 0)
 and
-string_of_stmt_list stmt_list nested = match stmt_list with 
+string_of_stmt_list stmt_list nested = match stmt_list with
 	[] -> ""
 	| hd::tl -> (string_of_stmt hd nested) ^ "\n" ^ (string_of_stmt_list tl nested)
-and string_of_stmt stmt nested = match stmt with 
+and string_of_stmt stmt nested = match stmt with
 	Block(stmt_list, _) -> "{\n" ^ (string_of_stmt_list stmt_list nested) ^ "\n" ^ (string_for_indent (nested - 1)) ^ "}"
 	| Expr(expr) -> (string_for_indent nested) ^ (string_of_expr expr) ^ ";"
 	| Func(func_decl) -> (string_for_indent nested) ^ string_of_func_decl func_decl
@@ -185,13 +183,13 @@ and string_of_stmt stmt nested = match stmt with
 	| While(expr, stmt) -> (string_for_indent nested) ^ "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt (nested + 1))
 	| For(str1, str2, stmt) -> (string_for_indent nested) ^ "for(" ^ str1 ^ " : " ^ str2 ^ ")" ^ (string_of_stmt stmt nested)
 
-let string_of_begin_end block nested= match block with 
+let string_of_begin_end block nested= match block with
   Block(stmt_list, _) -> string_of_stmt_list stmt_list nested
   | _ -> ""
 
 let string_of_pattern pat = match pat with
 		Ast.CssPattern(css_selector) -> "for(int i = 0; i < 1; i++)"(*"@" ^ (string_of_css_selector css_selector) ^ "@"*)
-		| Ast.RegexPattern(regex_seq) -> "for(String _this : _regexMatcher._match(\""^(String.concat " " (List.map string_of_regex regex_seq))^"\"))"
+		| Ast.RegexPattern(regex_seq) -> "for(String _this : _regexMatcher._match(\""^string_of_regex_sequence regex_seq^"\"))"
 
 let string_of_pattern_action nested (pattern,action) =
 	(string_of_pattern pattern) ^ (string_of_stmt action nested)
@@ -212,7 +210,7 @@ let string_of_program prog =
 	^  "public class Program {\n"
 	^ (string_for_indent 1) ^ "public static void main(String[] _args){" ^ "\n"
   ^  (string_of_file "Setup.java" 2)
-	^ (string_of_begin_end prog.begin_stmt 2) 
+	^ (string_of_begin_end prog.begin_stmt 2)
 	^ (String.concat "\n" (List.map (string_of_pattern_action 2) prog.pattern_actions)) ^"\n"
 	^ (string_of_begin_end prog.end_stmt 2) ^ "\n" ^ (string_for_indent 1) ^ "}\n"
   ^ (string_of_file "BuiltIn.java" 1)

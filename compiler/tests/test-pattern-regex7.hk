@@ -1,3 +1,5 @@
 BEGIN{}
-[/("hello")"where"/]{}
+[/(hello)where/]{
+  print("Found hello where");
+}
 END{}

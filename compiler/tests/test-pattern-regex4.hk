@@ -1,3 +1,9 @@
-BEGIN{}
-[/['a'-'z']/]{}
-END{}
+BEGIN{
+  a = 8;
+}
+[/[a-z]/]{
+  a = 9;
+}
+END{
+  print(a);
+}
