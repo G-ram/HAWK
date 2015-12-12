@@ -9,30 +9,42 @@ public class _HAWKTable<T>{
 		stringPart = new java.util.Hashtable<String,T>();
 	}
 
-    public T getIntIndex(int i){
+    public T _getIntIndex(int i){
         return intPart.get(i);
     }
 
-    public T getStringIndex(String s){
+    public T _getStringIndex(String s){
         return stringPart.get(s);
     }
 
-    public _HAWKTable setIntIndexChained(int i, T t){
+    public _HAWKTable _setIntIndexChained(int i, T t){
         intPart.put(i,t);
         return this;
     }
 
-    public _HAWKTable setStringIndexChained(String s, T t){
+    public _HAWKTable _setStringIndexChained(String s, T t){
         stringPart.put(s,t);
         return this;
     }
 
-    public void setIntIndex(int i, T t){
+    public void _setIntIndex(int i, T t){
         intPart.put(i,t);
     }
 
-    public _HAWKTable setStringIndex(String s, T t){
+    public void _setStringIndex(String s, T t){
         stringPart.put(s,t);
-				return this;
+    }
+
+    public String toString(){
+        String temp = "";
+        for( java.util.Map.Entry<Integer, T> entry : intPart.entrySet() ){
+            temp += entry.toString();
+        }
+
+        for( java.util.Map.Entry<String, T> entry : stringPart.entrySet() ){
+            temp += entry.toString();
+        }        
+        return temp;
     }
 }
+
