@@ -340,7 +340,7 @@ let rec check_expr env = function
     if typ != Int && typ != Double then raise (Failure("unary minus operation does not support this type")) ;
     Uminus((e, typ)), typ
   | Ast.Call(v, el) -> (*This is not entirely correct! Still needs to infer*)
-	(*try*)
+	(try
 		let func_decl = List.assoc v env.func_decls in 
 		let el_typed = List.map (fun e -> (check_expr env e)) el in
 		let typs = List.map snd el_typed in 
@@ -358,24 +358,25 @@ let rec check_expr env = function
 				(match return_stmt with
 					Return(_, return_type) -> return_type) in 
 				Call(v, el_typed), return_type)
-	(*with Not_found -> Call(v, el), Int
+	with Not_found -> 
 	    let el = List.map (fun e -> (check_expr env e)) el in
-	    let _ = if List.length el = 1 then begin
+	    if (List.length el) = 1 then 
 	      let (e, typ) = List.hd el in
 	      let typ = match typ with (*Check for correct type*)
 	        Table(_) -> BTable
-	        | _ -> BAny in
-	      try (*Test to see if user is trying to call built-in function and check for type*)
-	        ignore(find_built_in v typ) ; ()
-	      with Not_found -> ( (*Check if its a type error or a new function*)
+	        | _ -> BAny 
+		  in
+	      (try (*Test to see if user is trying to call built-in function and check for type*)
+	        ignore (find_built_in v typ)
+	      with Not_found ->  (*Check if its a type error or a new function*)
 	          try
 	            let (built_in_name, _) = find_built_in v BAny in
 	            raise (Failure("parameter type does not match built-in function parameter type " ^ built_in_name))
 	          with Not_found -> ()
-	        )
-	    end in
-    	Call(v, el), Int
-    *)
+	        ); Call(v, el), Int
+		else
+			raise (Failure "Builtins only take one arg. You shouldn't be here.") )
+    	
   | Ast.TableAccess(table_id,index_exprs) -> (*TODO: THIS SHIT*)
 	(*First, get table, if it exists *)
 	let (_,table_t) = try
