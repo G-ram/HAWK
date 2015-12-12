@@ -7,6 +7,7 @@
 *.exe
 *.o
 *.class
+!./compiler/_hawk_lib/*.class
 parser.ml parser.mli
 scanner.ml
 prog
