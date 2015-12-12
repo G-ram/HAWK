@@ -233,8 +233,8 @@ let create_linkage_if_applicable var_id var_nesting sym_t assignee = (* TODO: th
 			add_mutual_update_table_link var_id sym_t other_id other_scope other_nesting
 		| _ -> ()
 				
-let rec check_expr env = function
-  Ast.TableLiteral(tl) -> check_table_literal env tl
+let rec check_expr env global_env = function
+  Ast.TableLiteral(tl) -> check_table_literal env global_env tl
   | Ast.Literal(l) ->(
     match l with
      Ast.IntLiteral(v) -> Literal(l), Int
@@ -250,9 +250,9 @@ let rec check_expr env = function
     let (v, typ) = vdecl in
     Id(v), typ
   | Ast.TableAssign(table_id, index_list, e) -> (*TODO: MAKE THIS SHIT MORE LIKE ASSIGN WITH TABLE LINX AND SHIT *)
-	let (assignee_e, assignee_type) as assignee = check_expr env e in
+	let (assignee_e, assignee_type) as assignee = check_expr env global_env e in
 	let assign_mode = get_assignment_mode env.scope table_id assignee_e assignee_type in
-	let indices_sast = check_table_indices env index_list in
+	let indices_sast = check_table_indices env global_env index_list in
 	let (_,table_t) = try
       find env.scope table_id
     with Not_found ->
@@ -292,7 +292,7 @@ let rec check_expr env = function
 				
 		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
   | Ast.Assign(v, assignee) ->
-    let (assignee_e, assignee_type) as assignee = check_expr env assignee in
+    let (assignee_e, assignee_type) as assignee = check_expr env global_env assignee in
 	let assign_mode = get_assignment_mode env.scope v assignee_e assignee_type in
     let (new_e,new_type) as vdecl = 
 	try (*Reassigning a variable to a different type is okay because assigment = declaration*)
@@ -310,8 +310,8 @@ let rec check_expr env = function
 		update_table_type env.scope v new_type);
 	vdecl
   | Ast.Binop(e1, op, e2) ->
-    let e1 = check_expr env e1
-    and e2 = check_expr env e2 in
+    let e1 = check_expr env global_env e1
+    and e2 = check_expr env global_env e2 in
 
     let _, t1 = e1
     and _, t2 = e2 in
@@ -335,31 +335,35 @@ let rec check_expr env = function
         )
     )
   | Ast.Uminus(e) ->
-    let (e, typ) = check_expr env e in
+    let (e, typ) = check_expr env global_env e in
     (*Check for int or double*)
     if typ != Int && typ != Double then raise (Failure("unary minus operation does not support this type")) ;
     Uminus((e, typ)), typ
   | Ast.Call(v, el) -> (*This is not entirely correct! Still needs to infer*)
 	(try
 		let func_decl = List.assoc v env.func_decls in 
-		let el_typed = List.map (fun e -> (check_expr env e)) el in
-		let typs = List.map snd el_typed in 
-		let typed_vars = List.combine func_decl.params typs in 
-		let env = {env with scope = {parent = None; variables = typed_vars; update_table_links = []}} in 
-		let func_body = check_stmt env (Ast.Block func_decl.body) in 
+		let el_typed = List.map (fun e -> (check_expr env global_env e)) el in
+		let arg_typs = List.map snd el_typed in 
+		let typed_args = List.combine func_decl.params arg_typs in 
+		let env = {env with scope = {parent = None; variables = typed_args; update_table_links = []}} in 
+		let func_body = check_stmt env global_env (Ast.Block func_decl.body) in 
 		let is_return_stmt = function 
 			Return(stmt) -> true
-			| _ -> false
-		in 
-		(match func_body with
+			| _ -> false in  
+		match func_body with
 			Block(stmt_list,_) ->
+				let func_body_list = stmt_list in 
 				let return_stmt = List.find (fun stmt -> is_return_stmt stmt) stmt_list in
 				let return_type = 
-				(match return_stmt with
-					Return(_, return_type) -> return_type) in 
-				Call(v, el_typed), return_type)
+				match return_stmt with
+					Return(_, return_type) -> return_type in 
+				let typed_func_call = 
+				Call(v, el_typed), return_type in
+		let func_decl_typed = { fname = v; params = typed_args; body = func_body_list; return_type = return_type } in 
+		let add_func = global_env.funcs <- func_decl_typed::(global_env.funcs) in 
+		typed_func_call
 	with Not_found -> 
-	    let el = List.map (fun e -> (check_expr env e)) el in
+	    let el = List.map (fun e -> (check_expr env global_env e)) el in
 	    if (List.length el) = 1 then 
 	      let (e, typ) = List.hd el in
 	      let typ = match typ with (*Check for correct type*)
@@ -375,7 +379,7 @@ let rec check_expr env = function
 	          with Not_found -> ()
 	        ); Call(v, el), Int
 		else
-			raise (Failure "Builtins only take one arg. You shouldn't be here.") )
+			raise (Failure "Builtins only take one arg. You shouldn't be here."))
     	
   | Ast.TableAccess(table_id,index_exprs) -> (*TODO: THIS SHIT*)
 	(*First, get table, if it exists *)
@@ -385,28 +389,28 @@ let rec check_expr env = function
       raise (Failure("undeclared identifier " ^ table_id)) in
 	(*next ensure that its a table*)
 	if (is_table table_t) then
-		let indices_sast = check_table_indices env index_exprs in
+		let indices_sast = check_table_indices env global_env index_exprs in
 		let nesting = (List.length index_exprs) in
 		let final_table_t = apply_nesting (table_t,-(nesting)) in
 		TableAccess (table_id,indices_sast),final_table_t
 	else
 		raise (Failure ("Attempting to index non-table"))
-and check_table_indices env index_expr_lst =
-	let index_sast = (List.map (check_expr env) index_expr_lst) in
+and check_table_indices env global_env index_expr_lst =
+	let index_sast = (List.map (check_expr env global_env) index_expr_lst) in
 	let index_types = (List.map snd index_sast) in
 	if not (List.for_all valid_table_index_type index_types) then
 		raise (Failure("All table indices must be string or int expressions"))
 	else
 		index_sast
-and check_table_literal env tl = 
+and check_table_literal env global_env tl = 
 	let get_unique_elt lst =
 		if (all_the_same lst) && (List.length lst)>0 then
 			(List.hd lst)
 		else
 			raise (Failure("Array literal values must be the same types"))
 	in
-	let check_keys_exprs env keys exprs =
-		let values_sast = (List.map (check_expr env) exprs) in
+	let check_keys_exprs env global_env keys exprs =
+		let values_sast = (List.map (check_expr env global_env) exprs) in
 		let value_type = (get_unique_elt (List.map snd values_sast)) in
 		(TableLiteral (List.combine keys values_sast)), (Table value_type)
 	in
@@ -414,18 +418,18 @@ and check_table_literal env tl =
 		Ast.EmptyTable -> (TableLiteral []),EmptyTable
 		| Ast.ArrayLiteral(exprs) ->
 			let keys = List.map (fun i -> (Ast.IntKey i)) (Util.range 0 (List.length exprs ))  in
-			check_keys_exprs env keys exprs
+			check_keys_exprs env global_env keys exprs
 		| Ast.KeyValueLiteral(kv_list) ->
 			let keys = (List.map fst kv_list) in
 			let exprs = (List.map snd kv_list) in
-			check_keys_exprs env keys exprs
-and check_stmt env = function
+			check_keys_exprs env global_env keys exprs
+and check_stmt env global_env = function
   Ast.Block(sl) ->
     let scopeT = { parent = Some(env.scope); variables = []; update_table_links=[] } in
     let envT = { env with scope = scopeT} in
-    let sl = List.map (fun s -> (check_stmt envT s)) sl in envT.scope.variables <- List.rev scopeT.variables;
+    let sl = List.map (fun s -> (check_stmt envT global_env s)) sl in envT.scope.variables <- List.rev scopeT.variables;
     Block (sl, envT)
-  | Ast.Expr(e) -> Expr(check_expr env e)
+  | Ast.Expr(e) -> Expr(check_expr env global_env e)
   | Ast.Func(f) ->(
     try (*Test to see if user is trying to overwrite built-in function*)
       ignore(find_built_in f.Ast.fname BAny) ;
@@ -433,18 +437,18 @@ and check_stmt env = function
     with Not_found -> (*valid function*)
       Expr((Id("dummy"),Int)) (*This is not correct!*)
     )
-  | Ast.Return(e) -> Return(check_expr env e)
+  | Ast.Return(e) -> Return(check_expr env global_env e)
   | Ast.If(e, s1, s2) ->
-    let (e, typ) = check_expr env e in
+    let (e, typ) = check_expr env global_env e in
     if typ != Int && typ != Double then raise (Failure("If statement does not support this type")) ;
-    If((e, typ), check_stmt env s1, check_stmt env s2)
+    If((e, typ), check_stmt env global_env s1, check_stmt env global_env s2)
   | Ast.While(e, s) ->
-    let (e, typ) = check_expr env e in
+    let (e, typ) = check_expr env global_env e in
     if typ != Int && typ != Double then raise (Failure("unary minus operation does not support this type")) ;
-    While((e, typ), check_stmt env s)
+    While((e, typ), check_stmt env global_env s)
   | Ast.For(v, t, s) -> Expr((Id("dummy"),Int)) (*This is not correct!*)
 
-let check_pattern env a = check_stmt env a
+let check_pattern env global_env a = check_stmt env global_env a
 
 let get_func_decls_stmt stmt = 
 	let rec get_func_decls_stmt_unchecked stmt= 
@@ -468,14 +472,18 @@ let check_program p =
       parent = None;
       variables = [];
 	  update_table_links = []} in
-    let init_env = { scope = init_scope; return = None; func_decls=func_decls } in
-	let (begin_block, env) = match check_stmt init_env p.Ast.begin_stmt with
+    let init_env = { scope = init_scope; return = None; func_decls = func_decls } in
+    let global_env = { funcs = [] } in 
+	let (begin_block, env) = match check_stmt init_env global_env p.Ast.begin_stmt with
 								Block(begin_block, env) -> begin_block, env
 								| _ -> raise (Failure("begin is not a block")) in
-	let pattern_actions = List.map (fun (pattern, action) -> pattern, (check_pattern env action)) p.Ast.pattern_actions in
-	let (end_block, env) = match check_stmt env p.Ast.end_stmt with
+	let pattern_actions = List.map (fun (pattern, action) -> pattern, (check_pattern env global_env action)) p.Ast.pattern_actions in
+	let (end_block, env) = match check_stmt env global_env p.Ast.end_stmt with
 								Block(end_block, env) -> end_block, env
 								| _ -> raise (Failure("end is not a block")) in
-	{begin_stmt = Block(begin_block, env);
+	{concrete_funcs = global_env.funcs;
+	begin_stmt = Block(begin_block, env);
 	pattern_actions = pattern_actions;
-	end_stmt = Block(end_block, env);}
+	end_stmt = Block(end_block, env);} 
+
+

@@ -178,7 +178,7 @@ and string_of_stmt stmt nested = match stmt with
 	Block(stmt_list, _) -> "{\n" ^ (string_of_stmt_list stmt_list nested) ^ "\n" ^ (string_for_indent (nested - 1)) ^ "}"
 	| Expr(expr) -> (string_for_indent nested) ^ (string_of_expr expr) ^ ";"
 	| Func(func_decl) -> (string_for_indent nested) ^ string_of_func_decl func_decl
-	| Return(expr) -> (string_for_indent nested) ^ "Return " ^ (string_of_expr expr) ^ ";"
+	| Return(expr) -> (string_for_indent nested) ^ "return " ^ (string_of_expr expr) ^ ";"
 	| If(expr, stmt1, stmt2) -> (string_for_indent nested) ^ "if(_checkIf(" ^ (string_of_expr expr) ^ "))" ^ (string_of_stmt stmt1 nested) ^ "else" ^ (string_of_stmt stmt2 nested)
 	| While(expr, stmt) -> (string_for_indent nested) ^ "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt (nested + 1))
 	| For(str1, str2, stmt) -> (string_for_indent nested) ^ "for(" ^ str1 ^ " : " ^ str2 ^ ")" ^ (string_of_stmt stmt nested)
@@ -205,6 +205,17 @@ let string_of_file file nested =
       close_in ic;
   !file_string
 
+ let string_of_typed_param param = 
+ 	(type_to_str (snd param)) ^ " " ^ (fst param) 
+
+ let string_of_user_func nested func_decl = 
+ 	(string_for_indent nested) ^ "public static void " ^ (type_to_str func_decl.return_type)
+ 	^ " " ^ func_decl.fname ^ "(" ^ String.concat "," (List.map string_of_typed_param func_decl.params) ^ ")"
+ 	^ "{\n" ^  (string_of_stmt_list func_decl.body (nested + 1)) ^  "\n" ^ (string_for_indent nested) ^ "}"
+
+ let string_of_user_funcs func_decls nested = 
+ 	String.concat "\n\n" (List.map (string_of_user_func nested) func_decls)
+
 let string_of_program prog =
   (string_of_file "Imports.java" 0)
 	^  "public class Program {\n"
@@ -213,5 +224,6 @@ let string_of_program prog =
 	^ (string_of_begin_end prog.begin_stmt 2)
 	^ (String.concat "\n" (List.map (string_of_pattern_action 2) prog.pattern_actions)) ^"\n"
 	^ (string_of_begin_end prog.end_stmt 2) ^ "\n" ^ (string_for_indent 1) ^ "}\n"
-  ^ (string_of_file "BuiltIn.java" 1)
+  ^ (string_of_file "BuiltIn.java" 1) 
+  ^ (string_of_user_funcs prog.concrete_funcs 1) ^ "\n"
   ^ "}"

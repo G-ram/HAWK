@@ -27,6 +27,7 @@ type translation_environment = {
   scope: symbol_table;
   return: t option (*Not implemented*)
 }
+
 	
 type assign_mode = 
 	Immediate
@@ -49,7 +50,7 @@ type expr_det =
 and expr_t = expr_det * t
 
 type stmt_t =
-  Block of stmt_t list * translation_environment
+  Block of stmt_t list * translation_environment 
   | Expr of expr_t
   | Func of func_decl_t
   | Return of expr_t 
@@ -64,9 +65,14 @@ type stmt_t =
 	  return_type : t
   }
 
+type global_environment = {
+  mutable funcs: func_decl_t list
+}
+
 type pattern_action_t = Ast.pattern * stmt_t
 
 type program_t = {
+    concrete_funcs: func_decl_t list;
   	begin_stmt : stmt_t;
   	pattern_actions : pattern_action_t list;
   	end_stmt : stmt_t;
