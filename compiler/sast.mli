@@ -61,7 +61,7 @@ type stmt_t =
     fname : string;
     params : (string * t) list;
     body : stmt_t list;
-	return_type : t
+	  return_type : t
   }
 
 type pattern_action_t = Ast.pattern * stmt_t
