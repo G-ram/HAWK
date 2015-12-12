@@ -4,10 +4,10 @@ public class _HAWKCSSMatcher{
     public _HAWKCSSMatcher(String aInput){
         input = aInput;
     }
-    public org.jsoup.select.Elements _match(String pat){
-
+    public String[] _match(String pat){
+        java.util.ArrayList<String> allMatches = new java.util.ArrayList<String>();
         org.jsoup.nodes.Document doc = org.jsoup.Jsoup.parse(input);
-        return doc.select(pat);
+        return allMatches.toArray(new String[doc.select(pat).size()]);
     }
 
     String input;

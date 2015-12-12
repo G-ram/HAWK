@@ -188,7 +188,7 @@ let string_of_begin_end block nested= match block with
   | _ -> ""
 
 let string_of_pattern pat = match pat with
-		Ast.CssPattern(css_selector) -> "for(int i = 0; i < 1; i++)"(*"@" ^ (string_of_css_selector css_selector) ^ "@"*)
+		Ast.CssPattern(css_selector) -> "for(String _this : _cssMatcher._match(\"" ^ (string_of_css_selector css_selector) ^"\"))"
 		| Ast.RegexPattern(regex_seq) -> "for(String _this : _regexMatcher._match(\""^string_of_regex_sequence regex_seq^"\"))"
 
 let string_of_pattern_action nested (pattern,action) =
@@ -205,15 +205,15 @@ let string_of_file file nested =
       close_in ic;
   !file_string
 
- let string_of_typed_param param = 
- 	(type_to_str (snd param)) ^ " " ^ (fst param) 
+ let string_of_typed_param param =
+ 	(type_to_str (snd param)) ^ " " ^ (fst param)
 
- let string_of_user_func nested func_decl = 
+ let string_of_user_func nested func_decl =
  	(string_for_indent nested) ^ "public static void " ^ (type_to_str func_decl.return_type)
  	^ " " ^ func_decl.fname ^ "(" ^ String.concat "," (List.map string_of_typed_param func_decl.params) ^ ")"
  	^ "{\n" ^  (string_of_stmt_list func_decl.body (nested + 1)) ^  "\n" ^ (string_for_indent nested) ^ "}"
 
- let string_of_user_funcs func_decls nested = 
+ let string_of_user_funcs func_decls nested =
  	String.concat "\n\n" (List.map (string_of_user_func nested) func_decls)
 
 let string_of_program prog =
@@ -224,6 +224,6 @@ let string_of_program prog =
 	^ (string_of_begin_end prog.begin_stmt 2)
 	^ (String.concat "\n" (List.map (string_of_pattern_action 2) prog.pattern_actions)) ^"\n"
 	^ (string_of_begin_end prog.end_stmt 2) ^ "\n" ^ (string_for_indent 1) ^ "}\n"
-  ^ (string_of_file "BuiltIn.java" 1) 
+  ^ (string_of_file "BuiltIn.java" 1)
   ^ (string_of_user_funcs prog.concrete_funcs 1) ^ "\n"
   ^ "}"
