@@ -340,20 +340,25 @@ let rec check_expr env = function
     if typ != Int && typ != Double then raise (Failure("unary minus operation does not support this type")) ;
     Uminus((e, typ)), typ
   | Ast.Call(v, el) -> (*This is not entirely correct! Still needs to infer*)
-	try 
+	(*try*)
 		let func_decl = List.assoc v env.func_decls in 
 		let el_typed = List.map (fun e -> (check_expr env e)) el in
 		let typs = List.map snd el_typed in 
 		let typed_vars = List.combine func_decl.params typs in 
 		let env = {env with scope = {parent = None; variables = typed_vars; update_table_links = []}} in 
-		let func_body = check_stmt env func_decl.body in 
+		let func_body = check_stmt env (Ast.Block func_decl.body) in 
 		let is_return_stmt = function 
 			Return(stmt) -> true
 			| _ -> false
-		in let return_stmt = List.find (fun stmt -> is_return_stmt stmt) func_body in
-		let (_, return_type) = return_stmt in 
-		Call(v, el_typed), return_type
-	with Not_found ->
+		in 
+		(match func_body with
+			Block(stmt_list,_) ->
+				let return_stmt = List.find (fun stmt -> is_return_stmt stmt) stmt_list in
+				let return_type = 
+				(match return_stmt with
+					Return(_, return_type) -> return_type) in 
+				Call(v, el_typed), return_type)
+	(*with Not_found -> Call(v, el), Int
 	    let el = List.map (fun e -> (check_expr env e)) el in
 	    let _ = if List.length el = 1 then begin
 	      let (e, typ) = List.hd el in
@@ -370,6 +375,7 @@ let rec check_expr env = function
 	        )
 	    end in
     	Call(v, el), Int
+    *)
   | Ast.TableAccess(table_id,index_exprs) -> (*TODO: THIS SHIT*)
 	(*First, get table, if it exists *)
 	let (_,table_t) = try
@@ -377,16 +383,13 @@ let rec check_expr env = function
     with Not_found ->
       raise (Failure("undeclared identifier " ^ table_id)) in
 	(*next ensure that its a table*)
-	match table_t with
-		Int ->
-			let index_sast = check_table_indices env index_exprs in
-			let index_types = (List.map snd index_sast) in
-			(*Next get the type of the variable we're acessing *)
-			let access_type = (get_table_access_type table_t (List.length index_types)) in
-			(match access_type with
-				Some(value_type) -> TableAccess (table_id,index_sast),value_type
-				| None -> raise (Failure "Table does not support this level of nesting") )
-		| _ -> raise (Failure "Cannot do table access on non-table")
+	if (is_table table_t) then
+		let indices_sast = check_table_indices env index_exprs in
+		let nesting = (List.length index_exprs) in
+		let final_table_t = apply_nesting (table_t,-(nesting)) in
+		TableAccess (table_id,indices_sast),final_table_t
+	else
+		raise (Failure ("Attempting to index non-table"))
 and check_table_indices env index_expr_lst =
 	let index_sast = (List.map (check_expr env) index_expr_lst) in
 	let index_types = (List.map snd index_sast) in
@@ -415,12 +418,12 @@ and check_table_literal env tl =
 			let keys = (List.map fst kv_list) in
 			let exprs = (List.map snd kv_list) in
 			check_keys_exprs env keys exprs
-let rec check_stmt env = function
+and check_stmt env = function
   Ast.Block(sl) ->
     let scopeT = { parent = Some(env.scope); variables = []; update_table_links=[] } in
     let envT = { env with scope = scopeT} in
     let sl = List.map (fun s -> (check_stmt envT s)) sl in envT.scope.variables <- List.rev scopeT.variables;
-    Block(sl, envT)
+    Block (sl, envT)
   | Ast.Expr(e) -> Expr(check_expr env e)
   | Ast.Func(f) ->(
     try (*Test to see if user is trying to overwrite built-in function*)
@@ -442,21 +445,36 @@ let rec check_stmt env = function
 
 let check_pattern env a = check_stmt env a
 
-let init_env =
-    let s = {
+let get_func_decls_stmt stmt = 
+	let rec get_func_decls_stmt_unchecked stmt= 
+		match stmt with 
+			Ast.Block(stmt_list) -> List.concat (List.map get_func_decls_stmt_unchecked stmt_list)
+			| Ast.Func(fdecl) -> [fdecl.fname,fdecl]
+			| _ -> []
+	in 
+	let func_decls = get_func_decls_stmt_unchecked stmt in
+	(*Make sure that there are no duplicates*)
+	let names = List.map fst func_decls in
+	if (Util.have_duplicates String.compare names) then
+		raise (Failure "Duplicate function names declared!")
+	else
+		func_decls
+	
+		
+let check_program p =
+	let func_decls = get_func_decls_stmt p.Ast.begin_stmt in
+    let init_scope = {
       parent = None;
       variables = [];
 	  update_table_links = []} in
-    { scope = s; return = None; }
-
-let check_program p =
-  let (begin_block, env) = match check_stmt init_env p.Ast.begin_stmt with
-    Block(begin_block, env) -> begin_block, env
-    | _ -> raise (Failure("begin is not a block")) in
-  let pattern_actions = List.map (fun (pattern, action) -> pattern, (check_pattern env action)) p.Ast.pattern_actions in
-  let (end_block, env) = match check_stmt env p.Ast.end_stmt with
-    Block(end_block, env) -> end_block, env
-    | _ -> raise (Failure("end is not a block")) in
-  {begin_stmt = Block(begin_block, env);
-  pattern_actions = pattern_actions;
-  end_stmt = Block(end_block, env);}
+    let init_env = { scope = init_scope; return = None; func_decls=func_decls } in
+	let (begin_block, env) = match check_stmt init_env p.Ast.begin_stmt with
+								Block(begin_block, env) -> begin_block, env
+								| _ -> raise (Failure("begin is not a block")) in
+	let pattern_actions = List.map (fun (pattern, action) -> pattern, (check_pattern env action)) p.Ast.pattern_actions in
+	let (end_block, env) = match check_stmt env p.Ast.end_stmt with
+								Block(end_block, env) -> end_block, env
+								| _ -> raise (Failure("end is not a block")) in
+	{begin_stmt = Block(begin_block, env);
+	pattern_actions = pattern_actions;
+	end_stmt = Block(end_block, env);}

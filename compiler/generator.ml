@@ -170,7 +170,8 @@ string_of_expr = function
 		
 	| _ -> raise (Failure "We shouldn't be here.")
 and string_of_func_decl func_decl  =
-	func_decl.fname ^ "(" ^ (String.concat "," func_decl.params) ^ ")" ^ (string_of_stmt_list func_decl.body 0)
+	let param_names = (List.map fst func_decl.params) in
+	func_decl.fname ^ "(" ^ (String.concat "," param_names) ^ ")" ^ (string_of_stmt_list func_decl.body 0)
 and
 string_of_stmt_list stmt_list nested = match stmt_list with 
 	[] -> ""

@@ -4,3 +4,9 @@ let rec range a b =
 		[a]
 	else
 		a::(range (a+1) b)
+		
+let have_duplicates compare lst = 
+	let sorted = List.sort compare lst in
+	match sorted with 
+		[] -> false
+		| hd::tl -> fst (List.fold_left (fun (b,last) next -> (b || last=next),next) (false,hd) tl)

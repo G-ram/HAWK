@@ -23,6 +23,7 @@ and symbol_table = {
 }
 
 type translation_environment = {
+  func_decls: (string * Ast.func_decl) list;
   scope: symbol_table;
   return: t option (*Not implemented*)
 }
@@ -43,24 +44,24 @@ type expr_det =
   |TableAssign of string * (expr_t list) * expr_t * assign_mode
   |Binop of expr_t * Ast.op * expr_t
   |Uminus of expr_t
-  |Call of string * expr_t list
+  |Call of string * (expr_t list)
   |TableAccess of string * (expr_t list)
 and expr_t = expr_det * t
-
 
 type stmt_t =
   Block of stmt_t list * translation_environment
   | Expr of expr_t
   | Func of func_decl_t
-  | Return of expr_t
+  | Return of expr_t 
   | If of expr_t * stmt_t * stmt_t
   | While of expr_t * stmt_t
   | For of string * string * stmt_t
   and
   func_decl_t = {
     fname : string;
-    params : string list;
+    params : (string * t) list;
     body : stmt_t list;
+	return_type : t
   }
 
 type pattern_action_t = Ast.pattern * stmt_t
