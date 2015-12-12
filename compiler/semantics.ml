@@ -340,22 +340,36 @@ let rec check_expr env = function
     if typ != Int && typ != Double then raise (Failure("unary minus operation does not support this type")) ;
     Uminus((e, typ)), typ
   | Ast.Call(v, el) -> (*This is not entirely correct! Still needs to infer*)
-    let el = List.map (fun e -> (check_expr env e)) el in
-    let _ = if List.length el = 1 then begin
-      let (e, typ) = List.hd el in
-      let typ = match typ with (*Check for correct type*)
-        Table(_) -> BTable
-        | _ -> BAny in
-      try (*Test to see if user is trying to call built-in function and check for type*)
-        ignore(find_built_in v typ) ; ()
-      with Not_found -> ( (*Check if its a type error or a new function*)
-          try
-            let (built_in_name, _) = find_built_in v BAny in
-            raise (Failure("parameter type does not match built-in function parameter type " ^ built_in_name))
-          with Not_found -> ()
-        )
-    end in
-    Call(v, el), Int
+	try 
+		let func_decl = List.assoc v env.func_decls in 
+		let el_typed = List.map (fun e -> (check_expr env e)) el in
+		let typs = List.map snd el_typed in 
+		let typed_vars = List.combine func_decl.params typs in 
+		let env = {env with scope = {parent = None; variables = typed_vars; update_table_links = []}} in 
+		let func_body = check_stmt env func_decl.body in 
+		let is_return_stmt = function 
+			Return(stmt) -> true
+			| _ -> false
+		in let return_stmt = List.find (fun stmt -> is_return_stmt stmt) func_body in
+		let (_, return_type) = return_stmt in 
+		Call(v, el_typed), return_type
+	with Not_found ->
+	    let el = List.map (fun e -> (check_expr env e)) el in
+	    let _ = if List.length el = 1 then begin
+	      let (e, typ) = List.hd el in
+	      let typ = match typ with (*Check for correct type*)
+	        Table(_) -> BTable
+	        | _ -> BAny in
+	      try (*Test to see if user is trying to call built-in function and check for type*)
+	        ignore(find_built_in v typ) ; ()
+	      with Not_found -> ( (*Check if its a type error or a new function*)
+	          try
+	            let (built_in_name, _) = find_built_in v BAny in
+	            raise (Failure("parameter type does not match built-in function parameter type " ^ built_in_name))
+	          with Not_found -> ()
+	        )
+	    end in
+    	Call(v, el), Int
   | Ast.TableAccess(table_id,index_exprs) -> (*TODO: THIS SHIT*)
 	(*First, get table, if it exists *)
 	let (_,table_t) = try
