@@ -9,29 +9,29 @@ public class _HAWKTable<T>{
 		stringPart = new java.util.Hashtable<String,T>();
 	}
 
-    public T _getIntIndex(int i){
+    public T getIntIndex(int i){
         return intPart.get(i);
     }
 
-    public T _getStringIndex(String s){
+    public T getStringIndex(String s){
         return stringPart.get(s);
     }
 
-    public _HAWKTable _setIntIndexChained(int i, T t){
+    public _HAWKTable setIntIndexChained(int i, T t){
         intPart.put(i,t);
         return this;
     }
 
-    public _HAWKTable _setStringIndexChained(String s, T t){
+    public _HAWKTable setStringIndexChained(String s, T t){
         stringPart.put(s,t);
         return this;
     }
 
-    public void _setIntIndex(int i, T t){
+    public void setIntIndex(int i, T t){
         intPart.put(i,t);
     }
 
-    public void _setStringIndex(String s, T t){
+    public void setStringIndex(String s, T t){
         stringPart.put(s,t);
     }
 
