@@ -177,7 +177,7 @@ string_of_stmt_list stmt_list nested = match stmt_list with
 and string_of_stmt stmt nested = match stmt with
 	Block(stmt_list, _) -> "{\n" ^ (string_of_stmt_list stmt_list nested) ^ "\n" ^ (string_for_indent (nested - 1)) ^ "}"
 	| Expr(expr) -> (string_for_indent nested) ^ (string_of_expr expr) ^ ";"
-	| Func(func_decl) -> (string_for_indent nested) ^ string_of_func_decl func_decl
+	| Func(func_decl) -> ""
 	| Return(expr) -> (string_for_indent nested) ^ "return " ^ (string_of_expr expr) ^ ";"
 	| If(expr, stmt1, stmt2) -> (string_for_indent nested) ^ "if(_checkIf(" ^ (string_of_expr expr) ^ "))" ^ (string_of_stmt stmt1 nested) ^ "else" ^ (string_of_stmt stmt2 nested)
 	| While(expr, stmt) -> (string_for_indent nested) ^ "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt (nested + 1))
@@ -209,7 +209,7 @@ let string_of_file file nested =
  	(type_to_str (snd param)) ^ " " ^ (fst param)
 
  let string_of_user_func nested func_decl =
- 	(string_for_indent nested) ^ "public static void " ^ (type_to_str func_decl.return_type)
+ 	(string_for_indent nested) ^ "public static " ^ (type_to_str func_decl.return_type)
  	^ " " ^ func_decl.fname ^ "(" ^ String.concat "," (List.map string_of_typed_param func_decl.params) ^ ")"
  	^ "{\n" ^  (string_of_stmt_list func_decl.body (nested + 1)) ^  "\n" ^ (string_for_indent nested) ^ "}"
 

@@ -1,0 +1,12 @@
+BEGIN {
+    fun f(a,b){
+    	y = 2;
+    	z = 4;
+    	return a + b;
+    }
+    x = f("hello", 1);
+    print(x);
+}
+END {
+
+}

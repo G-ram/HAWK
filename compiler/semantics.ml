@@ -435,7 +435,7 @@ and check_stmt env global_env = function
       ignore(find_built_in f.Ast.fname BAny) ;
       raise (Failure("function is overwrites built-in function " ^ f.Ast.fname))
     with Not_found -> (*valid function*)
-      Expr((Id("dummy"),Int)) (*This is not correct!*)
+      Func({fname = ""; params = []; body = []; return_type = Int}) (*This is not correct!*)
     )
   | Ast.Return(e) -> Return(check_expr env global_env e)
   | Ast.If(e, s1, s2) ->

@@ -1,5 +1,6 @@
 BEGIN {
     t = {};
     t[0] = 5;
+    print(t[0]);
 }
 END {}

@@ -1,0 +1,10 @@
+BEGIN {
+    fun f(a){
+    	return a;
+    }
+    x = f(3);
+    print(x);
+}
+END {
+
+}

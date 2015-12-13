@@ -149,7 +149,8 @@ func_decl:
 
 params_list:
 	/* */ { [] }
-	| params_list COMMA ID {$3::$1}
+	| ID { [$1] }
+	| ID COMMA params_list {$1::$3}
 
 pattern:
 	LBRACK_AMP css_selector AMP_RBRACK {CssPattern($2)}

@@ -2,5 +2,6 @@ BEGIN {
     t = {};
     t[0] = 5;
     s = t;
+    print(s[0]);
 }
 END {}

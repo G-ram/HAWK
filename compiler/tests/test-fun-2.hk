@@ -1,0 +1,10 @@
+BEGIN {
+    fun f(a){
+    	return a;
+    }
+    x = f("hello");
+    print(x);
+}
+END {
+
+}
