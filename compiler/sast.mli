@@ -1,9 +1,9 @@
 type t = Int | String | Double | Table of t | EmptyTable | Void
 
-(*update_table_link represents table variables that a given variable is implicity attached to 
+(*update_table_link represents table variables that a given variable is implicity attached to
 consider this code:
 t = {}
-s = t 
+s = t
 at that point, you will add {id:"t", nesting:0}
 when the type of s updated from EmptyTable to Table(something), type of t will become Table(something)
 
@@ -19,22 +19,23 @@ and symbol_table = {
   parent: symbol_table option;
   mutable variables: (string*t) list;
   (*When an EmptyTable variable in this list has its type updated, must also update linked variables *)
-  mutable update_table_links: (string * update_table_link) list 
+  mutable update_table_links: (string * update_table_link) list
 }
 
 type translation_environment = {
   func_decls: (string * Ast.func_decl) list;
   scope: symbol_table;
+  is_pattern: bool;
   return: t option (*Not implemented*)
 }
 
-	
-type assign_mode = 
+
+type assign_mode =
 	Immediate
 	| DeferredId of symbol_table * string
 	| DeferredTableAccess of symbol_table * string * int
 	| DeferredCreation of symbol_table * string
-	
+
 type expr_det =
   Id of string
   |Literal of Ast.literal
@@ -50,10 +51,10 @@ type expr_det =
 and expr_t = expr_det * t
 
 type stmt_t =
-  Block of stmt_t list * translation_environment 
+  Block of stmt_t list * translation_environment
   | Expr of expr_t
   | Func of func_decl_t
-  | Return of expr_t 
+  | Return of expr_t
   | If of expr_t * stmt_t * stmt_t
   | While of expr_t * stmt_t
   | For of string * string * stmt_t
