@@ -10,26 +10,26 @@ let rec find_var_and_scope (scope : symbol_table) name = try
   match scope.parent with
     Some(parent) -> find_var_and_scope parent name
     | _ -> raise Not_found
-	
-let rec is_empty_table_container = function
-	EmptyTable -> true 
-	| Table(t) -> (is_empty_table_container t)
-	| _ -> false 
 
-let rec find (scope : symbol_table) name = 
+let rec is_empty_table_container = function
+	EmptyTable -> true
+	| Table(t) -> (is_empty_table_container t)
+	| _ -> false
+
+let rec find (scope : symbol_table) name =
 	fst (find_var_and_scope scope name )
-	
+
 (*
 if a variable is of type t1, can it be assigned to a variable of type t2?
 obviously if:
 
 a=3
-then you can do 
+then you can do
 a=10 (both are Int)
 
 but also if:
 a = {}
-then 
+then
 a = {{3}} is allowable too
 *)
 let rec can_assign t1 t2 =
@@ -46,29 +46,29 @@ let rec find_built_in name typ = try
 going up parent links until matching variable is found
 This function has side effects*)
 let rec update_variable_type sym_t var_id new_type =
-	try 
+	try
 		let _ = (find sym_t var_id) in (* this will raise exception if variable doesn't exist *)
-		let new_variable_list = 
+		let new_variable_list =
 			List.map (fun (v_id,typ) -> if v_id=var_id then (v_id,new_type) else (v_id,typ)) sym_t.variables
 		in
 		ignore (sym_t.variables <- new_variable_list)
-	with Not_found -> 
+	with Not_found ->
 		match sym_t.parent with
 			None -> raise (Failure "Couldn't find variable to update")
 			| Some(parent) -> update_variable_type parent var_id new_type
-		
+
 
 let remove_update_table_link table_id sym_tab link_id link_scope =
 	(* match on value equality for link id and reference equality for link scope *)
 	let keep_entry (t_id,update_link) =
 		not (t_id=table_id && update_link.link_id=link_id && update_link.link_scope == link_scope)
-	in 
+	in
 	sym_tab.update_table_links<- List.filter keep_entry sym_tab.update_table_links
-	
+
 let remove_mutual_update_table_links table_id sym_tab link_id link_scope =
 	remove_update_table_link table_id sym_tab link_id link_scope;
 	remove_update_table_link link_id link_scope table_id sym_tab
-	
+
 let add_update_table_link table_id sym_tab link_id link_scope nesting =
 	let new_update_link = {link_id=link_id;link_scope=link_scope;nesting=nesting} in
 	sym_tab.update_table_links <- (table_id,new_update_link)::sym_tab.update_table_links
@@ -84,25 +84,25 @@ if you do:
 t[0][0] = 3, then t goes from Table(EmptyTable) to Table(Table(Int)), and s should go from EmptyTable to Table(Int)
 
 if you do:
-s[0] = 3, the end result should be the same 
+s[0] = 3, the end result should be the same
 *)
 let add_mutual_update_table_link table_id sym_tab link_id link_scope nesting =
 	remove_mutual_update_table_links table_id sym_tab link_id link_scope;
 	add_update_table_link table_id sym_tab link_id link_scope nesting;
 	add_update_table_link link_id link_scope table_id sym_tab (-nesting)
-	
-	
+
+
 (*nest or unnest a type with additional tables
 e.g.
 apply_nesting Int 1 = Table(Int)
 apply_nesting Table(Table(Int)) -1 = Table(Int)
 *)
 let rec apply_nesting = function
-	t, 0 -> t 
+	t, 0 -> t
 	| t, n when n>0 -> Table (apply_nesting (t,n-1))
 	| Table(t),n when n<0 -> (apply_nesting (t,n+1))
 	| _ -> raise (Failure "Attempting to unnest non-table.")
-	
+
 
 let is_identifier_expr = function
 	| Id(_) -> true
@@ -110,9 +110,9 @@ let is_identifier_expr = function
 	| Assign(_) -> true
 	| TableAssign(_) -> true
 	| _ -> false
-	
+
 (*  Consider a statement like
-a = {} 
+a = {}
 this should be deferred... we don't know how to construct 'a' until we know it's type
 
 but if we have:
@@ -123,11 +123,11 @@ b = a should not be deferred. Even though we don't know b's type, this should ju
 "b=a" in java just like a normal assignment
 *)
 let should_defer_assignment assignee_e assignee_type=
-	(is_empty_table_container assignee_type) && (not (is_identifier_expr assignee_e)) 
-	
+	(is_empty_table_container assignee_type) && (not (is_identifier_expr assignee_e))
+
 let get_assignment_type assign_mode default_t =
 	match assign_mode with
-		| DeferredId(scope,s) -> 
+		| DeferredId(scope,s) ->
 			let (v,t) = (find scope s) in t
 		| DeferredCreation(scope,s) ->
 			let (v,t) = (find scope s) in t
@@ -135,13 +135,13 @@ let get_assignment_type assign_mode default_t =
 			let (v,table_t) = (find scope s) in
 			apply_nesting (table_t,(-nesting))
 		| _ -> default_t
-			
 
-let get_assignment_mode scope var_id assignee_e assignee_type = 
+
+let get_assignment_mode scope var_id assignee_e assignee_type =
 	let is_et = (is_empty_table_container assignee_type) in
 	match assignee_e with
 		Id(s) when is_et -> DeferredId (scope,s)
-		| TableAccess(s,indices) when is_et -> 
+		| TableAccess(s,indices) when is_et ->
 			let nesting = (List.length indices) in
 			DeferredTableAccess (scope,s,nesting)
 		| Assign(s,_,_) when is_et -> DeferredId (scope,s)
@@ -150,8 +150,8 @@ let get_assignment_mode scope var_id assignee_e assignee_type =
 			DeferredTableAccess (scope,s,nesting)
 		| _ when is_et -> DeferredCreation (scope,var_id)
 		| _ -> Immediate
-	
-(* Update the type of a table variable within a given symbol scope 
+
+(* Update the type of a table variable within a given symbol scope
 Need to ensure that table update links are respected *)
 let rec update_table_type sym_tab table_id new_type =
 	(* update all table links in depth first search style *)
@@ -167,20 +167,20 @@ let rec update_table_type sym_tab table_id new_type =
 		let new_neighbor_types = List.map (fun n-> apply_nesting (new_type,n.nesting)) unvisited_neighbors in
 		let folder = (fun visited (neighb,neighb_t) -> update_linked_table_types neighb.link_id neighb.link_scope neighb_t visited) in
 		List.fold_left folder visited (List.combine unvisited_neighbors new_neighbor_types)
-			
+
 	in ignore (update_linked_table_types table_id sym_tab new_type [])
-	
+
 (*
 let test_update  =
 	let sa = {parent=None; variables=["t",Table(Table(EmptyTable))];
 		update_table_links=[] } in
-		
+
 	let sb = {parent=Some(sa); variables=["s",Table(EmptyTable)];
-		update_table_links=["s",{link_id="t";link_scope=sa;nesting=1} ]} in 
-		
+		update_table_links=["s",{link_id="t";link_scope=sa;nesting=1} ]} in
+
 	let sc = {parent=Some(sb); variables=["u",EmptyTable];
-		update_table_links=["u",{link_id="s";link_scope=sb;nesting=1} ]} in 
-		
+		update_table_links=["u",{link_id="s";link_scope=sb;nesting=1} ]} in
+
 	sa.update_table_links<- ["t",{link_id="s";link_scope=sb;nesting=(-1)}];
 	sb.update_table_links<- ("s",{link_id="u";link_scope=sc;nesting=(-1)})::sb.update_table_links;
 
@@ -216,9 +216,9 @@ let all_the_same = function
 	| lst ->
 		(let hd = (List.hd lst) in
 		List.for_all ((=) hd) lst)
-		
+
 let create_linkage_if_applicable var_id var_nesting sym_t assignee = (* TODO: this will have to also take in nesting of var_id *)
-	let other_info = match assignee with 
+	let other_info = match assignee with
 		Id(other_id) ->
 			let ((_,other_type), other_scope) = find_var_and_scope sym_t other_id in
 			Some (other_id,other_type,other_scope, -var_nesting)
@@ -232,7 +232,7 @@ let create_linkage_if_applicable var_id var_nesting sym_t assignee = (* TODO: th
 		| Some(other_id,other_type,other_scope,other_nesting) when (is_empty_table_container other_type) ->
 			add_mutual_update_table_link var_id sym_t other_id other_scope other_nesting
 		| _ -> ()
-				
+
 let rec check_expr env global_env = function
   Ast.TableLiteral(tl) -> check_table_literal env global_env tl
   | Ast.Literal(l) ->(
@@ -240,7 +240,7 @@ let rec check_expr env global_env = function
      Ast.IntLiteral(v) -> Literal(l), Int
      | Ast.StringLiteral(v) -> Literal(l), String
      | Ast.DoubleLiteral(v) -> Literal(l), Double
-     | Ast.This -> Literal(l), Table(String)
+     | Ast.This -> if env.is_pattern then Literal(l), Table(String) else raise (Failure("This is a reserved word and is not defined in this context."))
      )
   | Ast.Id(v) ->
     let vdecl = try
@@ -281,25 +281,25 @@ let rec check_expr env global_env = function
 				| _ -> raise (Failure "check_expr TableAssign: Shouldn't be here. ")
 			in
 			(if (is_table assignee_type) then
-				create_linkage_if_applicable table_id nesting env.scope assignee_e 
+				create_linkage_if_applicable table_id nesting env.scope assignee_e
 			);
-			(* if RHS expr's type is empty table AND RHS is not something that should have been initialized previously 
+			(* if RHS expr's type is empty table AND RHS is not something that should have been initialized previously
 			if (should_defer_assignment assignee_e assignee_type) then
 				(DeferredAssign (table_id,env.scope)),assignee_type (* Type should get resolved somewhere down the line *)
-			
+
 			*)
 			vdecl
-				
+
 		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
   | Ast.Assign(v, assignee) ->
     let (assignee_e, assignee_type) as assignee = check_expr env global_env assignee in
 	let assign_mode = get_assignment_mode env.scope v assignee_e assignee_type in
-    let (new_e,new_type) as vdecl = 
+    let (new_e,new_type) as vdecl =
 	try (*Reassigning a variable to a different type is okay because assigment = declaration*)
       let (_,prev_typ) = find env.scope v in (*Add it in the symbol table if its a different type*)
-      if (not (can_assign prev_typ assignee_type)) then 
+      if (not (can_assign prev_typ assignee_type)) then
 		raise (Failure ("identifier type cannot be assigned to previously declared type " ^ v))
-      else  
+      else
 		Assign (v, assignee, assign_mode), assignee_type
     with Not_found -> (*Declaring/Defining a new variable*)
       let decl = (v, assignee_type) in env.scope.variables <- (decl :: env.scope.variables) ;
@@ -341,34 +341,34 @@ let rec check_expr env global_env = function
     Uminus((e, typ)), typ
   | Ast.Call(v, el) -> (*This is not entirely correct! Still needs to infer*)
 	(try
-		let func_decl = List.assoc v env.func_decls in 
+		let func_decl = List.assoc v env.func_decls in
 		let el_typed = List.map (fun e -> (check_expr env global_env e)) el in
-		let arg_typs = List.map snd el_typed in 
-		let typed_args = List.combine func_decl.params arg_typs in 
-		let env = {env with scope = {parent = None; variables = typed_args; update_table_links = []}} in 
-		let func_body = check_stmt env global_env (Ast.Block func_decl.body) in 
-		let is_return_stmt = function 
+		let arg_typs = List.map snd el_typed in
+		let typed_args = List.combine func_decl.params arg_typs in
+		let env = {env with scope = {parent = None; variables = typed_args; update_table_links = []}} in
+		let func_body = check_stmt env global_env (Ast.Block func_decl.body) in
+		let is_return_stmt = function
 			Return(stmt) -> true
-			| _ -> false in  
+			| _ -> false in
 		match func_body with
 			Block(stmt_list,_) ->
-				let func_body_list = stmt_list in 
+				let func_body_list = stmt_list in
 				let return_stmt = List.find (fun stmt -> is_return_stmt stmt) stmt_list in
-				let return_type = 
+				let return_type =
 				match return_stmt with
-					Return(_, return_type) -> return_type in 
-				let typed_func_call = 
+					Return(_, return_type) -> return_type in
+				let typed_func_call =
 				Call(v, el_typed), return_type in
-		let func_decl_typed = { fname = v; params = typed_args; body = func_body_list; return_type = return_type } in 
-		let add_func = global_env.funcs <- func_decl_typed::(global_env.funcs) in 
+		let func_decl_typed = { fname = v; params = typed_args; body = func_body_list; return_type = return_type } in
+		let add_func = global_env.funcs <- func_decl_typed::(global_env.funcs) in
 		typed_func_call
-	with Not_found -> 
+	with Not_found ->
 	    let el = List.map (fun e -> (check_expr env global_env e)) el in
-	    if (List.length el) = 1 then 
+	    if (List.length el) = 1 then
 	      let (e, typ) = List.hd el in
 	      let typ = match typ with (*Check for correct type*)
 	        Table(_) -> BTable
-	        | _ -> BAny 
+	        | _ -> BAny
 		  in
 	      (try (*Test to see if user is trying to call built-in function and check for type*)
 	        ignore (find_built_in v typ)
@@ -380,7 +380,7 @@ let rec check_expr env global_env = function
 	        ); Call(v, el), Int
 		else
 			raise (Failure "Builtins only take one arg. You shouldn't be here."))
-    	
+
   | Ast.TableAccess(table_id,index_exprs) -> (*TODO: THIS SHIT*)
 	(*First, get table, if it exists *)
 	let (_,table_t) = try
@@ -402,7 +402,7 @@ and check_table_indices env global_env index_expr_lst =
 		raise (Failure("All table indices must be string or int expressions"))
 	else
 		index_sast
-and check_table_literal env global_env tl = 
+and check_table_literal env global_env tl =
 	let get_unique_elt lst =
 		if (all_the_same lst) && (List.length lst)>0 then
 			(List.hd lst)
@@ -450,13 +450,13 @@ and check_stmt env global_env = function
 
 let check_pattern env global_env a = check_stmt env global_env a
 
-let get_func_decls_stmt stmt = 
-	let rec get_func_decls_stmt_unchecked stmt= 
-		match stmt with 
+let get_func_decls_stmt stmt =
+	let rec get_func_decls_stmt_unchecked stmt=
+		match stmt with
 			Ast.Block(stmt_list) -> List.concat (List.map get_func_decls_stmt_unchecked stmt_list)
 			| Ast.Func(fdecl) -> [fdecl.fname,fdecl]
 			| _ -> []
-	in 
+	in
 	let func_decls = get_func_decls_stmt_unchecked stmt in
 	(*Make sure that there are no duplicates*)
 	let names = List.map fst func_decls in
@@ -464,26 +464,26 @@ let get_func_decls_stmt stmt =
 		raise (Failure "Duplicate function names declared!")
 	else
 		func_decls
-	
-		
+
+
 let check_program p =
 	let func_decls = get_func_decls_stmt p.Ast.begin_stmt in
     let init_scope = {
       parent = None;
       variables = [];
 	  update_table_links = []} in
-    let init_env = { scope = init_scope; return = None; func_decls = func_decls } in
-    let global_env = { funcs = [] } in 
+    let init_env = { scope = init_scope; return = None; func_decls = func_decls; is_pattern = false } in
+    let global_env = { funcs = [] } in
 	let (begin_block, env) = match check_stmt init_env global_env p.Ast.begin_stmt with
 								Block(begin_block, env) -> begin_block, env
 								| _ -> raise (Failure("begin is not a block")) in
-	let pattern_actions = List.map (fun (pattern, action) -> pattern, (check_pattern env global_env action)) p.Ast.pattern_actions in
-	let (end_block, env) = match check_stmt env global_env p.Ast.end_stmt with
+  let env = {env with is_pattern = true} in
+ 	let pattern_actions = List.map (fun (pattern, action) -> pattern, (check_pattern env global_env action)) p.Ast.pattern_actions in
+  let env = {env with is_pattern = false} in
+  let (end_block, env) = match check_stmt env global_env p.Ast.end_stmt with
 								Block(end_block, env) -> end_block, env
 								| _ -> raise (Failure("end is not a block")) in
 	{concrete_funcs = global_env.funcs;
 	begin_stmt = Block(begin_block, env);
 	pattern_actions = pattern_actions;
-	end_stmt = Block(end_block, env);} 
-
-
+	end_stmt = Block(end_block, env);}
