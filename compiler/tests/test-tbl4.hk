@@ -1,7 +1,8 @@
 BEGIN {
     t = {};
-    t[0] = 5;
-    t[1] = "hello";
-    print(t[1]);
+    t[0] = "dog";
+    t[1] = "cat";
+	t["fish"] = t[0]+t[1];
+    print(t["fish"]);
 }
 END {}
