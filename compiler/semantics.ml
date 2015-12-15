@@ -360,7 +360,8 @@ let rec check_expr env global_env = function
 		let func_body = check_stmt env global_env (Ast.Block func_decl.body) in
 		let is_return_stmt = function
 			Return(stmt) -> true
-			| _ -> false in
+			| _ -> false 
+		in
 		match func_body with
 			Block(stmt_list,_) ->
 				let func_body_list = stmt_list in
