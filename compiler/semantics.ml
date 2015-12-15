@@ -458,7 +458,19 @@ and check_stmt env global_env = function
     let (e, typ) = check_expr env global_env e in
     if typ != Int && typ != Double then raise (Failure("unary minus operation does not support this type")) ;
     While((e, typ), check_stmt env global_env s)
-  | Ast.For(v, t, s) -> Expr((Id("dummy"),Int)) (*This is not correct!*)
+  | Ast.For(key_id, table_id, stmt) -> 
+	let scopeT = { parent = Some(env.scope); variables = [(key_id,String)]; update_table_links=[] } in
+	let envT = { env with scope = scopeT} in 
+	let stmt = check_stmt envT global_env stmt in 
+	let (_,table_t) = try
+      find env.scope table_id
+    with Not_found ->
+      raise (Failure("Undeclared table identifier in for statement:" ^ table_id)) 
+	in 
+	if is_table table_t then
+		For(key_id,table_id,stmt)
+	else
+		raise (Failure("Cannot do for statement on non-table " ^ table_id))
 
 let check_pattern env global_env a = check_stmt env global_env a
 

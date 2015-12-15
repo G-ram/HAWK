@@ -189,7 +189,8 @@ and string_of_stmt stmt nested = match stmt with
 	| Return(expr) -> (string_for_indent nested) ^ "return " ^ (string_of_expr expr) ^ ";"
 	| If(expr, stmt1, stmt2) -> (string_for_indent nested) ^ "if(_checkIf(" ^ (string_of_expr expr) ^ "))" ^ (string_of_stmt stmt1 nested) ^ "else" ^ (string_of_stmt stmt2 nested)
 	| While(expr, stmt) -> (string_for_indent nested) ^ "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt (nested + 1))
-	| For(str1, str2, stmt) -> (string_for_indent nested) ^ "for(" ^ str1 ^ " : " ^ str2 ^ ")" ^ (string_of_stmt stmt nested)
+	| For(key_id, table_id, stmt) -> 
+		(string_for_indent nested) ^ "for(String " ^ key_id ^ " : " ^ table_id ^ ".getKeys())" ^ (string_of_stmt stmt nested)
 
 let string_of_begin_end block nested= match block with
   Block(stmt_list, _) -> string_of_stmt_list stmt_list nested
