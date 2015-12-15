@@ -130,11 +130,31 @@ let get_assignment_type assign_mode default_t =
 			let (v,t) = (find scope s) in t
 		| DeferredCreation(scope,s) ->
 			let (v,t) = (find scope s) in t
+		| DeferredTableLiteral(scope,s,_) ->
+			let (v,t) = (find scope s) in t
 		| DeferredTableAccess (scope,s,nesting) ->
 			let (v,table_t) = (find scope s) in
 			apply_nesting (table_t,(-nesting))
 		| _ -> default_t
 
+
+(*
+imagine:
+t = {3:{},10:{}}
+if we later find out the type of t to be Table(Table(Int)) or something even more nested, then we can now determine the 
+types of the nested empty tables in this table literal 
+*)
+let rec retype_empty_table_literal table_literal new_table_type =
+	let inner_t = apply_nesting (new_table_type,-1) in
+	match table_literal with
+		| [] -> []
+		| (key, (old_e, old_t))::tail ->
+			let new_e = (match old_e with
+				|TableLiteral(tl) -> TableLiteral (retype_empty_table_literal tl inner_t)
+				| _ -> old_e)
+			in
+			(key, (new_e,inner_t))::(retype_empty_table_literal tail new_table_type)
+			
 
 let get_assignment_mode scope var_id assignee_e assignee_type =
 	let is_et = (is_empty_table_container assignee_type) in
@@ -147,6 +167,7 @@ let get_assignment_mode scope var_id assignee_e assignee_type =
 		| TableAssign(s,indices,_,_) when is_et ->
 			let nesting = (List.length indices) in
 			DeferredTableAccess (scope,s,nesting)
+		| TableLiteral(tl) when is_et -> DeferredTableLiteral(scope,var_id,tl)
 		| _ when is_et -> DeferredCreation (scope,var_id)
 		| _ -> Immediate
 

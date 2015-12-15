@@ -35,14 +35,14 @@ type assign_mode =
 	| DeferredId of symbol_table * string
 	| DeferredTableAccess of symbol_table * string * int
 	| DeferredCreation of symbol_table * string
-
-type expr_det =
+	| DeferredTableLiteral of symbol_table * string * table_literal
+and table_literal = (Ast.key_literal * expr_t) list
+and expr_det =
   Id of string
   |Literal of Ast.literal
-  |TableLiteral of (Ast.key_literal * expr_t) list (*Every table literal, at the end of the day, is keys and values (possibly none) *)
+  |TableLiteral of table_literal (*Every table literal, at the end of the day, is keys and values (possibly none) *)
   |VAssign of string * expr_t * assign_mode
   |Assign of string * expr_t * assign_mode
-  |DeferredAssign of string * symbol_table (*Used when assigning an emtpy table to a variable... symbol table should have full type after generating SAST *)
   |TableAssign of string * (expr_t list) * expr_t * assign_mode
   |Binop of expr_t * Ast.op * expr_t
   |Uminus of expr_t

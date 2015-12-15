@@ -130,6 +130,9 @@ and string_of_set_index_expr_with_value_str ind value_str =
 and
 	string_of_assignment_rhs expr t mode =
 	(match mode with
+		| DeferredTableLiteral(_,_,tl) ->
+			let new_tl = Semantics.retype_empty_table_literal tl t in
+			string_of_expr (TableLiteral(new_tl),t)
 		| DeferredCreation(_,_) -> "new " ^ (type_to_str t) ^ "()"
 		| _ -> (string_of_expr expr)
 
