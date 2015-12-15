@@ -1,0 +1,12 @@
+BEGIN {
+    t = {{1,2},{3,4}};
+	sum = 0;
+    for (key in t){
+		inner_table = t[key];
+		for (key2 in inner_table){
+			sum+= inner_table[key2];
+		}
+	}
+	print(sum);
+}
+END {}
