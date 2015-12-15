@@ -1,5 +1,7 @@
 BEGIN{
-    table = {0,1};
-    keys(table);
+  table = {0,1,2};
+  print(table);
+  print("--------");
+  print(keys(table));
 }
 END{}

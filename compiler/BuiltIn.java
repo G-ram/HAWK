@@ -19,6 +19,13 @@ private static <T> int exists(T e){
   }
   return 1;
 }
-private static <T> java.util.Set<String> keys(_HAWKTable<T> t){
-  return t.getKeys();
+private static <T> _HAWKTable<String> keys(_HAWKTable<T> t){
+  java.util.Set<String> set = t.getKeys();
+  _HAWKTable<String> hawkTable = new _HAWKTable<String>();
+  int i = t.getLength()-1;
+  for (String s : set) {
+    hawkTable.setIntIndex(i, s);
+    i--;
+  }
+  return hawkTable;
 }

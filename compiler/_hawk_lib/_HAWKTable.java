@@ -50,8 +50,10 @@ public class _HAWKTable<T>{
   public String toString(){
       String temp = "";
       for( java.util.Map.Entry<String, T> entry : storage.entrySet() ){
-          temp += entry.toString();
+          temp += entry.toString()+"\n";
       }
+			temp = temp.substring(0, temp.length() - 1);
+			temp = new java.lang.StringBuilder(temp).reverse().toString();
       return temp;
   }
 }

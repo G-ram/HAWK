@@ -1,11 +1,8 @@
 BEGIN{
   table = {0,1,2};
-  if(exists(table[0])){
-    print("exists");
-  }
-  if(exists(table[4]) == 0){
-    print("nope");
-  }
+  print(table);
+  print("--------");
+  print(keys(table));
 }
 [@a@]{
 }
