@@ -122,8 +122,6 @@ b = a
 b = a should not be deferred. Even though we don't know b's type, this should just generate
 "b=a" in java just like a normal assignment
 *)
-let should_defer_assignment assignee_e assignee_type=
-	(is_empty_table_container assignee_type) && (not (is_identifier_expr assignee_e))
 
 let get_assignment_type assign_mode default_t =
 	match assign_mode with
@@ -232,6 +230,24 @@ let create_linkage_if_applicable var_id var_nesting sym_t assignee = (* TODO: th
 		| Some(other_id,other_type,other_scope,other_nesting) when (is_empty_table_container other_type) ->
 			add_mutual_update_table_link var_id sym_t other_id other_scope other_nesting
 		| _ -> ()
+		
+(* add func_decly_typed to the global environment
+   IF there is not already a function with the same name
+   and same number of parameters (where all the parameters have the same type)
+*)
+let add_func_to_global_env global_env func_decl =
+	(*the unique signature of a function *)
+	let func_decl_id fd =
+		let param_types = List.map snd fd.params in
+		(fd.fname, param_types)
+	in
+	let new_id = func_decl_id func_decl in
+	let existing_ids = List.map func_decl_id global_env.funcs in
+	if List.mem new_id existing_ids then
+		()
+	else
+		ignore (global_env.funcs <- func_decl::(global_env.funcs))
+
 
 let rec check_expr env global_env = function
   Ast.TableLiteral(tl) -> check_table_literal env global_env tl
@@ -283,11 +299,6 @@ let rec check_expr env global_env = function
 			(if (is_table assignee_type) then
 				create_linkage_if_applicable table_id nesting env.scope assignee_e
 			);
-			(* if RHS expr's type is empty table AND RHS is not something that should have been initialized previously
-			if (should_defer_assignment assignee_e assignee_type) then
-				(DeferredAssign (table_id,env.scope)),assignee_type (* Type should get resolved somewhere down the line *)
-
-			*)
 			vdecl
 
 		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
@@ -360,7 +371,7 @@ let rec check_expr env global_env = function
 				let typed_func_call =
 				Call(v, el_typed), return_type in
 		let func_decl_typed = { fname = v; params = typed_args; body = func_body_list; return_type = return_type } in
-		let add_func = global_env.funcs <- func_decl_typed::(global_env.funcs) in
+		add_func_to_global_env global_env func_decl_typed;
 		typed_func_call
 	with Not_found ->
 	    let el = List.map (fun e -> (check_expr env global_env e)) el in
