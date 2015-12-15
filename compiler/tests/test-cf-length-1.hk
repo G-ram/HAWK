@@ -1,5 +1,6 @@
 BEGIN{
     table = {0,1};
-    length(table);
+    x = length(table);
+    print(x);
 }
 END{}

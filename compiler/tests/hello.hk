@@ -1,13 +1,13 @@
 BEGIN{
-  c = {0,4,6,7};
-  fun me(b){
-    return b+15;
+  table = {0,1,2};
+  if(exists(table[0])){
+    print("exists");
   }
-  a = 0;
+  if(exists(table[4]) == 0){
+    print("nope");
+  }
 }
 [@a@]{
-  a = 6;
 }
 END{
-  print(me(a));
 }
