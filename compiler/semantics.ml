@@ -368,11 +368,10 @@ let rec check_expr env global_env = function
 				let return_type =
 				match return_stmt with
 					Return(_, return_type) -> return_type in
-				let typed_func_call =
-				Call(v, el_typed), return_type in
-		let func_decl_typed = { fname = v; params = typed_args; body = func_body_list; return_type = return_type } in
-		add_func_to_global_env global_env func_decl_typed;
-		typed_func_call
+				let typed_func_call = Call(v, el_typed), return_type in
+				let func_decl_typed = { fname = v; params = typed_args; body = func_body_list; return_type = return_type } in
+				add_func_to_global_env global_env func_decl_typed;
+				typed_func_call
 	with Not_found ->
 	    let el = List.map (fun e -> (check_expr env global_env e)) el in
 	    if (List.length el) = 1 then
