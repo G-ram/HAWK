@@ -1,5 +1,0 @@
-BEGIN{}
-END{
-    open("a");
-    print("open 2 successful")
-}

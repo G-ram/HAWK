@@ -1,9 +1,13 @@
 BEGIN{
+  c = {0,4,6,7};
+  fun me(b){
+    return b+15;
+  }
   a = 0;
 }
 [@a@]{
   a = 6;
 }
 END{
-  print(a);
+  print(me(a));
 }
