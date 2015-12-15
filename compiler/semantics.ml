@@ -36,6 +36,7 @@ let rec can_assign t1 t2 =
 	match t1,t2 with
 		t1,t2 when t1=t2 -> true
 		| EmptyTable, Table(t) -> true
+		| Table(t), EmptyTable -> true
 		| Table(s), Table(t) -> (can_assign s t)
 		| _ -> false
 
