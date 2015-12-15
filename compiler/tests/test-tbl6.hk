@@ -1,6 +1,5 @@
 BEGIN {
-    t = {};
-    t[0] = 5;
-    t[1] = 20;
+    t = {"dog":"cat"+"mouse"};
+	print(t["dog"]);
 }
 END {}
