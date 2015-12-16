@@ -163,10 +163,16 @@ string_of_expr = function
 				let nested_table_t = Semantics.apply_nesting (table_t,-nesting_level) in
 				let type_str = (type_to_str nested_table_t)  in
 				"new " ^ type_str ^ "()"
+			| DeferredTableLiteral(_,_,_) ->
+				let table_t = Semantics.get_assignment_type assign_mode t in
+				let nested_table_t = Semantics.apply_nesting (table_t,-nesting_level) in
+				let type_str = (type_to_str nested_table_t)  in
+				"new " ^ type_str ^ "()"
 			| _ ->
 				(string_of_expr assignee)
 			)
 		in
+		
 		(*
 		a[1][2][3] = 4 gets an inner table, which gets an inner table, which then sets index 3 to 4
 		*)

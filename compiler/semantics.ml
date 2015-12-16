@@ -2,6 +2,7 @@ open Sast
 
 type b_arg_types = BAny | BTable
 
+(*Built-in functions and their types*)
 let built_in = [("print", BAny); ("exits", BAny);
                 ("length", BTable); ("keys", BTable); ("children", BTable); ("inner_html", BTable)]
 
@@ -33,7 +34,8 @@ a=10 (both are Int)
 but also if:
 a = {}
 then
-a = {{3}} is allowable too
+a = {{3}} is allowable too because EmptyTable can possibly match any table
+(and vice versa)
 *)
 let rec can_assign t1 t2 =
 	match t1,t2 with
@@ -43,6 +45,8 @@ let rec can_assign t1 t2 =
 		| Table(s), Table(t) -> (can_assign s t)
 		| _ -> false
 
+		
+(*Find a built in function by name  *)
 let rec find_built_in name typ = try
   List.find (fun (s, t) -> (s = name && t = BAny) || (s = name && t = typ)) built_in with Not_found -> raise Not_found
 
@@ -62,6 +66,9 @@ let rec update_variable_type sym_t var_id new_type =
 			| Some(parent) -> update_variable_type parent var_id new_type
 
 
+(* Eliminate links for updating table types between two variables
+this function has side effects
+ *)
 let remove_update_table_link table_id sym_tab link_id link_scope =
 	(* match on value equality for link id and reference equality for link scope *)
 	let keep_entry (t_id,update_link) =
@@ -239,13 +246,26 @@ let rec get_table_access_type table_t n_indices =
 				| x -> x)
 		| _ -> None
 
-let create_linkage_if_applicable var_id var_nesting sym_t assignee = (* TODO: this will have to also take in nesting of var_id *)
+		
+(* Used to tie the types of empty table variables for type inference
+when performing assignment or passing arguments into a function
+var_id = variable name
+var_nesting = nesting of var_id variable relative to assignee. 
+	For instance, if we have t = s[1][4] then nesting is 2
+sym_t = symbol table that var_id resides in
+asignee = expression being assigned to var_id
+lookup_scope = scope to search for names in assignee
+	When doing type inference through function calls, this will not be the same as sym_t,
+	whose bodies do not have access to names used in passed in parameters
+*)
+let create_linkage_if_applicable var_id var_nesting sym_t assignee lookup_scope =
+	
 	let other_info = match assignee with
 		Id(other_id) ->
-			let ((_,other_type), other_scope) = find_var_and_scope sym_t other_id in
+			let ((_,other_type), other_scope) = find_var_and_scope lookup_scope other_id in
 			Some (other_id,other_type,other_scope, -var_nesting)
 		| TableAccess(other_id, indices) ->
-			let ((_,outer_type), other_scope) = find_var_and_scope sym_t other_id in
+			let ((_,outer_type), other_scope) = find_var_and_scope lookup_scope other_id in
 			let other_nesting = List.length indices in
 			let other_type = (apply_nesting (outer_type,-(other_nesting))) in
 			Some (other_id,other_type,other_scope,other_nesting-var_nesting)
@@ -255,7 +275,12 @@ let create_linkage_if_applicable var_id var_nesting sym_t assignee = (* TODO: th
 			add_mutual_update_table_link var_id sym_t other_id other_scope other_nesting
 		| _ -> ()
 		
-(* add func_decly_typed to the global environment
+(* All variables same as above *)
+let create_assignment_linkage_if_applicable var_id var_nesting sym_t assignee =
+	(*The lookup scope is the same as the variable we're assigning to *)
+	create_linkage_if_applicable var_id var_nesting sym_t assignee sym_t
+		
+(* add func_decl to the global environment
    IF there is not already a function with the same name
    and same number of parameters (where all the parameters have the same type)
 *)
@@ -322,7 +347,7 @@ let rec check_expr env global_env = function
 				| _ -> raise (Failure "check_expr TableAssign: Shouldn't be here. ")
 			in
 			(if (is_table assignee_type) then
-				create_linkage_if_applicable table_id nesting env.scope assignee_e
+				create_assignment_linkage_if_applicable table_id nesting env.scope assignee_e
 			);
 			vdecl
 
@@ -343,7 +368,7 @@ let rec check_expr env global_env = function
       VAssign (v, assignee, assign_mode), assignee_type
 	in
 	(if (is_table new_type) then
-		create_linkage_if_applicable v 0 env.scope assignee_e;
+		create_assignment_linkage_if_applicable v 0 env.scope assignee_e;
 		update_table_type env.scope v new_type);
 	vdecl
   | Ast.Binop(e1, op, e2) ->
@@ -380,10 +405,15 @@ let rec check_expr env global_env = function
 	(try
 		let func_decl = List.assoc v env.func_decls in
 		let el_typed = List.map (fun e -> (check_expr env global_env e)) el in
-		let arg_typs = List.map snd el_typed in
-		let typed_args = List.combine func_decl.params arg_typs in
-		let env = {env with scope = {parent = None; variables = typed_args; update_table_links = []}} in
-		let func_body = check_stmt env global_env (Ast.Block func_decl.body) in
+		let (arg_exprs,arg_types) = List.split el_typed in
+		let typed_args = List.combine func_decl.params arg_types in
+		let func_env = {env with scope = {parent = None; variables = typed_args; update_table_links = []}} in
+		let link_argument (arg,assignee) =
+			create_linkage_if_applicable arg 0 func_env.scope assignee env.scope
+		in
+		(*Make sure that if any empty tables are passed in, proper type inference is done with them *)
+		List.iter link_argument (List.combine func_decl.params arg_exprs);
+		let func_body = check_stmt func_env global_env (Ast.Block func_decl.body) in
 		let return_type = find_return_type func_body in
 		match func_body with
 			Block(stmt_list,_) ->
@@ -411,8 +441,8 @@ let rec check_expr env global_env = function
 		else
 			raise (Failure "Builtins only take one arg. You shouldn't be here."))
 
-  | Ast.TableAccess(table_id,index_exprs) -> (*TODO: THIS SHIT*)
-	(*First, get table, if it exists *)
+  | Ast.TableAccess(table_id,index_exprs) -> 
+	(*First, get table variable if it exists *)
 	let (_,table_t) = try
       find env.scope table_id
     with Not_found ->
