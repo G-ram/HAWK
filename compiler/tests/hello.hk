@@ -4,7 +4,8 @@ BEGIN{
   print("--------");
   print(keys(table));
 }
-[@a@]{
+[/hey/]{
+
 }
 END{
 }

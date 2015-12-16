@@ -1,6 +1,6 @@
 package _hawk_lib;
 
-public class _HAWKTable<T>{
+public class _HAWKTable<T> implements java.lang.Iterable<T>{
 
 	private java.util.Hashtable<String,T> storage;
 
@@ -45,6 +45,30 @@ public class _HAWKTable<T>{
 
 	public int getLength(){
 		return storage.size();
+	}
+
+	public java.util.Iterator<T> iterator() {
+		return new MyIterator();
+	}
+
+	class MyIterator implements java.util.Iterator<T> {
+
+		private String[] keys;
+		private int i;
+
+		public MyIterator(){
+			keys = storage.keySet().toArray(new String[storage.size()]);
+			i = 0;
+		}
+		public boolean hasNext() {
+			 return i < keys.length;
+		}
+		public T next() {
+			 return storage.get(keys[i++]);
+		}
+		public void remove() {
+			 ;
+		}
 	}
 
   public String toString(){

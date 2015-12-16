@@ -4,13 +4,15 @@ public class _HAWKRegexMatcher{
   public _HAWKRegexMatcher(String aInput){
     input = aInput;
   }
-  public String[] _match(String pat){
+  public _HAWKTable<String> _match(String pat){
       matcher = java.util.regex.Pattern.compile(pat).matcher(input);
-      java.util.ArrayList<String> allMatches = new java.util.ArrayList<String>();
+      _HAWKTable<String> allMatches = new _HAWKTable<String>();
+      int i = 0;
       while(matcher.find()){
-        allMatches.add(matcher.group());
+        allMatches.setIntIndex(i, matcher.group());
+        i++;
       }
-      return allMatches.toArray(new String[allMatches.size()]);
+      return allMatches;
   }
   java.util.regex.Matcher matcher;
   String input;
