@@ -190,23 +190,30 @@ let rec update_table_type sym_tab table_id new_type =
 
 	in ignore (update_linked_table_types table_id sym_tab new_type [])
 
-(*
-let test_update  =
-	let sa = {parent=None; variables=["t",Table(Table(EmptyTable))];
-		update_table_links=[] } in
 
-	let sb = {parent=Some(sa); variables=["s",Table(EmptyTable)];
-		update_table_links=["s",{link_id="t";link_scope=sa;nesting=1} ]} in
+(*Find all return types of a statement 
+if a block, recursively search through sub-statements *)
+let rec find_all_return_types = function
+	Return(_,t) -> [t]
+	| Block(sl,_) -> List.concat (List.map find_all_return_types sl)
+	| If(_,s1,s2) -> (find_all_return_types s1) @ (find_all_return_types s2)
+	| While(_, stmt) -> (find_all_return_types stmt)
+	| For(_,_,stmt) -> (find_all_return_types stmt)
+	| _ -> []
+	
+(*Find the return type of a statement 
+if a block, recursively search through sub-statements and
+mache sure return types are consistent*)
+let find_return_type func_body = 
+	let all_return_types = find_all_return_types func_body in
+	match all_return_types with
+		[] -> Void
+		| type_list ->
+			if (Util.all_the_same type_list) then
+				(List.hd type_list)
+			else
+				raise (Failure "Inconsistent return types in user defined function.")
 
-	let sc = {parent=Some(sb); variables=["u",EmptyTable];
-		update_table_links=["u",{link_id="s";link_scope=sb;nesting=1} ]} in
-
-	sa.update_table_links<- ["t",{link_id="s";link_scope=sb;nesting=(-1)}];
-	sb.update_table_links<- ("s",{link_id="u";link_scope=sc;nesting=(-1)})::sb.update_table_links;
-
-	update_table_type sb "s" (Table Int);
-	sa.variables,sb.variables,sc.variables (*--> should be  ([("t", Table (Table Int))], [("s", Table Int)], [("u", Int)])*)
-*)
 
 let is_table = function
 	Table(_) | EmptyTable -> true
@@ -228,14 +235,6 @@ let rec get_table_access_type table_t n_indices =
 				None -> None
 				| x -> x)
 		| _ -> None
-
-
-(*Are all the elements of a list the same? *)
-let all_the_same = function
-	| [] -> true
-	| lst ->
-		(let hd = (List.hd lst) in
-		List.for_all ((=) hd) lst)
 
 let create_linkage_if_applicable var_id var_nesting sym_t assignee = (* TODO: this will have to also take in nesting of var_id *)
 	let other_info = match assignee with
@@ -372,7 +371,7 @@ let rec check_expr env global_env = function
     (*Check for int or double*)
     if typ != Int && typ != Double then raise (Failure("unary minus operation does not support this type")) ;
     Uminus((e, typ)), typ
-  | Ast.Call(v, el) -> (*This is not entirely correct! Still needs to infer*)
+  | Ast.Call(v, el) -> 
 	(try
 		let func_decl = List.assoc v env.func_decls in
 		let el_typed = List.map (fun e -> (check_expr env global_env e)) el in
@@ -380,17 +379,10 @@ let rec check_expr env global_env = function
 		let typed_args = List.combine func_decl.params arg_typs in
 		let env = {env with scope = {parent = None; variables = typed_args; update_table_links = []}} in
 		let func_body = check_stmt env global_env (Ast.Block func_decl.body) in
-		let is_return_stmt = function
-			Return(stmt) -> true
-			| _ -> false 
-		in
+		let return_type = find_return_type func_body in
 		match func_body with
 			Block(stmt_list,_) ->
 				let func_body_list = stmt_list in
-				let return_stmt = List.find (fun stmt -> is_return_stmt stmt) stmt_list in
-				let return_type =
-				match return_stmt with
-					Return(_, return_type) -> return_type in
 				let typed_func_call = Call(v, el_typed), return_type in
 				let func_decl_typed = { fname = v; params = typed_args; body = func_body_list; return_type = return_type } in
 				add_func_to_global_env global_env func_decl_typed;
@@ -437,7 +429,7 @@ and check_table_indices env global_env index_expr_lst =
 		index_sast
 and check_table_literal env global_env tl =
 	let get_unique_elt lst =
-		if (all_the_same lst) && (List.length lst)>0 then
+		if (Util.all_the_same lst) && (List.length lst)>0 then
 			(List.hd lst)
 		else
 			raise (Failure("Array literal values must be the same types"))

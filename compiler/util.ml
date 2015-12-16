@@ -10,3 +10,10 @@ let have_duplicates compare lst =
 	match sorted with 
 		[] -> false
 		| hd::tl -> fst (List.fold_left (fun (b,last) next -> (b || last=next),next) (false,hd) tl)
+		
+(*Are all the elements of a list the same? *)
+let all_the_same = function
+	| [] -> true
+	| lst ->
+		(let hd = (List.hd lst) in
+		List.for_all ((=) hd) lst)
