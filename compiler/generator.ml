@@ -110,7 +110,7 @@ string_of_literal = function
 	Ast.IntLiteral(x), _ -> string_of_int x
 	| Ast.StringLiteral(str), _ -> str
 	| Ast.DoubleLiteral(dbl), _ -> string_of_float dbl
-	| Ast.This, _-> "This"
+	| Ast.This, _-> "_this"
 and string_of_expr_list = function
 	[] -> ""
 	| [hd] -> string_of_expr hd
@@ -166,7 +166,7 @@ string_of_expr = function
 			| _ ->
 				(string_of_expr assignee)
 			)
-		in 		
+		in
 		(*
 		a[1][2][3] = 4 gets an inner table, which gets an inner table, which then sets index 3 to 4
 		*)
@@ -176,7 +176,7 @@ string_of_expr = function
 				|ind_e,_ -> string_of_get_index_expr ind_e
 		in
 		table_id ^ (String.concat "" (List.map ind_to_string enum_ind_list))
-		
+
 	| _ -> raise (Failure "We shouldn't be here.")
 and string_of_func_decl func_decl  =
 	let param_names = (List.map fst func_decl.params) in
@@ -192,7 +192,7 @@ and string_of_stmt stmt nested = match stmt with
 	| Return(expr) -> (string_for_indent nested) ^ "return " ^ (string_of_expr expr) ^ ";"
 	| If(expr, stmt1, stmt2) -> (string_for_indent nested) ^ "if(_checkIf(" ^ (string_of_expr expr) ^ "))" ^ (string_of_stmt stmt1 nested) ^ "else" ^ (string_of_stmt stmt2 nested)
 	| While(expr, stmt) -> (string_for_indent nested) ^ "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt (nested + 1))
-	| For(key_id, table_id, stmt) -> 
+	| For(key_id, table_id, stmt) ->
 		(string_for_indent nested) ^ "for(String " ^ key_id ^ " : " ^ table_id ^ ".getKeys())" ^ (string_of_stmt stmt nested)
 
 let string_of_begin_end block nested= match block with

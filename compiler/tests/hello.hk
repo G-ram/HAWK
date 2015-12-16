@@ -5,7 +5,7 @@ BEGIN{
   print(keys(table));
 }
 [/hey/]{
-
+  print(this);
 }
 END{
 }

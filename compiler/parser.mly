@@ -117,7 +117,7 @@ literal:
 	INT {IntLiteral($1)}
 	|STRING {StringLiteral($1)}
 	|DOUBLE {DoubleLiteral($1)}
-    |THIS {This}
+  |THIS {This}
 
 table_literal:
 	array_literal {$1}
