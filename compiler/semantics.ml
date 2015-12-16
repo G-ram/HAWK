@@ -138,8 +138,6 @@ let get_assignment_type assign_mode default_t =
 	match assign_mode with
 		| DeferredId(scope,s) ->
 			let (v,t) = (find scope s) in t
-		| DeferredCreation(scope,s) ->
-			let (v,t) = (find scope s) in t
 		| DeferredTableLiteral(scope,s,_) ->
 			let (v,t) = (find scope s) in t
 		| DeferredTableAccess (scope,s,nesting) ->
@@ -178,7 +176,6 @@ let get_assignment_mode scope var_id assignee_e assignee_type =
 			let nesting = (List.length indices) in
 			DeferredTableAccess (scope,s,nesting)
 		| TableLiteral(tl) when is_et -> DeferredTableLiteral(scope,var_id,tl)
-		| _ when is_et -> DeferredCreation (scope,var_id)
 		| _ -> Immediate
 
 (* Update the type of a table variable within a given symbol scope

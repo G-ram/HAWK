@@ -133,7 +133,6 @@ and
 		| DeferredTableLiteral(_,_,tl) ->
 			let new_tl = Semantics.retype_empty_table_literal tl t in
 			string_of_expr (TableLiteral(new_tl),t)
-		| DeferredCreation(_,_) -> "new " ^ (type_to_str t) ^ "()"
 		| _ -> (string_of_expr expr)
 
 	)
@@ -158,11 +157,6 @@ string_of_expr = function
 		let nestings = (Util.range 1 (nesting_level+1)) in
 		let enum_ind_list = (List.combine ind_list nestings) in
 		let value_str = (match assign_mode with
-			| DeferredCreation(_,_) ->
-				let table_t = Semantics.get_assignment_type assign_mode t in
-				let nested_table_t = Semantics.apply_nesting (table_t,-nesting_level) in
-				let type_str = (type_to_str nested_table_t)  in
-				"new " ^ type_str ^ "()"
 			| DeferredTableLiteral(_,_,_) ->
 				let table_t = Semantics.get_assignment_type assign_mode t in
 				let nested_table_t = Semantics.apply_nesting (table_t,-nesting_level) in
