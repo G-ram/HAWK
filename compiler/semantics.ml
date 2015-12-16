@@ -19,6 +19,9 @@ let rec is_empty_table_container = function
 let rec find (scope : symbol_table) name =
 	fst (find_var_and_scope scope name )
 
+let assert_not_void typ err = 
+	if typ = Void then
+		raise (Failure err)
 (*
 if a variable is of type t1, can it be assigned to a variable of type t2?
 obviously if:
@@ -288,6 +291,7 @@ let rec check_expr env global_env = function
     Id(v), typ
   | Ast.TableAssign(table_id, index_list, e) -> (*TODO: MAKE THIS SHIT MORE LIKE ASSIGN WITH TABLE LINX AND SHIT *)
 	let (assignee_e, assignee_type) as assignee = check_expr env global_env e in
+	assert_not_void assignee_type "Can't assign void to a table (or anything for that matter).";
 	let assign_mode = get_assignment_mode env.scope table_id assignee_e assignee_type in
 	let indices_sast = check_table_indices env global_env index_list in
 	let (_,table_t) = try
@@ -326,6 +330,7 @@ let rec check_expr env global_env = function
   | Ast.Assign(v, assignee) ->
     let (assignee_e, assignee_type) as assignee = check_expr env global_env assignee in
 	let assign_mode = get_assignment_mode env.scope v assignee_e assignee_type in
+	assert_not_void assignee_type "Can't assign void to a variable.";
     let (new_e,new_type) as vdecl =
 	try (*Reassigning a variable to a different type is okay because assigment = declaration*)
       let (_,prev_typ) = find env.scope v in (*Add it in the symbol table if its a different type*)
