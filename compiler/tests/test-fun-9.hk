@@ -1,0 +1,9 @@
+BEGIN {
+    fun f(a){
+		print(a);
+    }
+    f(42);
+}
+END {
+
+}
