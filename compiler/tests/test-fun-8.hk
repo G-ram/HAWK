@@ -1,0 +1,15 @@
+BEGIN {
+    fun f(a,b){
+		if(a==2){
+			return a + b;
+		}
+		if (a== 3){
+			return a-b;
+		}
+    }
+    x = f(2, 4);
+    print(x);
+}
+END {
+
+}
