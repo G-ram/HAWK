@@ -132,20 +132,17 @@ b = a
 
 b = a should not be deferred. Even though we don't know b's type, this should just generate
 "b=a" in java just like a normal assignment
+
+this promise will return the correct type of expressions of this sort,
+assuming the symbol table has been filled out properly
 *)
 
-let get_assignment_type assign_mode default_t =
-	match assign_mode with
-		| DeferredId(scope,s) ->
-			let (v,t) = (find scope s) in t
-		| DeferredTableLiteral(scope,s,_) ->
-			let (v,t) = (find scope s) in t
-		| DeferredTableAccess (scope,s,nesting) ->
-			let (v,table_t) = (find scope s) in
-			apply_nesting (table_t,(-nesting))
-		| _ -> default_t
-
-
+let get_id_based_promise id scope nesting expr =
+	let promise () =
+		let (_,t) = (find scope id) in
+		expr, (apply_nesting (t,(-nesting)))
+	in
+	promise
 (*
 imagine:
 t = {3:{},10:{}}
@@ -162,21 +159,29 @@ let rec retype_empty_table_literal table_literal new_table_type =
 				| _ -> old_e)
 			in
 			(key, (new_e,inner_t))::(retype_empty_table_literal tail new_table_type)
-			
-
-let get_assignment_mode scope var_id assignee_e assignee_type =
+		
+let get_assignment_expression_promise scope var_id assignee_e assignee_type =
 	let is_et = (is_empty_table_container assignee_type) in
+	
 	match assignee_e with
-		Id(s) when is_et -> DeferredId (scope,s)
+		_ when (not is_et) ->
+			(* If we're not dealing with an empty table, the expression and type should not change *)
+			(fun () -> assignee_e,assignee_type)
+		| Id(s) when is_et -> 
+			get_id_based_promise s scope 0 assignee_e
 		| TableAccess(s,indices) when is_et ->
-			let nesting = (List.length indices) in
-			DeferredTableAccess (scope,s,nesting)
-		| Assign(s,_,_) when is_et -> DeferredId (scope,s)
-		| TableAssign(s,indices,_,_) when is_et ->
-			let nesting = (List.length indices) in
-			DeferredTableAccess (scope,s,nesting)
-		| TableLiteral(tl) when is_et -> DeferredTableLiteral(scope,var_id,tl)
-		| _ -> Immediate
+			get_id_based_promise s scope (List.length indices) assignee_e
+		| Assign(s,_)  when is_et -> 
+			get_id_based_promise s scope 0 assignee_e
+		| TableAssign(s,indices,_) as tassign when is_et ->
+			get_id_based_promise s scope (List.length indices) assignee_e
+		| TableLiteral(tl) when is_et -> 
+			(fun () ->
+				let (_,new_t) = (find scope var_id) in 
+				let new_tl = retype_empty_table_literal tl new_t in
+				TableLiteral(new_tl),new_t
+			)
+		| _  -> raise (Failure "This type of expression should not yield an empty table.")
 
 (* Update the type of a table variable within a given symbol scope
 Need to ensure that table update links are respected *)
@@ -319,7 +324,7 @@ let rec check_expr env global_env = function
   | Ast.TableAssign(table_id, index_list, e) -> (*TODO: MAKE THIS SHIT MORE LIKE ASSIGN WITH TABLE LINX AND SHIT *)
 	let (assignee_e, assignee_type) as assignee = check_expr env global_env e in
 	assert_not_void assignee_type "Can't assign void to a table (or anything for that matter).";
-	let assign_mode = get_assignment_mode env.scope table_id assignee_e assignee_type in
+	let expr_promise = get_assignment_expression_promise env.scope table_id assignee_e assignee_type in
 	let indices_sast = check_table_indices env global_env index_list in
 	let (_,table_t) = try
       find env.scope table_id
@@ -340,10 +345,10 @@ let rec check_expr env global_env = function
 				EmptyTable -> (* Going from a nested empty table to a different level of nesting, update *)
 					let new_table_type = (update_empty_table_container_type table_t assignee_type) in
 					update_table_type env.scope table_id new_table_type;
-					TableAssign (table_id, indices_sast,assignee,assign_mode),assignee_type
+					TableAssign (table_id, indices_sast,expr_promise),assignee_type
 				|Table(val_type) ->
 					if val_type=assignee_type then
-						TableAssign (table_id,indices_sast,assignee, assign_mode),assignee_type
+						TableAssign (table_id,indices_sast,expr_promise),assignee_type
 					else
 						raise (Failure "Trying to assign value to table with different underlying type.")
 				| _ -> raise (Failure "check_expr TableAssign: Shouldn't be here. ")
@@ -356,7 +361,7 @@ let rec check_expr env global_env = function
 		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
   | Ast.Assign(v, assignee) ->
     let (assignee_e, assignee_type) as assignee = check_expr env global_env assignee in
-	let assign_mode = get_assignment_mode env.scope v assignee_e assignee_type in
+	let expr_promise = get_assignment_expression_promise env.scope v assignee_e assignee_type in
 	assert_not_void assignee_type "Can't assign void to a variable.";
     let (new_e,new_type) as vdecl =
 	try (*Reassigning a variable to a different type is okay because assigment = declaration*)
@@ -364,10 +369,10 @@ let rec check_expr env global_env = function
       if (not (can_assign prev_typ assignee_type)) then
 		raise (Failure ("identifier type cannot be assigned to previously declared type " ^ v))
       else
-		Assign (v, assignee, assign_mode), assignee_type
+		Assign (v, expr_promise), assignee_type
     with Not_found -> (*Declaring/Defining a new variable*)
       let decl = (v, assignee_type) in env.scope.variables <- (decl :: env.scope.variables) ;
-      VAssign (v, assignee, assign_mode), assignee_type
+      VAssign (v, expr_promise), assignee_type
 	in
 	(if (is_table new_type) then
 		create_assignment_linkage_if_applicable v 0 env.scope assignee_e;
@@ -486,6 +491,7 @@ and check_table_literal env global_env tl =
 			let keys = (List.map fst kv_list) in
 			let exprs = (List.map snd kv_list) in
 			check_keys_exprs env global_env keys exprs
+			
 and check_stmt env global_env = function
   Ast.Block(sl) ->
     let scopeT = { parent = Some(env.scope); variables = []; update_table_links=[] } in

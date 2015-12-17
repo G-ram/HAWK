@@ -128,45 +128,28 @@ and string_of_set_index_expr_with_value_str ind value_str =
 		| (_,String)  -> ".setStringIndex(" ^ inner ^ ")"
 		| _ -> raise (Failure "This type of table indexing should not happen. Semantic stage must have failed.")
 and
-	string_of_assignment_rhs expr t mode =
-	(match mode with
-		| DeferredTableLiteral(_,_,tl) ->
-			let new_tl = Semantics.retype_empty_table_literal tl t in
-			string_of_expr (TableLiteral(new_tl),t)
-		| _ -> (string_of_expr expr)
-
-	)
-and
 string_of_expr = function
 	Id(id), _ -> id
 	| Literal(lit), t -> string_of_literal (lit,t)
 	| TableLiteral(kv_list), Table(val_type) -> string_of_table_literal kv_list val_type
-	| VAssign(id, expr, assign_mode), t ->
-		let typ = Semantics.get_assignment_type assign_mode t in
-		(type_to_str typ) ^ " " ^ id ^ " = " ^ (string_of_assignment_rhs expr typ assign_mode) (*(string_of_expr expr) *)
-	| Assign(id, expr, assign_mode), t ->
-		let typ = Semantics.get_assignment_type assign_mode t in
-		id ^ " = " ^ (string_of_assignment_rhs expr typ assign_mode) (* (string_of_expr expr) *)
+	| VAssign(id, expr_promise), t ->
+		let (_,typ) as expr = expr_promise () in
+		(type_to_str typ) ^ " " ^ id ^ " = " ^ (string_of_expr expr)
+	| Assign(id, expr_promise), t ->
+		let (_,typ) as expr = expr_promise () in
+		id ^ " = " ^ (string_of_expr expr)
 	| Binop(expr1, op, expr2), _ -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
 	| TableAccess(table_id, ind_list), _ ->
 		table_id ^ (String.concat "" (List.map string_of_get_index_expr ind_list))
-	| TableAssign(table_id,ind_list,assignee, assign_mode), t ->
+	| TableAssign(table_id,ind_list,expr_promise), t ->
+		let (_,typ) as expr = expr_promise () in
 		let nesting_level = (List.length ind_list) in
 		let nestings = (Util.range 1 (nesting_level+1)) in
 		let enum_ind_list = (List.combine ind_list nestings) in
-		let value_str = (match assign_mode with
-			| DeferredTableLiteral(_,_,_) ->
-				let table_t = Semantics.get_assignment_type assign_mode t in
-				let nested_table_t = Semantics.apply_nesting (table_t,-nesting_level) in
-				let type_str = (type_to_str nested_table_t)  in
-				"new " ^ type_str ^ "()"
-			| _ ->
-				(string_of_expr assignee)
-			)
+		let value_str =  string_of_expr expr
 		in
-		
 		(*
 		a[1][2][3] = 4 gets an inner table, which gets an inner table, which then sets index 3 to 4
 		*)

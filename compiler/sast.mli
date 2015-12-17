@@ -1,4 +1,5 @@
-type t = Int | String | Double | Table of t | EmptyTable | Void
+type t = Int | String | Double | Table of t | EmptyTable | Void 
+
 
 (*update_table_link represents table variables that a given variable is implicity attached to
 consider this code:
@@ -29,26 +30,30 @@ type translation_environment = {
   return: t option (*Not implemented*)
 }
 
+(* Represents a lazy or delayed computation for an expression
+ used because we don't always initially know the type or form an expression takes
+ due to empty tables
+*)
 
-type assign_mode =
-	Immediate
-	| DeferredId of symbol_table * string
-	| DeferredTableAccess of symbol_table * string * int
-	| DeferredCreation of symbol_table * string
-	| DeferredTableLiteral of symbol_table * string * table_literal
 and table_literal = (Ast.key_literal * expr_t) list
 and expr_det =
   Id of string
   |Literal of Ast.literal
   |TableLiteral of table_literal (*Every table literal, at the end of the day, is keys and values (possibly none) *)
-  |VAssign of string * expr_t * assign_mode
-  |Assign of string * expr_t * assign_mode
-  |TableAssign of string * (expr_t list) * expr_t * assign_mode
+  |VAssign of string * expr_t_promise
+  |Assign of string *  expr_t_promise
+  |TableAssign of string * (expr_t list) * expr_t_promise
   |Binop of expr_t * Ast.op * expr_t
   |Uminus of expr_t
   |Call of string * (expr_t list)
   |TableAccess of string * (expr_t list)
 and expr_t = expr_det * t
+(* Sometimes the accurate type of an expression is not known in advance
+(when empty tables are involved)
+, so we defer type determination til later 
+by using a closure
+*)
+and expr_t_promise = unit -> expr_t
 
 type stmt_t =
   Block of stmt_t list * translation_environment
@@ -63,7 +68,7 @@ type stmt_t =
     fname : string;
     params : (string * t) list;
     body : stmt_t list;
-	  return_type : t
+	return_type : t
   }
 
 type global_environment = {
