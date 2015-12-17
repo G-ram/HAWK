@@ -1,0 +1,13 @@
+BEGIN {
+	fun f(b,c){
+		b[3] = 42;
+	}
+
+    a = {};
+	f(a,a);
+	print(a[3]);
+
+}
+END {
+
+}
