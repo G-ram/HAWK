@@ -105,6 +105,10 @@ and string_of_expr_list = function
 	| [hd] -> string_of_expr hd
 	| hd::tl -> (string_of_expr hd) ^ ", " ^ string_of_expr_list tl
 and
+string_of_table_indices indices = 
+	let e_strings =  (List.map (fun e -> "[" ^ (string_of_expr e) ^ "]") indices) in
+	(String.concat "" e_strings) 
+and
 string_of_expr = function
 	Id(id) -> id
 	| Literal(lit) -> string_of_literal lit
@@ -114,9 +118,12 @@ string_of_expr = function
 	| Uminus(expr) -> "-" ^ (string_of_expr expr)
 	| Call(id, expr_list) -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
 	| TableAccess(t, e_list) ->
-		let e_strings =  (List.map (fun e -> "[" ^ (string_of_expr e) ^ "]") e_list) in
-		let bracket_part = (String.concat "" e_strings) in
+		let bracket_part = string_of_table_indices e_list in
 		t ^ bracket_part
+	| TableAssign(table_id, e_list, e_assignee) ->
+		let bracket_part = string_of_table_indices e_list in
+		table_id ^ bracket_part ^ "=" ^ (string_of_expr e_assignee)
+		
 
 let rec string_of_func_decl func_decl  =
 	func_decl.fname ^ "(" ^ (String.concat "," func_decl.params) ^ ")" ^ (string_of_stmt_list func_decl.body)
