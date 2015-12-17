@@ -297,6 +297,9 @@ let add_func_to_global_env global_env func_decl =
 		ignore (global_env.funcs <- func_decl::(global_env.funcs))
 
 
+(*
+Convert an AST expression to an SAST expression!
+*)
 let rec check_expr env global_env = function
   Ast.TableLiteral(tl) -> check_table_literal env global_env tl
   | Ast.Literal(l) ->(
@@ -333,7 +336,7 @@ let rec check_expr env global_env = function
 	in
 	(match table_t with
 		Table(_) | EmptyTable ->
-			let vdecl = match final_table_t with (*TODO: check assignment compatibility somewhere in here *)
+			let vdecl = match final_table_t with 
 				EmptyTable -> (* Going from a nested empty table to a different level of nesting, update *)
 					let new_table_type = (update_empty_table_container_type table_t assignee_type) in
 					update_table_type env.scope table_id new_table_type;
@@ -421,6 +424,7 @@ let rec check_expr env global_env = function
 				let func_decl_typed = { fname = v; params = typed_args; body = func_body_list; return_type = return_type } in
 				add_func_to_global_env global_env func_decl_typed;
 				typed_func_call
+			| _ -> raise (Failure "Function body must be a Block.")
 	with Not_found ->
 	    let el = List.map (fun e -> (check_expr env global_env e)) el in
 	    if (List.length el) = 1 then
