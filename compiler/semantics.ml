@@ -195,7 +195,9 @@ let rec update_table_type sym_tab table_id new_type =
 		let folder = (fun visited (neighb,neighb_t) -> update_linked_table_types neighb.link_id neighb.link_scope neighb_t visited) in
 		List.fold_left folder visited (List.combine unvisited_neighbors new_neighbor_types)
 
-	in ignore (update_linked_table_types table_id sym_tab new_type [])
+	in 
+	let (_, table_sym_tab) = find_var_and_scope sym_tab table_id in
+	ignore (update_linked_table_types table_id table_sym_tab new_type [])
 
 
 (*Find all return types of a statement 
