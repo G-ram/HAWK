@@ -124,6 +124,8 @@ let is_identifier_expr = function
 	
 (* return the identifier and nesting level for 
 identifier based expressions
+
+None for non-identifier based expressions
  *)
 let get_identifier_expr_info = function
 	Id(id) -> Some (id,0)
@@ -215,7 +217,9 @@ if a block, recursively search through sub-statements *)
 let rec find_all_return_types = function
 	Return(_,t) -> [t]
 	| Block(sl,_) -> List.concat (List.map find_all_return_types sl)
-	| If(_,s1,s2) -> (find_all_return_types s1) @ (find_all_return_types s2)
+	| If(_,s1,s2) -> 
+		(* For if *)
+		(find_all_return_types s1) @ (find_all_return_types s2)
 	| While(_, stmt) -> (find_all_return_types stmt)
 	| For(_,_,stmt) -> (find_all_return_types stmt)
 	| _ -> []
@@ -237,11 +241,18 @@ let find_return_type func_body =
 (*Find all return types of a statement 
 if a block, recursively search through sub-statements *)
 let rec get_all_return_type_promises scope = function
-	Return(expr,t) -> [t]
-	| Block(sl,_) -> List.concat (List.map find_all_return_types sl)
-	| If(_,s1,s2) -> (find_all_return_types s1) @ (find_all_return_types s2)
-	| While(_, stmt) -> (find_all_return_types stmt)
-	| For(_,_,stmt) -> (find_all_return_types stmt)
+	Return(expr,t) -> 
+		(match get_identifier_expr_info expr with
+			Some(id,nesting) -> 
+				let expr_t_promise = (get_id_based_promise id scope nesting expr) in
+				[(fun () -> snd (expr_t_promise ()))]
+			| None ->
+				[(fun () -> t)]
+		)
+	| Block(sl,_) -> List.concat (List.map (get_all_return_type_promises scope) sl)
+	| If(_,s1,s2) -> (get_all_return_type_promises scope s1) @ (get_all_return_type_promises scope s2)
+	| While(_, stmt) -> (get_all_return_type_promises scope stmt)
+	| For(_,_,stmt) -> (get_all_return_type_promises scope stmt)
 	| _ -> []
 	
 (* 
@@ -249,15 +260,18 @@ Just as with assignment, we may not know the return type of a function in advanc
 Assuming scope is available, this function will give you the proper return type
 *)
 let get_return_type_promise scope func_body = 
-	let all_return_types = find_all_return_types func_body in
-	match all_return_types with
-		[] -> Void
-		| type_list ->
-			if (Util.all_the_same type_list) then
-				(List.hd type_list)
-			else
-				raise (Failure "Inconsistent return types in user defined function.")
-
+	let all_return_type_promises = get_all_return_type_promises scope func_body in
+	let get_return_type () =
+		let all_return_types = List.map (fun f -> f () ) all_return_type_promises in
+		match all_return_types with
+			[] -> Void
+			| type_list ->
+				if (Util.all_the_same type_list) then
+					(List.hd type_list)
+				else
+					raise (Failure "Inconsistent return types in user defined function.")
+	in get_return_type
+	
 
 let is_table = function
 	Table(_) | EmptyTable -> true
@@ -453,12 +467,16 @@ let rec check_expr env global_env = function
 		(*Make sure that if any empty tables are passed in, proper type inference is done with them *)
 		List.iter link_argument (List.combine func_decl.params arg_exprs);
 		let func_body = check_stmt func_env global_env (Ast.Block func_decl.body) in
-		let return_type = get_return_type_promise func_env.scope func_body in
+		let return_type_promise = get_return_type_promise func_env.scope func_body in
+		(*TODO: find some way to link this with assignment as well *)
+		let initial_return_type = (return_type_promise ()) in
 		match func_body with
 			Block(stmt_list,_) ->
 				let func_body_list = stmt_list in
-				let typed_func_call = Call(v, el_typed), return_type in
-				let func_decl_typed = { fname = v; params = typed_args; body = func_body_list; return_type = return_type } in
+				let typed_func_call = Call(v, el_typed), initial_return_type in
+				let func_decl_typed = { fname = v; params = typed_args; 
+										body = func_body_list; 
+										return_type_promise = return_type_promise } in
 				add_func_to_global_env global_env func_decl_typed;
 				typed_func_call
 			| _ -> raise (Failure "Function body must be a Block.")
@@ -536,7 +554,7 @@ and check_stmt env global_env = function
       ignore(find_built_in f.Ast.fname BAny) ;
       raise (Failure("function is overwrites built-in function " ^ f.Ast.fname))
     with Not_found -> (*valid function*)
-      Func({fname = ""; params = []; body = []; return_type = Int}) (*This is not correct!*)
+      Func({fname = ""; params = []; body = []; return_type_promise = (fun () -> Int)}) (*This is not correct!*)
     )
   | Ast.Return(e) -> Return(check_expr env global_env e)
   | Ast.If(e, s1, s2) ->

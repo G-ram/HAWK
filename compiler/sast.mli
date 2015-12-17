@@ -1,6 +1,5 @@
 type t = Int | String | Double | Table of t | EmptyTable | Void 
 
-
 (*update_table_link represents table variables that a given variable is implicity attached to
 consider this code:
 t = {}
@@ -55,6 +54,8 @@ by using a closure
 *)
 and expr_t_promise = unit -> expr_t
 
+type type_promise = unit -> t
+
 type stmt_t =
   Block of stmt_t list * translation_environment
   | Expr of expr_t
@@ -68,7 +69,7 @@ type stmt_t =
     fname : string;
     params : (string * t) list;
     body : stmt_t list;
-	return_type : t
+	return_type_promise : type_promise
   }
 
 type global_environment = {

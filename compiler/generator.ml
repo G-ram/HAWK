@@ -206,7 +206,7 @@ let string_of_file file nested =
  	(type_to_str (snd param)) ^ " " ^ (fst param)
 
  let string_of_user_func nested func_decl =
- 	(string_for_indent nested) ^ "public static " ^ (type_to_str func_decl.return_type)
+ 	(string_for_indent nested) ^ "public static " ^ (type_to_str (func_decl.return_type_promise ()))
  	^ " " ^ func_decl.fname ^ "(" ^ String.concat "," (List.map string_of_typed_param func_decl.params) ^ ")"
  	^ "{\n" ^  (string_of_stmt_list func_decl.body (nested + 1)) ^  "\n" ^ (string_for_indent nested) ^ "}"
 
