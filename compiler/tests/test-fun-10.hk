@@ -1,11 +1,13 @@
 BEGIN {
 	fun f(b,c){
+		
 		b[3] = 42;
+		return b;
 	}
 
     a = {};
-	f(a,a);
-	print(a[3]);
+	d = f(a,a);
+	print(d[3]);
 
 }
 END {
