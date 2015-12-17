@@ -121,7 +121,16 @@ let is_identifier_expr = function
 	| Assign(_) -> true
 	| TableAssign(_) -> true
 	| _ -> false
-
+	
+(* return the identifier and nesting level for 
+identifier based expressions
+ *)
+let get_identifier_expr_info = function
+	Id(id) -> Some (id,0)
+	| TableAccess(id,ind_list) -> Some (id,(List.length ind_list))
+	| Assign(id,_) -> Some (id,0)
+	| TableAssign(id,ind_list,_) -> Some (id, (List.length ind_list))
+	| _ -> None
 
 let get_id_based_promise id scope nesting expr =
 	let promise () =
@@ -160,18 +169,16 @@ assuming the symbol table has been filled out properly
 *)
 let get_assignment_expression_promise scope assign_id assign_nesting assignee_e assignee_type =
 	let is_et = (is_empty_table_container assignee_type) in
+	let id_info = get_identifier_expr_info assignee_e in
 	match assignee_e with
 		_ when (not is_et) ->
 			(* If we're not dealing with an empty table, the expression and type should not change *)
 			(fun () -> assignee_e,assignee_type)
-		| Id(s) when is_et -> 
-			get_id_based_promise s scope 0 assignee_e
-		| TableAccess(s,indices) when is_et ->
-			get_id_based_promise s scope (List.length indices) assignee_e
-		| Assign(s,_)  when is_et -> 
-			get_id_based_promise s scope 0 assignee_e
-		| TableAssign(s,indices,_) as tassign when is_et ->
-			get_id_based_promise s scope (List.length indices) assignee_e
+		| _ when id_info <> None ->
+			(match id_info with 
+				Some(id,nesting) -> get_id_based_promise id scope nesting assignee_e
+				| None -> raise (Failure "We shouldn't be here")
+			)
 		| TableLiteral(tl) when is_et -> 
 			(fun () ->
 				let (_,new_t) = (find scope assign_id) in 
@@ -217,6 +224,31 @@ let rec find_all_return_types = function
 if a block, recursively search through sub-statements and
 mache sure return types are consistent*)
 let find_return_type func_body = 
+	let all_return_types = find_all_return_types func_body in
+	match all_return_types with
+		[] -> Void
+		| type_list ->
+			if (Util.all_the_same type_list) then
+				(List.hd type_list)
+			else
+				raise (Failure "Inconsistent return types in user defined function.")
+		
+
+(*Find all return types of a statement 
+if a block, recursively search through sub-statements *)
+let rec get_all_return_type_promises scope = function
+	Return(expr,t) -> [t]
+	| Block(sl,_) -> List.concat (List.map find_all_return_types sl)
+	| If(_,s1,s2) -> (find_all_return_types s1) @ (find_all_return_types s2)
+	| While(_, stmt) -> (find_all_return_types stmt)
+	| For(_,_,stmt) -> (find_all_return_types stmt)
+	| _ -> []
+	
+(* 
+Just as with assignment, we may not know the return type of a function in advance due to empty tables.
+Assuming scope is available, this function will give you the proper return type
+*)
+let get_return_type_promise scope func_body = 
 	let all_return_types = find_all_return_types func_body in
 	match all_return_types with
 		[] -> Void
@@ -421,7 +453,7 @@ let rec check_expr env global_env = function
 		(*Make sure that if any empty tables are passed in, proper type inference is done with them *)
 		List.iter link_argument (List.combine func_decl.params arg_exprs);
 		let func_body = check_stmt func_env global_env (Ast.Block func_decl.body) in
-		let return_type = find_return_type func_body in
+		let return_type = get_return_type_promise func_env.scope func_body in
 		match func_body with
 			Block(stmt_list,_) ->
 				let func_body_list = stmt_list in
