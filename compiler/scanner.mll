@@ -1,13 +1,16 @@
+(*Setup type to check if we are scanning a regex pattern block*)
 {
 	open Parser
 	type is_pat = YES_REG | NO
 	let state_ref = ref NO
 }
 
+(*Some standard character classes*)
 let digits = ['0' - '9']+
 let signed_int = ['+' '-']? digits
 let decimal = ['+' '-']? (digits '.' ['0'-'9']* | '.' digits) (['e' 'E'] signed_int)?
 
+(*Rules for converting buf to tokens*)
 rule token pat = parse
 	[' ' '\t' '\r' '\n'] {token pat lexbuf}
 	| "/*"     { comment pat lexbuf }
@@ -25,7 +28,7 @@ rule token pat = parse
 	| "this" {THIS}
 	| "return" {RETURN}
 	| '~' {TILDE}
-	| '<' {LT} | '>' {GT} | "==" {EQ}
+	| '<' {LT} | '>' {GT} | "==" {EQ} | ">=" {GEQ} | "<=" {LEQ} | "&&" {AND} | "||" {OR}
 	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '/' {DIVIDES} | '=' {ASSIGN} | '%' {MOD}
 	| '#' {HASH}
 	| "[/" {pat := YES_REG ; LBRACK_FSLASH}
@@ -37,10 +40,13 @@ rule token pat = parse
 	| '"' [^ '"']+ '"' as lxm {STRING(lxm)}
 	| eof {EOF}
 
+(*Switch to this rule when a comment is encountered*)
 	and comment pat = parse
 	  "*/" { token pat lexbuf }
 	| _    { comment pat lexbuf }
 
+(*Switch to this rule when a regex pattern block is encountered. This is required
+because regex expressions are more general than ID and are not strings.*)
 	and regex_scan pat = parse
 		"/]" {pat := NO ; FSLASH_RBRACK}
 		| ['\\']['"' '.' '?' '|' '^' ']' '[' '(' ')' '-' '\\' '$' '*' 'n' 't' 'r'] as lxm{REGEX_STRING(lxm)}
@@ -49,6 +55,7 @@ rule token pat = parse
 		| '(' {LPAREN} | ')' {RPAREN}
 		| [^'"' '/' '.' '?' '|' '^' ']' '[' '(' ')' '-' '\\' '$' '*'] as lxm {REGEX_STRING((Char.escaped lxm))}
 
+(*The function to get the next token; checks to see if it is scanning a regex pattern block*)
 {
 	let next_token lexbuf = match !state_ref with
 	    | NO -> token state_ref lexbuf
