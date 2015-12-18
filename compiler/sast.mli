@@ -67,7 +67,7 @@ type stmt_t =
   and
   func_decl_t = {
     fname : string;
-    params : (string * t) list;
+    params : (string * type_promise) list;
     body : stmt_t list;
 	return_type_promise : type_promise
   }
