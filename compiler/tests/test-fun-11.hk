@@ -4,6 +4,7 @@ BEGIN {
 	}
 
 	x = f(42);
+	print(x);
 }
 END {
 
