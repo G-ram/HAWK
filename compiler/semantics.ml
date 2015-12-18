@@ -72,7 +72,7 @@ this function has side effects
 let remove_update_table_link table_id sym_tab link_id link_scope =
 	(* match on value equality for link id and reference equality for link scope *)
 	let keep_entry (t_id,update_link) =
-		not (t_id=table_id && update_link.id=link_id && update_link.scope == link_scope)
+		not (t_id=table_id && update_link.id=link_id && update_link.assign_scope == link_scope)
 	in
 	sym_tab.update_table_links<- List.filter keep_entry sym_tab.update_table_links
 
@@ -81,7 +81,7 @@ let remove_mutual_update_table_links table_id sym_tab link_id link_scope =
 	remove_update_table_link link_id link_scope table_id sym_tab
 
 let add_update_table_link table_id sym_tab link_id link_scope nesting =
-	let new_update_link = {id=link_id;scope=link_scope;nesting=nesting} in
+	let new_update_link = {id=link_id;assign_scope=link_scope;nesting=nesting} in
 	sym_tab.update_table_links <- (table_id,new_update_link)::sym_tab.update_table_links
 
 (* imagine:
@@ -176,7 +176,7 @@ We can make fully informed assignment because we know the type of a
 this promise will return the correct type of expressions of this sort,
 assuming the symbol table has been filled out properly
 *)
-let get_assignment_expression_promise assign_scope assign_id assign_nesting assignee_e assignee_type =
+let get_assignment_expression_promise assigner assignee_e assignee_type =
 	let is_et = (is_empty_table_container assignee_type) in
 	let id_info = get_identifier_expr_info assignee_e in
 	match assignee_e with
@@ -186,13 +186,13 @@ let get_assignment_expression_promise assign_scope assign_id assign_nesting assi
 		| _ when id_info <> None ->
 			(match id_info with 
 				(*TODO: use assignee_scope instead *)
-				Some(id,nesting) -> get_id_based_expr_promise id assign_scope nesting assignee_e
+				Some(id,nesting) -> get_id_based_expr_promise id assigner.assign_scope nesting assignee_e
 				| None -> raise (Failure "We shouldn't be here")
 			)
 		| TableLiteral(tl) -> 
 			(fun () ->
-				let (_,new_t) = (find assign_scope assign_id) in 
-				let nested_t = apply_nesting (new_t,(-assign_nesting)) in
+				let (_,new_t) = (find assigner.assign_scope assigner.id ) in 
+				let nested_t = apply_nesting (new_t,(-assigner.nesting)) in
 				let new_tl = retype_empty_table_literal tl nested_t in
 				TableLiteral(new_tl),new_t
 			)
@@ -210,9 +210,9 @@ let rec update_table_type sym_tab table_id new_type =
 		in
 		let visited = (table_id,sym_tab)::visited in
 		let neighbors = List.map snd (List.filter (fun (t_id,_) -> table_id=t_id) sym_tab.update_table_links) in
-		let unvisited_neighbors = List.filter (fun n -> not (already_visited n.id n.scope visited)) neighbors in
+		let unvisited_neighbors = List.filter (fun n -> not (already_visited n.id n.assign_scope visited)) neighbors in
 		let new_neighbor_types = List.map (fun n-> apply_nesting (new_type,n.nesting)) unvisited_neighbors in
-		let folder = (fun visited (neighb,neighb_t) -> update_linked_table_types neighb.id neighb.scope neighb_t visited) in
+		let folder = (fun visited (neighb,neighb_t) -> update_linked_table_types neighb.id neighb.assign_scope neighb_t visited) in
 		List.fold_left folder visited (List.combine unvisited_neighbors new_neighbor_types)
 
 	in 
@@ -419,7 +419,8 @@ let rec check_expr env global_env = function
     with Not_found ->
       raise (Failure("undeclared table identifier " ^ table_id)) in
 	let nesting = (List.length indices_sast) in
-	let expr_promise = get_assignment_expression_promise env.scope table_id nesting assignee_e assignee_type in
+	let assign_info = {id=table_id;assign_scope=env.scope;nesting=nesting} in
+	let expr_promise = get_assignment_expression_promise assign_info assignee_e assignee_type in
 	(* Most nested part of *)
 	let final_table_t = apply_nesting (table_t,-(nesting - 1)) in
 	let rec update_empty_table_container_type old_table_t new_type =
@@ -450,7 +451,8 @@ let rec check_expr env global_env = function
 		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
   | Ast.Assign(v, assignee) ->
     let (assignee_e, assignee_type) as assignee = check_expr env global_env assignee in
-	let expr_promise = get_assignment_expression_promise env.scope v 0 assignee_e assignee_type in
+	let assign_info = {id=v;assign_scope=env.scope;nesting=0} in
+	let expr_promise = get_assignment_expression_promise assign_info assignee_e assignee_type in
 	assert_not_void assignee_type "Can't assign void to a variable.";
     let (new_e,new_type) as vdecl =
 	try (*Reassigning a variable to a different type is okay because assigment = declaration*)

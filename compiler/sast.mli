@@ -15,7 +15,7 @@ s = t[3]
 at that point you will add {id:"t", nesting:1}
 when type of s is updated from EmptyTable to Table(something), type of t will become Table(Table(something))
 *)
-type assigner_info = {id: string; scope: symbol_table; nesting:int}
+type assigner_info = {id: string; assign_scope: symbol_table; nesting:int}
 
 and symbol_table = {
   parent: symbol_table option;
