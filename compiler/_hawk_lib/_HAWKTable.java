@@ -77,7 +77,7 @@ public class _HAWKTable<T> implements java.lang.Iterable<T>{
           temp += entry.toString()+"\n";
       }
 			temp = temp.substring(0, temp.length() - 1);
-			temp = new java.lang.StringBuilder(temp).reverse().toString();
+			// temp = new java.lang.StringBuilder(temp).reverse().toString();
       return temp;
   }
 }
