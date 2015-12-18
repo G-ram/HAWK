@@ -265,18 +265,18 @@ and is_guaranteed_block_return valid = function
 		match hd with 
 			Return(_) -> (match tl with 
 						 [] -> true
-						 | _ -> false)
+						 | _ -> raise (Failure "Unreachable code"))
 			| If (a,b,c) -> 
 				let valid_if = is_guaranteed_if_return valid (If(a,b,c)) in 
 				if valid_if then (match tl with 
 								  [] -> true
-								| _ -> false)
+								| _ -> raise (Failure "Uncreachable code"))
 				else is_guaranteed_block_return valid tl
 			| Block(sl, _) -> 
 				let valid_block = (is_guaranteed_block_return valid sl) in 
 				if valid_block then (match tl with 
 									 [] -> true
-									| _ -> false) 
+									| _ -> raise (Failure "Uncreachable code")) 
 				else is_guaranteed_block_return valid tl
 			| _ -> is_guaranteed_block_return valid tl
 
@@ -312,7 +312,7 @@ let get_return_type_promise scope func_body =
 				if (Util.all_the_same type_list) then
 				if (is_guaranteed_block_return false stmt_list) then 
 					(List.hd type_list)
-				else raise (Failure "Invalid return type")
+				else raise (Failure "No valid return statements")
 				else
 					raise (Failure "Inconsistent return types in user defined function.")
 	in get_return_type
