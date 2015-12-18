@@ -500,53 +500,63 @@ let rec check_expr env global_env = function
     if typ != Int && typ != Double then raise (Failure("unary minus operation does not support this type")) ;
     Uminus((e, typ)), typ
   | Ast.Call(v, el) -> 
-	(try
-		let func_decl = List.assoc v env.func_decls in
-		let el_typed = List.map (fun e -> (check_expr env global_env e)) el in
-		let (arg_exprs,arg_types) = List.split el_typed in
-		let typed_args = List.combine func_decl.params arg_types in
-		let func_env = {env with scope = {parent = None; variables = typed_args; update_table_links = []};
-								returns = []} in
-		let link_argument (arg,assignee) =
-			create_linkage_if_applicable arg 0 func_env.scope assignee env.scope
-		in
-		(*Make sure that if any empty tables are passed in, proper type inference is done with them *)
-		List.iter link_argument (List.combine func_decl.params arg_exprs);
-		let func_body = check_stmt func_env global_env (Ast.Block func_decl.body) in
-		let return_type_promise = get_return_type_promise func_env.scope func_body in
-		(*TODO: find some way to link this with assignment as well *)
-		let initial_return_type = (return_type_promise ()) in
-		match func_body with
-			Block(stmt_list,_) ->
-				let func_body_list = stmt_list in
-				let typed_func_call = Call(v, el_typed), initial_return_type in
-				let arg_type_promises = List.map (get_var_type_promise func_env.scope) func_decl.params in
-				let params = List.combine func_decl.params arg_type_promises in
-				let func_decl_typed = { fname = v; params = params; 
-										body = func_body_list; 
-										return_type_promise = return_type_promise } in
-				add_func_to_global_env global_env func_decl_typed;
-				typed_func_call
-			| _ -> raise (Failure "Function body must be a Block.")
-	with Not_found ->
-	    let el = List.map (fun e -> (check_expr env global_env e)) el in
-	    if (List.length el) = 1 then
-	      let (e, typ) = List.hd el in
-	      let typ = match typ with (*Check for correct type*)
-	        Table(_) -> BTable
-	        | _ -> BAny
-		  in
-	      (try (*Test to see if user is trying to call built-in function and check for type*)
-	        ignore (find_built_in v typ)
-	      with Not_found ->  (*Check if its a type error or a new function*)
-	          try
-	            let (built_in_name, _) = find_built_in v BAny in
-	            raise (Failure("parameter type does not match built-in function parameter type " ^ built_in_name))
-	          with Not_found -> ()
-	        ); Call(v, el), Int
-		else
-			raise (Failure "Builtins only take one arg. You shouldn't be here."))
-
+	let func_decl = 
+		try Some (List.assoc v env.func_decls)
+		with Not_found -> None
+	in
+	(
+	match func_decl with
+		(* Function declaration found among user functions*)
+		Some(func_decl) ->
+			let func_decl = List.assoc v env.func_decls in
+			let el_typed = List.map (fun e -> (check_expr env global_env e)) el in
+			let (arg_exprs,arg_types) = List.split el_typed in
+			let typed_args = List.combine func_decl.params arg_types in
+			let func_env = {env with scope = {parent = None; variables = typed_args; update_table_links = []};
+									returns = []} in
+			let link_argument (arg,assignee) =
+				create_linkage_if_applicable arg 0 func_env.scope assignee env.scope
+			in
+			(*Make sure that if any empty tables are passed in, proper type inference is done with them *)
+			List.iter link_argument (List.combine func_decl.params arg_exprs);
+			let func_body = check_stmt func_env global_env (Ast.Block func_decl.body) in
+			let return_type_promise = get_return_type_promise func_env.scope func_body in
+			(*TODO: find some way to link this with assignment as well *)
+			let initial_return_type = (return_type_promise ()) in
+			(
+			match func_body with
+				Block(stmt_list,_) ->
+					let func_body_list = stmt_list in
+					let typed_func_call = Call(v, el_typed), initial_return_type in
+					let arg_type_promises = List.map (get_var_type_promise func_env.scope) func_decl.params in
+					let params = List.combine func_decl.params arg_type_promises in
+					let func_decl_typed = { fname = v; params = params; 
+											body = func_body_list; 
+											return_type_promise = return_type_promise } in
+					add_func_to_global_env global_env func_decl_typed;
+					typed_func_call
+				| _ -> raise (Failure "Function body must be a Block.")
+			)
+		(* No user function with this name defined. Check built-ins *)
+		| None ->
+			let el = List.map (fun e -> (check_expr env global_env e)) el in
+			if (List.length el) = 1 then
+			  let (e, typ) = List.hd el in
+			  let typ = match typ with (*Check for correct type*)
+				Table(_) -> BTable
+				| _ -> BAny
+			  in
+			  (try (*Test to see if user is trying to call built-in function and check for type*)
+				ignore (find_built_in v typ)
+			  with Not_found ->  (*Check if its a type error or a new function*)
+				  try
+					let (built_in_name, _) = find_built_in v BAny in
+					raise (Failure("parameter type does not match built-in function parameter type " ^ built_in_name))
+				  with Not_found -> ()
+				); Call(v, el), Int
+			else
+				raise (Failure "Builtins only take one arg. You shouldn't be here.")
+	)
   | Ast.TableAccess(table_id,index_exprs) -> 
 	(*First, get table variable if it exists *)
 	let (_,table_t) = try
