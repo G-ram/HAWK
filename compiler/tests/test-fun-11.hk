@@ -1,0 +1,10 @@
+BEGIN {
+	fun f(x){
+		return x;
+	}
+
+	x = f(42);
+}
+END {
+
+}

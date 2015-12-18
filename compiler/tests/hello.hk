@@ -1,11 +1,6 @@
 BEGIN{
-  table = {0,1,2};
-  print(table);
-  print("--------");
-  print(keys(table));
 }
 /*[@#Basketball_Scouting_Report@]{
   print(this);
 }*/
-END{
-}
+END{}

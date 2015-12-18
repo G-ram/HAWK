@@ -20,7 +20,7 @@ let rec is_empty_table_container = function
 let rec find (scope : symbol_table) name =
 	fst (find_var_and_scope scope name )
 
-let assert_not_void typ err = 
+let assert_not_void typ err =
 	if typ = Void then
 		raise (Failure err)
 (*
@@ -45,7 +45,7 @@ let rec can_assign t1 t2 =
 		| Table(s), Table(t) -> (can_assign s t)
 		| _ -> false
 
-		
+
 (*Find a built in function by name  *)
 let rec find_built_in name typ = try
   List.find (fun (s, t) -> (s = name && t = BAny) || (s = name && t = typ)) built_in with Not_found -> raise Not_found
@@ -121,8 +121,8 @@ let is_identifier_expr = function
 	| Assign(_) -> true
 	| TableAssign(_) -> true
 	| _ -> false
-	
-(* return the identifier and nesting level for 
+
+(* return the identifier and nesting level for
 identifier based expressions
 
 None for non-identifier based expressions
@@ -134,13 +134,13 @@ let get_identifier_expr_info = function
 	| TableAssign(id,ind_list,_) -> Some (id, (List.length ind_list))
 	| _ -> None
 
-let get_var_type_promise scope id = 
+let get_var_type_promise scope id =
 	let promise () =
 		let (_,t) = (find scope id) in
 		t
 	in
 	promise
-	
+
 let get_id_based_expr_promise id scope nesting expr =
 	let promise () =
 		let (_,t) = (find scope id) in
@@ -150,8 +150,8 @@ let get_id_based_expr_promise id scope nesting expr =
 (*
 imagine:
 t = {3:{},10:{}}
-if we later find out the type of t to be Table(Table(Int)) or something even more nested, then we can now determine the 
-types of the nested empty tables in this table literal 
+if we later find out the type of t to be Table(Table(Int)) or something even more nested, then we can now determine the
+types of the nested empty tables in this table literal
 *)
 let rec retype_empty_table_literal table_literal new_table_type =
 	let inner_t = apply_nesting (new_table_type,-1) in
@@ -163,6 +163,44 @@ let rec retype_empty_table_literal table_literal new_table_type =
 				| _ -> old_e)
 			in
 			(key, (new_e,inner_t))::(retype_empty_table_literal tail new_table_type)
+		
+let get_table_literal_promise assigner tl =
+	let promise () =
+		let (_,new_t) = (find assigner.assign_scope assigner.id ) in 
+		let nested_t = apply_nesting (new_t,(-assigner.nesting)) in
+		let new_tl = retype_empty_table_literal tl nested_t in
+		TableLiteral(new_tl),new_t
+	in promise
+	
+(* 
+Return a promise which will return 
+a SAST expression given our current knowledge of symbol tables
+Once the semantics stage has completed this promise will give us our best
+possible understanding of an expression
+*)
+let get_expression_promise assigner assignee_e assignee_type assignee_scope =
+	let is_et = (is_empty_table_container assignee_type) in
+	let id_info = get_identifier_expr_info assignee_e in
+	let noop_promise = (fun () -> assignee_e,assignee_type) in
+	match assignee_e with
+		_ when (not is_et) ->
+			(* If we're not dealing with an empty table, the expression and type should not change *)
+			noop_promise
+		| _ when id_info <> None ->
+			(match id_info with
+				(*TODO: use assignee_scope instead *)
+				Some(id,nesting) -> get_id_based_expr_promise id assignee_scope nesting assignee_e
+				| None -> raise (Failure "We shouldn't be here")
+			)
+		| TableLiteral(tl) -> 
+			(
+			match assigner with 
+				(* At this point we're out of luck, but since its a truly empty table with no references
+				to non-empties, it shouldn't matter *)
+				None -> noop_promise 
+				| Some (assigner) -> get_table_literal_promise assigner tl
+			)
+		| _  -> raise (Failure "This type of expression should not yield an empty table.")
 		
 (*  Consider a statement like
 a = {}
@@ -177,26 +215,8 @@ this promise will return the correct type of expressions of this sort,
 assuming the symbol table has been filled out properly
 *)
 let get_assignment_expression_promise assigner assignee_e assignee_type =
-	let is_et = (is_empty_table_container assignee_type) in
-	let id_info = get_identifier_expr_info assignee_e in
-	match assignee_e with
-		_ when (not is_et) ->
-			(* If we're not dealing with an empty table, the expression and type should not change *)
-			(fun () -> assignee_e,assignee_type)
-		| _ when id_info <> None ->
-			(match id_info with 
-				(*TODO: use assignee_scope instead *)
-				Some(id,nesting) -> get_id_based_expr_promise id assigner.assign_scope nesting assignee_e
-				| None -> raise (Failure "We shouldn't be here")
-			)
-		| TableLiteral(tl) -> 
-			(fun () ->
-				let (_,new_t) = (find assigner.assign_scope assigner.id ) in 
-				let nested_t = apply_nesting (new_t,(-assigner.nesting)) in
-				let new_tl = retype_empty_table_literal tl nested_t in
-				TableLiteral(new_tl),new_t
-			)
-		| _  -> raise (Failure "This type of expression should not yield an empty table.")
+	get_expression_promise (Some assigner) assignee_e assignee_type assigner.assign_scope
+
 
 (* Update the type of a table variable within a given symbol scope
 Need to ensure that table update links are respected *)
@@ -215,27 +235,27 @@ let rec update_table_type sym_tab table_id new_type =
 		let folder = (fun visited (neighb,neighb_t) -> update_linked_table_types neighb.id neighb.assign_scope neighb_t visited) in
 		List.fold_left folder visited (List.combine unvisited_neighbors new_neighbor_types)
 
-	in 
+	in
 	let (_, table_sym_tab) = find_var_and_scope sym_tab table_id in
 	ignore (update_linked_table_types table_id table_sym_tab new_type [])
 
 
-(*Find all return types of a statement 
+(*Find all return types of a statement
 if a block, recursively search through sub-statements *)
 let rec find_all_return_types = function
-	Return(_,t) -> [t]
+	Return(promise) -> [(snd (promise () ))]
 	| Block(sl,_) -> List.concat (List.map find_all_return_types sl)
-	| If(_,s1,s2) -> 
+	| If(_,s1,s2) ->
 		(* For if *)
 		(find_all_return_types s1) @ (find_all_return_types s2)
 	| While(_, stmt) -> (find_all_return_types stmt)
 	| For(_,_,stmt) -> (find_all_return_types stmt)
 	| _ -> []
-	
-(*Find the return type of a statement 
+
+(*Find the return type of a statement
 if a block, recursively search through sub-statements and
 mache sure return types are consistent*)
-let find_return_type func_body = 
+let find_return_type func_body =
 	let all_return_types = find_all_return_types func_body in
 	match all_return_types with
 		[] -> Void
@@ -244,9 +264,9 @@ let find_return_type func_body =
 				(List.hd type_list)
 			else
 				raise (Failure "Inconsistent return types in user defined function.")
-		
 
-(*Find all return types of a statement 
+
+(*Find all return types of a statement
 if a block, recursively search through sub-statements *)
 let rec is_guaranteed_if_return valid = function
 	If(_,Return(_),Return(_)) -> true
@@ -259,64 +279,47 @@ let rec is_guaranteed_if_return valid = function
 	| If(_,If(a,b,c),Block (sl,_)) -> is_guaranteed_if_return valid (If(a,b,c)) && is_guaranteed_block_return valid sl
 	| If(_,Block (sl,_),If(a,b,c)) -> is_guaranteed_if_return valid (If(a,b,c)) && is_guaranteed_block_return valid sl
 	| If(_,_,_) -> false
-and is_guaranteed_block_return valid = function 
+and is_guaranteed_block_return valid = function
 	[] -> valid
-	| hd::tl -> 
-		match hd with 
-			Return(_) -> (match tl with 
+	| hd::tl ->
+		match hd with
+			Return(_) -> (match tl with
 						 [] -> true
 						 | _ -> raise (Failure "Unreachable code"))
-			| If (a,b,c) -> 
-				let valid_if = is_guaranteed_if_return valid (If(a,b,c)) in 
-				if valid_if then (match tl with 
+			| If (a,b,c) ->
+				let valid_if = is_guaranteed_if_return valid (If(a,b,c)) in
+				if valid_if then (match tl with
 								  [] -> true
 								| _ -> raise (Failure "Uncreachable code"))
 				else is_guaranteed_block_return valid tl
-			| Block(sl, _) -> 
-				let valid_block = (is_guaranteed_block_return valid sl) in 
-				if valid_block then (match tl with 
+			| Block(sl, _) ->
+				let valid_block = (is_guaranteed_block_return valid sl) in
+				if valid_block then (match tl with
 									 [] -> true
-									| _ -> raise (Failure "Uncreachable code")) 
+									| _ -> raise (Failure "Uncreachable code"))
 				else is_guaranteed_block_return valid tl
 			| _ -> is_guaranteed_block_return valid tl
 
-(*Find all return types of a statement 
-if a block, recursively search through sub-statements *)
-let rec get_all_return_type_promises scope = function
-	Return(expr,t) -> 
-		(match get_identifier_expr_info expr with
-			Some(id,nesting) -> 
-				let expr_t_promise = (get_id_based_expr_promise id scope nesting expr) in
-				[(fun () -> snd (expr_t_promise ()))]
-			| None ->
-				[(fun () -> t)]
-		)
-	| Block(sl,_) -> List.concat (List.map (get_all_return_type_promises scope) sl)
-	| If(_,s1,s2) -> (get_all_return_type_promises scope s1) @ (get_all_return_type_promises scope s2)
-	| While(_, stmt) -> (get_all_return_type_promises scope stmt)
-	| For(_,_,stmt) -> (get_all_return_type_promises scope stmt)
-	| _ -> []
-	
+
 (* 
 Just as with assignment, we may not know the return type of a function in advance due to empty tables.
 Assuming scope is available, this function will give you the proper return type
 *)
-let get_return_type_promise scope func_body = 
+let get_return_type_promise func_body env = 
 	let stmt_list = match func_body with Block(sl, _) -> sl in 
-	let all_return_type_promises = get_all_return_type_promises scope func_body in
+	let all_return_type_promises = !(env.returns) in
 	let get_return_type () =
 		let all_return_types = List.map (fun f -> f () ) all_return_type_promises in
 		match all_return_types with
 			[] -> Void
 			| type_list ->
 				if (Util.all_the_same type_list) then
-				if (is_guaranteed_block_return false stmt_list) then 
+				if (is_guaranteed_block_return false stmt_list) then
 					(List.hd type_list)
 				else raise (Failure "No valid return statements")
 				else
 					raise (Failure "Inconsistent return types in user defined function.")
 	in get_return_type
-	
 
 let is_table = function
 	Table(_) | EmptyTable -> true
@@ -339,11 +342,11 @@ let rec get_table_access_type table_t n_indices =
 				| x -> x)
 		| _ -> None
 
-		
+
 (* Used to tie the types of empty table variables for type inference
 when performing assignment or passing arguments into a function
 var_id = variable name
-var_nesting = nesting of var_id variable relative to assignee. 
+var_nesting = nesting of var_id variable relative to assignee.
 	For instance, if we have t = s[1][4] then nesting is 2
 sym_t = symbol table that var_id resides in
 asignee = expression being assigned to var_id
@@ -352,7 +355,7 @@ lookup_scope = scope to search for names in assignee
 	whose bodies do not have access to names used in passed in parameters
 *)
 let create_linkage_if_applicable var_id var_nesting sym_t assignee lookup_scope =
-	
+
 	let other_info = match assignee with
 		Id(other_id) ->
 			let ((_,other_type), other_scope) = find_var_and_scope lookup_scope other_id in
@@ -367,12 +370,12 @@ let create_linkage_if_applicable var_id var_nesting sym_t assignee lookup_scope 
 		| Some(other_id,other_type,other_scope,other_nesting) when (is_empty_table_container other_type) ->
 			add_mutual_update_table_link var_id sym_t other_id other_scope other_nesting
 		| _ -> ()
-		
+
 (* All variables same as above *)
 let create_assignment_linkage_if_applicable var_id var_nesting sym_t assignee =
 	(*The lookup scope is the same as the variable we're assigning to *)
 	create_linkage_if_applicable var_id var_nesting sym_t assignee sym_t
-		
+
 (* add func_decl to the global environment
    IF there is not already a function with the same name
    and same number of parameters (where all the parameters have the same type)
@@ -411,6 +414,11 @@ let rec check_expr env global_env = function
     let (v, typ) = vdecl in
     Id(v), typ
   | Ast.TableAssign(table_id, index_list, e) -> (*TODO: MAKE THIS SHIT MORE LIKE ASSIGN WITH TABLE LINX AND SHIT *)
+	let nesting = (List.length index_list) in
+	let assignee_env = match e with
+		Call(_) -> {env with return_assigner=(Some {id=table_id;assign_scope=env.scope;nesting=nesting}) }
+		| _ -> env
+	in
 	let (assignee_e, assignee_type) as assignee = check_expr env global_env e in
 	assert_not_void assignee_type "Can't assign void to a table (or anything for that matter).";
 	let indices_sast = check_table_indices env global_env index_list in
@@ -418,7 +426,6 @@ let rec check_expr env global_env = function
       find env.scope table_id
     with Not_found ->
       raise (Failure("undeclared table identifier " ^ table_id)) in
-	let nesting = (List.length indices_sast) in
 	let assign_info = {id=table_id;assign_scope=env.scope;nesting=nesting} in
 	let expr_promise = get_assignment_expression_promise assign_info assignee_e assignee_type in
 	(* Most nested part of *)
@@ -433,7 +440,7 @@ let rec check_expr env global_env = function
 	update_table_type env.scope table_id new_table_type;
 	(match table_t with
 		Table(_) | EmptyTable ->
-			let vdecl = match final_table_t with 
+			let vdecl = match final_table_t with
 				EmptyTable -> (* Going from a nested empty table to a different level of nesting, update *)
 					TableAssign (table_id, indices_sast,expr_promise),assignee_type
 				|Table(val_type) ->
@@ -450,7 +457,11 @@ let rec check_expr env global_env = function
 
 		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
   | Ast.Assign(v, assignee) ->
-    let (assignee_e, assignee_type) as assignee = check_expr env global_env assignee in
+	let assignee_env = match assignee with
+		Call(_) -> {env with return_assigner= (Some {id=v;assign_scope=env.scope;nesting=0}) }
+		| _ -> env
+	in
+    let (assignee_e, assignee_type) as assignee = check_expr assignee_env global_env assignee in
 	let assign_info = {id=v;assign_scope=env.scope;nesting=0} in
 	let expr_promise = get_assignment_expression_promise assign_info assignee_e assignee_type in
 	assert_not_void assignee_type "Can't assign void to a variable.";
@@ -499,8 +510,8 @@ let rec check_expr env global_env = function
     (*Check for int or double*)
     if typ != Int && typ != Double then raise (Failure("unary minus operation does not support this type")) ;
     Uminus((e, typ)), typ
-  | Ast.Call(v, el) -> 
-	let func_decl = 
+  | Ast.Call(v, el) ->
+	let func_decl =
 		try Some (List.assoc v env.func_decls)
 		with Not_found -> None
 	in
@@ -512,14 +523,15 @@ let rec check_expr env global_env = function
 			let (arg_exprs,arg_types) = List.split el_typed in
 			let typed_args = List.combine func_decl.params arg_types in
 			let func_env = {env with scope = {parent = None; variables = typed_args; update_table_links = []};
-									returns = []} in
+									returns = ref [];
+									return_assigner = None} in
 			let link_argument (arg,assignee) =
 				create_linkage_if_applicable arg 0 func_env.scope assignee env.scope
 			in
 			(*Make sure that if any empty tables are passed in, proper type inference is done with them *)
 			List.iter link_argument (List.combine func_decl.params arg_exprs);
 			let func_body = check_stmt func_env global_env (Ast.Block func_decl.body) in
-			let return_type_promise = get_return_type_promise func_env.scope func_body in
+			let return_type_promise = get_return_type_promise func_body func_env in (*func_env.scope func_body in*)
 			(*TODO: find some way to link this with assignment as well *)
 			let initial_return_type = (return_type_promise ()) in
 			(
@@ -529,8 +541,8 @@ let rec check_expr env global_env = function
 					let typed_func_call = Call(v, el_typed), initial_return_type in
 					let arg_type_promises = List.map (get_var_type_promise func_env.scope) func_decl.params in
 					let params = List.combine func_decl.params arg_type_promises in
-					let func_decl_typed = { fname = v; params = params; 
-											body = func_body_list; 
+					let func_decl_typed = { fname = v; params = params;
+											body = func_body_list;
 											return_type_promise = return_type_promise } in
 					add_func_to_global_env global_env func_decl_typed;
 					typed_func_call
@@ -556,7 +568,7 @@ let rec check_expr env global_env = function
 			else
 				raise (Failure "Builtins only take one arg. You shouldn't be here.")
 	)
-  | Ast.TableAccess(table_id,index_exprs) -> 
+  | Ast.TableAccess(table_id,index_exprs) ->
 	(*First, get table variable if it exists *)
 	let (_,table_t) = try
       find env.scope table_id
@@ -598,14 +610,18 @@ and check_table_literal env global_env tl =
 			let keys = (List.map fst kv_list) in
 			let exprs = (List.map snd kv_list) in
 			check_keys_exprs env global_env keys exprs
-			
+
 and check_stmt env global_env = function
   Ast.Block(sl) ->
     let scopeT = { parent = Some(env.scope); variables = []; update_table_links=[] } in
     let envT = { env with scope = scopeT} in
     let sl = List.map (fun s -> (check_stmt envT global_env s)) sl in envT.scope.variables <- List.rev scopeT.variables;
     Block (sl, envT)
-  | Ast.Expr(e) -> Expr(check_expr env global_env e)
+  | Ast.Expr(e) -> 
+  		(match e with 
+  		Assign(_) | TableAssign(_) | Call(_) -> Expr(check_expr env global_env e)
+  		| _ -> raise (Failure("Expression is not statement in Java")))
+  | Ast.Empty -> Empty
   | Ast.Func(f) ->(
     try (*Test to see if user is trying to overwrite built-in function*)
       ignore(find_built_in f.Ast.fname BAny) ;
@@ -614,11 +630,17 @@ and check_stmt env global_env = function
       Func({fname = ""; params = []; body = []; return_type_promise = (fun () -> Int)}) (*This is not correct!*)
     )
   | Ast.Return(e) -> 
-	(* TODO: this
-	let return_type_promise = in
-	env.returns<- return_type_promise::(env.returns)
-	*)
-	Return(check_expr env global_env e)
+	let (return_e,return_t) as return_expr = check_expr env global_env e in
+	let expr_promise = match env.return_assigner with 
+		None -> 
+			get_expression_promise None return_e return_t env.scope 
+		| Some(assigner) as assgn -> 
+			create_linkage_if_applicable assigner.id assigner.nesting assigner.assign_scope return_e env.scope;
+			get_expression_promise assgn return_e return_t env.scope 
+	in 
+	let return_type_promise = fun () -> (snd (expr_promise ())) in
+	env.returns:= return_type_promise::!(env.returns);
+	Return(expr_promise)
   | Ast.If(e, s1, s2) ->
     let (e, typ) = check_expr env global_env e in
     if typ != Int && typ != Double then raise (Failure("If statement does not support this type")) ;
@@ -627,15 +649,15 @@ and check_stmt env global_env = function
     let (e, typ) = check_expr env global_env e in
     if typ != Int && typ != Double then raise (Failure("unary minus operation does not support this type")) ;
     While((e, typ), check_stmt env global_env s)
-  | Ast.For(key_id, table_id, stmt) -> 
+  | Ast.For(key_id, table_id, stmt) ->
 	let scopeT = { parent = Some(env.scope); variables = [(key_id,String)]; update_table_links=[] } in
-	let envT = { env with scope = scopeT} in 
-	let stmt = check_stmt envT global_env stmt in 
+	let envT = { env with scope = scopeT} in
+	let stmt = check_stmt envT global_env stmt in
 	let (_,table_t) = try
       find env.scope table_id
     with Not_found ->
-      raise (Failure("Undeclared table identifier in for statement:" ^ table_id)) 
-	in 
+      raise (Failure("Undeclared table identifier in for statement:" ^ table_id))
+	in
 	if is_table table_t then
 		For(key_id,table_id,stmt)
 	else
@@ -669,7 +691,8 @@ let check_program p =
 					return = None;
 					func_decls = func_decls;
 					is_pattern = false;
-					returns = [] } in
+					return_assigner = None;
+					returns = ref [] } in
     let global_env = { funcs = [] } in
 	let (begin_block, env) = match check_stmt init_env global_env p.Ast.begin_stmt with
 								Block(begin_block, env) -> begin_block, env

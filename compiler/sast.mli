@@ -1,5 +1,6 @@
-type t = Int | String | Double | Table of t | EmptyTable | Void 
+type t = Int | String | Double | Table of t | EmptyTable | Void
 type type_promise = unit -> t
+
 
 (*update_table_link represents table variables that a given variable is implicity attached to
 consider this code:
@@ -28,13 +29,14 @@ type translation_environment = {
   func_decls: (string * Ast.func_decl) list;
   scope: symbol_table;
   is_pattern: bool;
-  return: t option; (*Not implemented*)
-  
-  (* Keeps track of all return statement types 
+  return: t option; 
+  (* Keeps track of all return statement types
 	 useful for assuring consistency of function call returns
+  made as a reference so that children can update it
   *)
-  mutable returns: type_promise list;
-  
+  return_assigner: assigner_info option;
+  returns: (type_promise list) ref;
+
 }
 
 (* Represents a lazy or delayed computation for an expression
@@ -57,7 +59,7 @@ and expr_det =
 and expr_t = expr_det * t
 (* Sometimes the accurate type of an expression is not known in advance
 (when empty tables are involved)
-, so we defer type determination til later 
+, so we defer type determination til later
 by using a closure
 *)
 and expr_t_promise = unit -> expr_t
@@ -66,10 +68,11 @@ type stmt_t =
   Block of stmt_t list * translation_environment
   | Expr of expr_t
   | Func of func_decl_t
-  | Return of expr_t
+  | Return of expr_t_promise
   | If of expr_t * stmt_t * stmt_t
   | While of expr_t * stmt_t
   | For of string * string * stmt_t
+  | Empty
   and
   func_decl_t = {
     fname : string;
