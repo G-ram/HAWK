@@ -1,6 +1,16 @@
 private static void print(Object o){
   System.out.println(o);
 }
+private static String charAt(String s, Integer i){
+  return ""+s.charAt(i);
+}
+private static Integer stringEqual(String s1, String s2){
+  if(s1.equals(s2)){
+    return 1;
+  }else{
+    return 0;
+  }
+}
 private static Boolean _checkIf(Integer i){
   return (i != 0) ? true : false;
 }
