@@ -142,7 +142,8 @@ string_of_expr = function
 		id ^ " = " ^ (string_of_expr expr)
 	| Binop(expr1, op, expr2), _ -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
-	| Call(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
+	| BCall(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
+	| Call(fdecl, expr_list), _ -> fdecl.fname ^ "(" ^ string_of_expr_list expr_list ^ ")"
 	| TableAccess(table_id, ind_list), _ ->
 		table_id ^ (String.concat "" (List.map string_of_get_index_expr ind_list))
 	| TableAssign(table_id,ind_list,expr_promise), t ->
