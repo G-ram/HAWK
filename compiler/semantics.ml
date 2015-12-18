@@ -134,7 +134,14 @@ let get_identifier_expr_info = function
 	| TableAssign(id,ind_list,_) -> Some (id, (List.length ind_list))
 	| _ -> None
 
-let get_id_based_promise id scope nesting expr =
+let get_var_type_promise scope id = 
+	let promise () =
+		let (_,t) = (find scope id) in
+		t
+	in
+	promise
+	
+let get_id_based_expr_promise id scope nesting expr =
 	let promise () =
 		let (_,t) = (find scope id) in
 		expr, (apply_nesting (t,(-nesting)))
@@ -178,7 +185,7 @@ let get_assignment_expression_promise scope assign_id assign_nesting assignee_e 
 			(fun () -> assignee_e,assignee_type)
 		| _ when id_info <> None ->
 			(match id_info with 
-				Some(id,nesting) -> get_id_based_promise id scope nesting assignee_e
+				Some(id,nesting) -> get_id_based_expr_promise id scope nesting assignee_e
 				| None -> raise (Failure "We shouldn't be here")
 			)
 		| TableLiteral(tl) when is_et -> 
@@ -244,7 +251,7 @@ let rec get_all_return_type_promises scope = function
 	Return(expr,t) -> 
 		(match get_identifier_expr_info expr with
 			Some(id,nesting) -> 
-				let expr_t_promise = (get_id_based_promise id scope nesting expr) in
+				let expr_t_promise = (get_id_based_expr_promise id scope nesting expr) in
 				[(fun () -> snd (expr_t_promise ()))]
 			| None ->
 				[(fun () -> t)]
@@ -389,10 +396,8 @@ let rec check_expr env global_env = function
 		Table(_) | EmptyTable ->
 			let vdecl = match final_table_t with 
 				EmptyTable -> (* Going from a nested empty table to a different level of nesting, update *)
-					print_string "FINAL IS EMPTY TABLE\n";
 					TableAssign (table_id, indices_sast,expr_promise),assignee_type
 				|Table(val_type) ->
-					print_string "FINAL IS NOT EMPTY TABLE\n";
 					if (can_assign val_type assignee_type) then (*  val_type=assignee_type then *)
 						TableAssign (table_id,indices_sast,expr_promise),assignee_type
 					else
@@ -474,7 +479,9 @@ let rec check_expr env global_env = function
 			Block(stmt_list,_) ->
 				let func_body_list = stmt_list in
 				let typed_func_call = Call(v, el_typed), initial_return_type in
-				let func_decl_typed = { fname = v; params = typed_args; 
+				let arg_type_promises = List.map (get_var_type_promise func_env.scope) func_decl.params in
+				let params = List.combine func_decl.params arg_type_promises in
+				let func_decl_typed = { fname = v; params = params; 
 										body = func_body_list; 
 										return_type_promise = return_type_promise } in
 				add_func_to_global_env global_env func_decl_typed;
