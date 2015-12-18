@@ -627,7 +627,8 @@ and check_stmt env global_env = function
       ignore(find_built_in f.Ast.fname) ;
       raise (Failure("function is overwrites built-in function " ^ f.Ast.fname))
     with Not_found -> (*valid function*)
-      Func({fname = ""; params = []; body = []; return_type_promise = (fun () -> Int)}) (*This is not correct!*)
+	  (*We handle func generation elsewhere so can make this a no-op *)
+      Block([], env )
     )
   | Ast.Return(e) ->
 	let (return_e,return_t) as return_expr = check_expr env global_env e in
