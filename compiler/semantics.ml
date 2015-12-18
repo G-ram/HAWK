@@ -1,5 +1,13 @@
 open Sast
 
+let rec type_to_str = function
+  Int -> "int"
+  | Double -> "double"
+  | Table(value_type) as t -> "Table(" ^ (type_to_str value_type) ^ ")"
+  | String -> "String"
+  | Void -> "void"
+  | EmptyTable -> "ET"
+	
 type b_arg_types = BAny | BTable | BString | BInt
 
 (*Built-in functions and their types*)
@@ -202,6 +210,7 @@ let get_expression_promise assigner assignee_e assignee_type assignee_scope =
 				None -> noop_promise
 				| Some (assigner) -> get_table_literal_promise assigner tl
 			)
+		| Call(fdecl,_) -> (fun () -> assignee_e, (fdecl.return_type_promise ()) )
 		| _  -> raise (Failure "This type of expression should not yield an empty table.")
 
 (*  Consider a statement like
@@ -459,12 +468,12 @@ let rec check_expr env global_env = function
 
 		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
   | Ast.Assign(v, assignee) ->
+	let assign_info = {id=v;assign_scope=env.scope;nesting=0} in
 	let assignee_env = match assignee with
-		Call(_) -> {env with return_assigner= (Some {id=v;assign_scope=env.scope;nesting=0}) }
+		Call(_) -> {env with return_assigner= (Some assign_info) }
 		| _ -> env
 	in
     let (assignee_e, assignee_type) as assignee = check_expr assignee_env global_env assignee in
-	let assign_info = {id=v;assign_scope=env.scope;nesting=0} in
 	let expr_promise = get_assignment_expression_promise assign_info assignee_e assignee_type in
 	assert_not_void assignee_type "Can't assign void to a variable.";
     let (new_e,new_type) as vdecl =
@@ -526,7 +535,7 @@ let rec check_expr env global_env = function
 			let typed_args = List.combine func_decl.params arg_types in
 			let func_env = {env with scope = {parent = None; variables = typed_args; update_table_links = []};
 									returns = ref [];
-									return_assigner = None} in
+									} in
 			let link_argument (arg,assignee) =
 				create_linkage_if_applicable arg 0 func_env.scope assignee env.scope
 			in
@@ -540,33 +549,33 @@ let rec check_expr env global_env = function
 			match func_body with
 				Block(stmt_list,_) ->
 					let func_body_list = stmt_list in
-					let typed_func_call = Call(v, el_typed), initial_return_type in
 					let arg_type_promises = List.map (get_var_type_promise func_env.scope) func_decl.params in
 					let params = List.combine func_decl.params arg_type_promises in
 					let func_decl_typed = { fname = v; params = params;
 											body = func_body_list;
 											return_type_promise = return_type_promise } in
 					add_func_to_global_env global_env func_decl_typed;
+					let typed_func_call = Call(func_decl_typed, el_typed), initial_return_type in
 					typed_func_call
 				| _ -> raise (Failure "Function body must be a Block.")
 			)
 		(* No user function with this name defined. Check built-ins *)
 		| None ->
 			let el = List.map (fun e -> (check_expr env global_env e)) el in
-      let (built_in_name, built_in_typs, return_typ) = find_built_in v in
-      let check = try
-        if (List.length el) = (List.length built_in_typs) then
-          List.map2 (fun (_, typ) j -> match typ, j with
-            String, BString -> true
-            | Table(_), BTable -> true
-            | Int, BInt -> true
-            | _, BAny -> true
-            | _,_ -> raise (Failure("Parameter types do not match for function with name " ^ v))
-          ) el built_in_typs
-        else
-          raise (Failure("Length of parameter lists do not match for function with name " ^ v))
-        with Not_found -> raise (Failure("Function with name " ^ v ^ " is not defined in any space.")) in
-      Call(v, el), return_typ
+			let (built_in_name, built_in_typs, return_typ) = find_built_in v in
+			let check = try
+				if (List.length el) = (List.length built_in_typs) then
+				  List.map2 (fun (_, typ) j -> match typ, j with
+					String, BString -> true
+					| Table(_), BTable -> true
+					| Int, BInt -> true
+					| _, BAny -> true
+					| _,_ -> raise (Failure("Parameter types do not match for function with name " ^ v))
+				  ) el built_in_typs
+				else
+				  raise (Failure("Length of parameter lists do not match for function with name " ^ v))
+			with Not_found -> raise (Failure("Function with name " ^ v ^ " is not defined in any space.")) in
+			  BCall(v, el), return_typ
 	)
   | Ast.TableAccess(table_id,index_exprs) ->
 	(*First, get table variable if it exists *)
