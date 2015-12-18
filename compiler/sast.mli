@@ -1,6 +1,7 @@
 type t = Int | String | Double | Table of t | EmptyTable | Void
 type type_promise = unit -> t
 
+
 (*update_table_link represents table variables that a given variable is implicity attached to
 consider this code:
 t = {}
@@ -28,12 +29,13 @@ type translation_environment = {
   func_decls: (string * Ast.func_decl) list;
   scope: symbol_table;
   is_pattern: bool;
-  return: t option; (*Not implemented*)
-
+  return: t option; 
   (* Keeps track of all return statement types
 	 useful for assuring consistency of function call returns
+  made as a reference so that children can update it
   *)
-  mutable returns: type_promise list;
+  return_assigner: assigner_info option;
+  returns: (type_promise list) ref;
 
 }
 
@@ -66,7 +68,7 @@ type stmt_t =
   Block of stmt_t list * translation_environment
   | Expr of expr_t
   | Func of func_decl_t
-  | Return of expr_t
+  | Return of expr_t_promise
   | If of expr_t * stmt_t * stmt_t
   | While of expr_t * stmt_t
   | For of string * string * stmt_t

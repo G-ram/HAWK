@@ -174,8 +174,10 @@ and string_of_stmt stmt nested = match stmt with
 	Block(stmt_list, _) -> "{\n" ^ (string_of_stmt_list stmt_list nested) ^ "\n" ^ (string_for_indent (nested - 1)) ^ "}"
 	| Expr(expr) -> (string_for_indent nested) ^ (string_of_expr expr) ^ ";"
 	| Func(func_decl) -> ""
-	| Return(expr) -> (string_for_indent nested) ^ "return " ^ (string_of_expr expr) ^ ";"
-	| If(expr, stmt1, stmt2) -> (match stmt2 with
+	| Return(expr_promise) -> 
+		let expr = (expr_promise ()) in
+		(string_for_indent nested) ^ "return " ^ (string_of_expr expr) ^ ";"
+	| If(expr, stmt1, stmt2) -> (match stmt2 with 
 		| Block([], _)  -> (string_for_indent nested) ^ "if(_checkIf(" ^ (string_of_expr expr) ^ "))" ^ (string_of_stmt stmt1 nested)
 		| _ -> (string_for_indent nested) ^ "if(_checkIf(" ^ (string_of_expr expr) ^ "))" ^ (string_of_stmt stmt1 nested) ^ "else" ^ (string_of_stmt stmt2 nested))
 	| While(expr, stmt) -> (string_for_indent nested) ^ "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt (nested + 1))
