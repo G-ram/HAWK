@@ -4,10 +4,10 @@ public class Program {
 		_HAWKFileReader _fileReader = new _HAWKFileReader(_args);
 		_HAWKRegexMatcher _regexMatcher = new _HAWKRegexMatcher(_fileReader._getConcatFile());
 		_HAWKCSSMatcher _cssMatcher = new _HAWKCSSMatcher(_fileReader._getConcatFile());
-		_HAWKTable<_HAWKTable<_HAWKTable<_HAWKTable<Integer>>>> t = (new _HAWKTable<_HAWKTable<_HAWKTable<_HAWKTable<Integer>>>>()).setIntIndexChained(1,(new _HAWKTable<_HAWKTable<_HAWKTable<Integer>>>()).setIntIndexChained(2,(new _HAWKTable<_HAWKTable<Integer>>())));
-		t.getIntIndex(1).getIntIndex(2).setIntIndex(3,(new _HAWKTable<Integer>()).setIntIndexChained(4,5));
-		print(t.getIntIndex(1).getIntIndex(2).getIntIndex(3).getIntIndex(4));
+for(_HAWKTable<String> _this : _cssMatcher._match("a[href~=http://www.wikicu.com/Main_Page]")){
+		print(_this);
 
+	}
 
 	}
 	private static void print(Object o){
