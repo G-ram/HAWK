@@ -1,11 +1,12 @@
 BEGIN{
-    i = -1;
-    a = 5;
-    if(i <= 0 && a == 5){
+    a = "hello";
+    b = "hello";
+    print(charAt(a,2));
+    i = 0;
+    if(stringEqual(a,b)){
         i = 2;
     }
     else{
-        ;
     }
     print(i);
 }

@@ -1,10 +1,12 @@
 open Sast
 
-type b_arg_types = BAny | BTable
+type b_arg_types = BAny | BTable | BString | BInt
 
 (*Built-in functions and their types*)
-let built_in = [("print", BAny); ("exits", BAny);
-                ("length", BTable); ("keys", BTable); ("children", BTable); ("inner_html", BTable)]
+let built_in = [("print", [BAny], Int); ("exists", [BAny], Int);
+                ("length", [BTable], Int); ("keys", [BTable], Int);
+                ("children", [BTable], String); ("inner_html", [BTable], String);
+                ("charAt", [BString; BInt], String); ("stringEqual", [BString; BString], Int);]
 
 let rec find_var_and_scope (scope : symbol_table) name = try
   (List.find (fun (s, _) -> s = name) scope.variables),scope with Not_found ->
@@ -47,8 +49,8 @@ let rec can_assign t1 t2 =
 
 
 (*Find a built in function by name  *)
-let rec find_built_in name typ = try
-  List.find (fun (s, t) -> (s = name && t = BAny) || (s = name && t = typ)) built_in with Not_found -> raise Not_found
+let rec find_built_in name = try
+  List.find (fun (s, t, r) -> s = name) built_in with Not_found -> raise Not_found
 
 (*Update a variable type of a variable within a given symbol table,
 going up parent links until matching variable is found
@@ -551,22 +553,20 @@ let rec check_expr env global_env = function
 		(* No user function with this name defined. Check built-ins *)
 		| None ->
 			let el = List.map (fun e -> (check_expr env global_env e)) el in
-			if (List.length el) = 1 then
-			  let (e, typ) = List.hd el in
-			  let typ = match typ with (*Check for correct type*)
-				Table(_) -> BTable
-				| _ -> BAny
-			  in
-			  (try (*Test to see if user is trying to call built-in function and check for type*)
-				ignore (find_built_in v typ)
-			  with Not_found ->  (*Check if its a type error or a new function*)
-				  try
-					let (built_in_name, _) = find_built_in v BAny in
-					raise (Failure("parameter type does not match built-in function parameter type " ^ built_in_name))
-				  with Not_found -> ()
-				); Call(v, el), Int
-			else
-				raise (Failure "Builtins only take one arg. You shouldn't be here.")
+      let (built_in_name, built_in_typs, return_typ) = find_built_in v in
+      let check = try
+        if (List.length el) = (List.length built_in_typs) then
+          List.map2 (fun (_, typ) j -> match typ, j with
+            String, BString -> true
+            | Table(_), BTable -> true
+            | Int, BInt -> true
+            | _, BAny -> true
+            | _,_ -> raise (Failure("Parameter types do not match for function with name " ^ v))
+          ) el built_in_typs
+        else
+          raise (Failure("Length of parameter lists do not match for function with name " ^ v))
+        with Not_found -> raise (Failure("Function with name " ^ v ^ " is not defined in any space.")) in
+      Call(v, el), return_typ
 	)
   | Ast.TableAccess(table_id,index_exprs) ->
 	(*First, get table variable if it exists *)
@@ -622,10 +622,14 @@ and check_stmt env global_env = function
   		Assign(_) | TableAssign(_) | Call(_) -> Expr(check_expr env global_env e)
   		| _ -> raise (Failure("Expression is not statement in Java")))
   | Ast.Empty -> Empty
-  | Ast.Func(f) ->
-	(* This is handled elsewhere, we don't need to worry about it here 
-	below is basically a no-op *)
-    Block([],env)
+  | Ast.Func(f) ->(
+    try (*Test to see if user is trying to overwrite built-in function*)
+      ignore(find_built_in f.Ast.fname) ;
+      raise (Failure("function is overwrites built-in function " ^ f.Ast.fname))
+    with Not_found -> (*valid function*)
+	  (*We handle func generation elsewhere so can make this a no-op *)
+      Block([], env )
+    )
   | Ast.Return(e) -> 
 	let (return_e,return_t) as return_expr = check_expr env global_env e in
 	let expr_promise = match env.return_assigner with 
