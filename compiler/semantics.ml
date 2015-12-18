@@ -72,7 +72,7 @@ this function has side effects
 let remove_update_table_link table_id sym_tab link_id link_scope =
 	(* match on value equality for link id and reference equality for link scope *)
 	let keep_entry (t_id,update_link) =
-		not (t_id=table_id && update_link.link_id=link_id && update_link.link_scope == link_scope)
+		not (t_id=table_id && update_link.id=link_id && update_link.scope == link_scope)
 	in
 	sym_tab.update_table_links<- List.filter keep_entry sym_tab.update_table_links
 
@@ -81,7 +81,7 @@ let remove_mutual_update_table_links table_id sym_tab link_id link_scope =
 	remove_update_table_link link_id link_scope table_id sym_tab
 
 let add_update_table_link table_id sym_tab link_id link_scope nesting =
-	let new_update_link = {link_id=link_id;link_scope=link_scope;nesting=nesting} in
+	let new_update_link = {id=link_id;scope=link_scope;nesting=nesting} in
 	sym_tab.update_table_links <- (table_id,new_update_link)::sym_tab.update_table_links
 
 (* imagine:
@@ -176,7 +176,7 @@ We can make fully informed assignment because we know the type of a
 this promise will return the correct type of expressions of this sort,
 assuming the symbol table has been filled out properly
 *)
-let get_assignment_expression_promise scope assign_id assign_nesting assignee_e assignee_type =
+let get_assignment_expression_promise assign_scope assign_id assign_nesting assignee_e assignee_type =
 	let is_et = (is_empty_table_container assignee_type) in
 	let id_info = get_identifier_expr_info assignee_e in
 	match assignee_e with
@@ -185,12 +185,13 @@ let get_assignment_expression_promise scope assign_id assign_nesting assignee_e 
 			(fun () -> assignee_e,assignee_type)
 		| _ when id_info <> None ->
 			(match id_info with 
-				Some(id,nesting) -> get_id_based_expr_promise id scope nesting assignee_e
+				(*TODO: use assignee_scope instead *)
+				Some(id,nesting) -> get_id_based_expr_promise id assign_scope nesting assignee_e
 				| None -> raise (Failure "We shouldn't be here")
 			)
-		| TableLiteral(tl) when is_et -> 
+		| TableLiteral(tl) -> 
 			(fun () ->
-				let (_,new_t) = (find scope assign_id) in 
+				let (_,new_t) = (find assign_scope assign_id) in 
 				let nested_t = apply_nesting (new_t,(-assign_nesting)) in
 				let new_tl = retype_empty_table_literal tl nested_t in
 				TableLiteral(new_tl),new_t
@@ -209,9 +210,9 @@ let rec update_table_type sym_tab table_id new_type =
 		in
 		let visited = (table_id,sym_tab)::visited in
 		let neighbors = List.map snd (List.filter (fun (t_id,_) -> table_id=t_id) sym_tab.update_table_links) in
-		let unvisited_neighbors = List.filter (fun n -> not (already_visited n.link_id n.link_scope visited)) neighbors in
+		let unvisited_neighbors = List.filter (fun n -> not (already_visited n.id n.scope visited)) neighbors in
 		let new_neighbor_types = List.map (fun n-> apply_nesting (new_type,n.nesting)) unvisited_neighbors in
-		let folder = (fun visited (neighb,neighb_t) -> update_linked_table_types neighb.link_id neighb.link_scope neighb_t visited) in
+		let folder = (fun visited (neighb,neighb_t) -> update_linked_table_types neighb.id neighb.scope neighb_t visited) in
 		List.fold_left folder visited (List.combine unvisited_neighbors new_neighbor_types)
 
 	in 
@@ -491,7 +492,8 @@ let rec check_expr env global_env = function
 		let el_typed = List.map (fun e -> (check_expr env global_env e)) el in
 		let (arg_exprs,arg_types) = List.split el_typed in
 		let typed_args = List.combine func_decl.params arg_types in
-		let func_env = {env with scope = {parent = None; variables = typed_args; update_table_links = []}} in
+		let func_env = {env with scope = {parent = None; variables = typed_args; update_table_links = []};
+								returns = []} in
 		let link_argument (arg,assignee) =
 			create_linkage_if_applicable arg 0 func_env.scope assignee env.scope
 		in
@@ -589,7 +591,12 @@ and check_stmt env global_env = function
     with Not_found -> (*valid function*)
       Func({fname = ""; params = []; body = []; return_type_promise = (fun () -> Int)}) (*This is not correct!*)
     )
-  | Ast.Return(e) -> Return(check_expr env global_env e)
+  | Ast.Return(e) -> 
+	(* TODO: this
+	let return_type_promise = in
+	env.returns<- return_type_promise::(env.returns)
+	*)
+	Return(check_expr env global_env e)
   | Ast.If(e, s1, s2) ->
     let (e, typ) = check_expr env global_env e in
     if typ != Int && typ != Double then raise (Failure("If statement does not support this type")) ;
@@ -636,7 +643,11 @@ let check_program p =
       parent = None;
       variables = [];
 	  update_table_links = []} in
-    let init_env = { scope = init_scope; return = None; func_decls = func_decls; is_pattern = false } in
+    let init_env = { scope = init_scope;
+					return = None;
+					func_decls = func_decls;
+					is_pattern = false;
+					returns = [] } in
     let global_env = { funcs = [] } in
 	let (begin_block, env) = match check_stmt init_env global_env p.Ast.begin_stmt with
 								Block(begin_block, env) -> begin_block, env
