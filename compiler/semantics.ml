@@ -605,7 +605,10 @@ and check_stmt env global_env = function
     let envT = { env with scope = scopeT} in
     let sl = List.map (fun s -> (check_stmt envT global_env s)) sl in envT.scope.variables <- List.rev scopeT.variables;
     Block (sl, envT)
-  | Ast.Expr(e) -> Expr(check_expr env global_env e)
+  | Ast.Expr(e) -> 
+  		(match e with 
+  		Assign(_) | TableAssign(_) | Call(_) -> Expr(check_expr env global_env e)
+  		| _ -> raise (Failure("Expression is not statement in Java")))
   | Ast.Empty -> Empty
   | Ast.Func(f) ->(
     try (*Test to see if user is trying to overwrite built-in function*)
