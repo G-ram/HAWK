@@ -404,6 +404,20 @@ let add_func_to_global_env global_env func_decl =
 	else
 		ignore (global_env.funcs <- func_decl::(global_env.funcs))
 
+let func_signature_exists global_env func_signature = 
+	let same_function_name = 
+		List.filter (fun func_sig -> ((fst func_sig) = (fst func_signature)))  global_env.func_signatures 
+	in
+	let same_signature_types = List.filter (fun func_sig -> (snd func_sig) = (snd func_signature)) same_function_name
+	in 
+	(match same_signature_types with
+		[] -> false
+		| _ -> true)
+
+let add_func_signature_to_global_env global_env func_signature = 
+	ignore (global_env.func_signatures <- (func_signature::(global_env.func_signatures)))
+
+(*let get_existing_func_decl fname el_types = *)
 
 (*
 Convert an AST expression to an SAST expression!
@@ -532,6 +546,9 @@ let rec check_expr env global_env = function
 		Some(func_decl) ->
 			let el_typed = List.map (fun e -> (check_expr env global_env e)) el in
 			let (arg_exprs,arg_types) = List.split el_typed in
+			let func_signature = (v, arg_types) in 
+			(*if func_signature_exists global_env func_signature then 
+				Call(get_existing_func_decl fname el_typed)*)
 			let typed_args = List.combine func_decl.params arg_types in
 			let func_env = {env with scope = {parent = None; variables = typed_args; update_table_links = []};
 									returns = ref [];
@@ -703,7 +720,7 @@ let check_program p =
 					is_pattern = false;
 					return_assigner = None;
 					returns = ref [] } in
-    let global_env = { funcs = [] } in
+    let global_env = { funcs = [] ; func_signatures = []} in
 	let (begin_block, env) = match check_stmt init_env global_env p.Ast.begin_stmt with
 								Block(begin_block, env) -> begin_block, env
 								| _ -> raise (Failure("begin is not a block")) in
