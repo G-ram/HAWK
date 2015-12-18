@@ -33,6 +33,19 @@ let rec find (scope : symbol_table) name =
 let assert_not_void typ err =
 	if typ = Void then
 		raise (Failure err)
+		
+let get_existing_func_decl global_env func_signature = 
+	let matches_signature func_decl =
+		let param_type_promises = List.map snd func_decl.params in
+		let param_types = List.map (fun promise -> promise ()) param_type_promises in
+		func_decl.fname = (fst func_signature) && param_types = (snd func_signature)
+	in
+	try 
+		let fdecl = List.find matches_signature global_env.funcs in
+		let return_type = (fdecl.return_type_promise ()) in
+		Some (fdecl,return_type)
+	with Not_found -> None
+
 (*
 if a variable is of type t1, can it be assigned to a variable of type t2?
 obviously if:
@@ -404,6 +417,7 @@ let add_func_to_global_env global_env func_decl =
 	else
 		ignore (global_env.funcs <- func_decl::(global_env.funcs))
 
+(*
 let func_signature_exists global_env func_signature = 
 	let same_function_name = 
 		List.filter (fun func_sig -> ((fst func_sig) = (fst func_signature)))  global_env.func_signatures 
@@ -416,6 +430,7 @@ let func_signature_exists global_env func_signature =
 
 let add_func_signature_to_global_env global_env func_signature = 
 	ignore (global_env.func_signatures <- (func_signature::(global_env.func_signatures)))
+*)
 
 (*let get_existing_func_decl fname el_types = *)
 
@@ -720,7 +735,7 @@ let check_program p =
 					is_pattern = false;
 					return_assigner = None;
 					returns = ref [] } in
-    let global_env = { funcs = [] ; func_signatures = []} in
+    let global_env = { funcs = []} in
 	let (begin_block, env) = match check_stmt init_env global_env p.Ast.begin_stmt with
 								Block(begin_block, env) -> begin_block, env
 								| _ -> raise (Failure("begin is not a block")) in

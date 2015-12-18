@@ -85,7 +85,6 @@ type func_signature = string * (t list)
 
 type global_environment = {
   mutable funcs: func_decl_t list;
-  mutable func_signatures: func_signature list
 }
 
 type pattern_action_t = Ast.pattern * stmt_t
