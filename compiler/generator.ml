@@ -174,7 +174,7 @@ and string_of_stmt stmt nested = match stmt with
 	Block(stmt_list, _) -> "{\n" ^ (string_of_stmt_list stmt_list nested) ^ "\n" ^ (string_for_indent (nested - 1)) ^ "}"
 	| Expr(expr) -> (string_for_indent nested) ^ (string_of_expr expr) ^ ";"
 	| Func(func_decl) -> ""
-	| Return(expr_promise) -> 
+	| Return(expr_promise) ->
 		let expr = (expr_promise ()) in
 		(string_for_indent nested) ^ "return " ^ (string_of_expr expr) ^ ";"
 	| If(expr, stmt1, stmt2) -> (match stmt2 with 
@@ -190,7 +190,7 @@ let string_of_begin_end block nested= match block with
   | _ -> ""
 
 let string_of_pattern pat = match pat with
-		Ast.CssPattern(css_selector) -> "for(String _this : _cssMatcher._match(\"" ^ (string_of_css_selector css_selector) ^"\"))"
+		Ast.CssPattern(css_selector) -> "for(_HAWKTable<String> _this : _cssMatcher._match(\"" ^ (string_of_css_selector css_selector) ^"\"))"
 		| Ast.RegexPattern(regex_seq) -> "for(String _this : _regexMatcher._match(\""^string_of_regex_sequence regex_seq^"\"))"
 
 let string_of_pattern_action nested (pattern,action) =

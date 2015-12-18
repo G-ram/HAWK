@@ -1,3 +1,6 @@
+/* passing http://www.wikicu.com/Srikar_Varadaraj */
 BEGIN{}
-[@.class@]{}
+[@#Basketball_Scouting_Report@]{
+    print(this);
+}
 END{}
