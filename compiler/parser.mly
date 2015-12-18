@@ -4,7 +4,7 @@
 
 %token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE
 %token PLUS MINUS TIMES DIVIDES MOD
-%token LT GT LEQ GEQ EQ NEQ
+%token LT GT LEQ GEQ EQ NEQ AND OR
 %token PERIOD ASSIGN HASH TILDE COMMA COLON PERIOD QUEST CARROT VERT
 %token FUN
 %token SEMI
@@ -31,6 +31,8 @@
 %nonassoc NOELSE
 %nonassoc ELSE
 %right ASSIGN
+%left AND
+%left OR
 %left EQ NEQ
 %left LT GT LEQ GEQ
 %left PLUS MINUS
@@ -77,6 +79,7 @@ stmt:
 	| WHILE LPAREN expr RPAREN stmt { While($3,$5) }
 	| FOR LPAREN ID IN ID RPAREN stmt { For($3,$5,$7) }
 	| FUN func_decl {Func($2)}
+	| SEMI {Empty}
 
 expr:
     table_literal {TableLiteral($1)}
@@ -97,6 +100,8 @@ expr_no_brace:
 	| expr_no_brace LEQ expr_no_brace {Binop($1,LessEqual,$3)}
 	| expr_no_brace GEQ expr_no_brace {Binop($1,GreaterEqual,$3)}
 	| expr_no_brace NEQ expr_no_brace {Binop($1,NotEqual,$3)}
+	| expr_no_brace AND expr_no_brace {Binop($1,BAnd,$3)}
+	| expr_no_brace OR expr_no_brace {Binop($1,BOr,$3)}
 	| ID ASSIGN expr {Assign($1,$3)}
 	| ID LPAREN expr_list RPAREN {Call($1,$3)}
 	| ID LPAREN  RPAREN {Call($1,[])}

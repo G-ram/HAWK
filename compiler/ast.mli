@@ -52,7 +52,7 @@ type pattern =
 (* Arithmetic Expressions *)
 type op = Plus | Minus | Divides | Times | Equal
             | Less | Greater | LessEqual | GreaterEqual
-            | NotEqual | Mod
+            | NotEqual | Mod | BAnd | BOr
 
 (* Table Literals *)
 type key_literal =
@@ -88,6 +88,7 @@ type stmt =
 	| If of expr * stmt * stmt
 	| While of expr * stmt
 	| For of string * string * stmt
+	| Empty
 and
 func_decl = {
 	fname : string;

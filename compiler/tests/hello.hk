@@ -1,11 +1,12 @@
 BEGIN{
-  table = {0,1,2};
-  print(table);
-  print("--------");
-  print(keys(table));
+    i = -1;
+    a = 5;
+    if(i <= 0 && a == 5){
+        i = 2;
+    }
+    else{
+        ;
+    }
+    print(i);
 }
-[/hey/]{
-  print(this);
-}
-END{
-}
+END{}

@@ -91,6 +91,8 @@ let string_of_op = function
 	| Ast.LessEqual ->  " <= "
 	| Ast.Greater ->  " > "
 	| Ast.GreaterEqual ->  " >= "
+  | Ast.BAnd -> " && "
+  | Ast.BOr -> " || "
 
 let string_of_key_literal = function
 	Ast.IntKey(key) -> string_of_int key
@@ -179,6 +181,7 @@ and string_of_stmt stmt nested = match stmt with
 		| Block([], _)  -> (string_for_indent nested) ^ "if(_checkIf(" ^ (string_of_expr expr) ^ "))" ^ (string_of_stmt stmt1 nested)
 		| _ -> (string_for_indent nested) ^ "if(_checkIf(" ^ (string_of_expr expr) ^ "))" ^ (string_of_stmt stmt1 nested) ^ "else" ^ (string_of_stmt stmt2 nested))
 	| While(expr, stmt) -> (string_for_indent nested) ^ "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt (nested + 1))
+  | Empty -> ""
 	| For(key_id, table_id, stmt) ->
 		(string_for_indent nested) ^ "for(String " ^ key_id ^ " : " ^ table_id ^ ".getKeys())" ^ (string_of_stmt stmt nested)
 

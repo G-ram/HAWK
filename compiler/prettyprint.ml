@@ -78,6 +78,8 @@ let string_of_op = function
 	| LessEqual ->  " <= "
 	| Greater ->  " > "
 	| GreaterEqual ->  " >= "
+	| BAnd -> " && "
+	| BOr -> " || "
 
 let string_of_key_literal = function
 	IntKey(key) -> string_of_int key
@@ -105,9 +107,9 @@ and string_of_expr_list = function
 	| [hd] -> string_of_expr hd
 	| hd::tl -> (string_of_expr hd) ^ ", " ^ string_of_expr_list tl
 and
-string_of_table_indices indices = 
+string_of_table_indices indices =
 	let e_strings =  (List.map (fun e -> "[" ^ (string_of_expr e) ^ "]") indices) in
-	(String.concat "" e_strings) 
+	(String.concat "" e_strings)
 and
 string_of_expr = function
 	Id(id) -> id
@@ -123,7 +125,7 @@ string_of_expr = function
 	| TableAssign(table_id, e_list, e_assignee) ->
 		let bracket_part = string_of_table_indices e_list in
 		table_id ^ bracket_part ^ "=" ^ (string_of_expr e_assignee)
-		
+
 
 let rec string_of_func_decl func_decl  =
 	func_decl.fname ^ "(" ^ (String.concat "," func_decl.params) ^ ")" ^ (string_of_stmt_list func_decl.body)
@@ -139,6 +141,7 @@ and string_of_stmt = function
 	| If(expr, stmt1, stmt2) -> "if(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt1) ^ "else" ^ (string_of_stmt stmt2)
 	| While(expr, stmt) -> "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt)
 	| For(str1, str2, stmt) -> "for(" ^ str1 ^ " in " ^ str2 ^ ")" ^ (string_of_stmt stmt)
+	| Empty -> ""
 
 let string_of_pattern pat =
 	let inner_pat = match pat with
