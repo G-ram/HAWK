@@ -240,6 +240,23 @@ let find_return_type func_body =
 
 (*Find all return types of a statement 
 if a block, recursively search through sub-statements *)
+let is_return_stmt = function 
+		Return(_) -> true
+		| _ -> false 	
+
+let has_outer_return stmt_list = 
+	List.exists is_return_stmt stmt_list
+
+let rec has_valid_if_return = function
+	[] -> false
+	| (If(_, s1, s2))::tl -> 
+		let stmt_lst1 = match s1 with Block(sl,_) -> sl in 
+		let stmt_lst2 = match s2 with Block(sl2,_) -> sl2 in 
+		((has_outer_return stmt_lst1) && (has_outer_return stmt_lst2)) || (has_valid_if_return tl)
+	| _::tl -> has_valid_if_return tl
+
+(*Find all return types of a statement 
+if a block, recursively search through sub-statements *)
 let rec get_all_return_type_promises scope = function
 	Return(expr,t) -> 
 		(match get_identifier_expr_info expr with
@@ -260,6 +277,7 @@ Just as with assignment, we may not know the return type of a function in advanc
 Assuming scope is available, this function will give you the proper return type
 *)
 let get_return_type_promise scope func_body = 
+	let stmt_list = match func_body with Block(sl, _) -> sl in 
 	let all_return_type_promises = get_all_return_type_promises scope func_body in
 	let get_return_type () =
 		let all_return_types = List.map (fun f -> f () ) all_return_type_promises in
@@ -267,7 +285,12 @@ let get_return_type_promise scope func_body =
 			[] -> Void
 			| type_list ->
 				if (Util.all_the_same type_list) then
+				if has_outer_return stmt_list then 
 					(List.hd type_list)
+				else 
+				if has_valid_if_return stmt_list then 
+					(List.hd type_list)
+				else raise (Failure "Invalid return type")
 				else
 					raise (Failure "Inconsistent return types in user defined function.")
 	in get_return_type

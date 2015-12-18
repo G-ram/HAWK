@@ -3,8 +3,8 @@ BEGIN {
 		if(a==2){
 			return a + b;
 		}
-		if (a== 3){
-			return a-b;
+		else{
+			return 3;
 		}
     }
     x = f(2, 4);
