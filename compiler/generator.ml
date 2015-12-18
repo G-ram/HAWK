@@ -202,8 +202,9 @@ let string_of_file file nested =
       close_in ic;
   !file_string
 
- let string_of_typed_param param =
- 	(type_to_str (snd param)) ^ " " ^ (fst param)
+ let string_of_typed_param (name,type_promise) =
+	let type_str = type_to_str (type_promise ()) in
+ 	type_str ^ " " ^ name
 
  let string_of_user_func nested func_decl =
  	(string_for_indent nested) ^ "public static " ^ (type_to_str (func_decl.return_type_promise ()))
