@@ -251,16 +251,21 @@ let is_return_stmt = function
 		Return(_) -> true
 		| _ -> false 	
 
-let has_outer_return stmt_list = 
-	List.exists is_return_stmt stmt_list
+let rec num_outer_returns = function 
+	[] -> 0
+	| stmt::tl -> if is_return_stmt stmt 
+				  then 1 + (num_outer_returns tl)
+				  else num_outer_returns tl
 
-let rec has_valid_if_return = function
-	[] -> false
+let rec num_valid_if_returns = function
+	[] -> 0
 	| (If(_, s1, s2))::tl -> 
 		let stmt_lst1 = match s1 with Block(sl,_) -> sl in 
 		let stmt_lst2 = match s2 with Block(sl2,_) -> sl2 in 
-		((has_outer_return stmt_lst1) && (has_outer_return stmt_lst2)) || (has_valid_if_return tl)
-	| _::tl -> has_valid_if_return tl
+		if ((num_outer_returns stmt_lst1) = 1) && ((num_outer_returns stmt_lst2) = 1) 
+		then 1 + (num_valid_if_returns tl) 
+		else num_valid_if_returns tl
+	| _::tl -> num_valid_if_returns tl
 
 (*Find all return types of a statement 
 if a block, recursively search through sub-statements *)
@@ -292,10 +297,8 @@ let get_return_type_promise scope func_body =
 			[] -> Void
 			| type_list ->
 				if (Util.all_the_same type_list) then
-				if has_outer_return stmt_list then 
-					(List.hd type_list)
-				else 
-				if has_valid_if_return stmt_list then 
+				let num_valids = num_valid_if_returns stmt_list + num_outer_returns stmt_list in 
+				if num_valids == 1 then 
 					(List.hd type_list)
 				else raise (Failure "Invalid return type")
 				else
