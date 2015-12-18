@@ -508,7 +508,6 @@ let rec check_expr env global_env = function
 	match func_decl with
 		(* Function declaration found among user functions*)
 		Some(func_decl) ->
-			let func_decl = List.assoc v env.func_decls in
 			let el_typed = List.map (fun e -> (check_expr env global_env e)) el in
 			let (arg_exprs,arg_types) = List.split el_typed in
 			let typed_args = List.combine func_decl.params arg_types in
