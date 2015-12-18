@@ -1,18 +1,5 @@
-BEGIN{
-
-    a = "hello";
-    b = "hello";
-    print(charAt(a,2));
-    i = 0;
-    if(stringEqual(a,b)){
-        i = 2;
-    }
-    else{
-    }
-    print(i);
-
+BEGIN{}
+[@a[href*="http://www.wikicu.com/Main_Page"]@]{
+    print(this);
 }
-/*[@#Basketball_Scouting_Report@]{
-  print(this);
-}*/
 END{}

@@ -1,5 +1,10 @@
 open Sast
 
+let strip_quotes str =
+  match String.length str with
+  | 0 | 1 | 2 -> ""
+  | len -> String.sub str 1 (len - 2)
+
 let rec type_to_str = function
   Int -> "int"
   | Double -> "double"
@@ -53,12 +58,12 @@ and string_of_regex_sequence seq = String.concat "" (List.map string_of_regex se
 let string_of_property prop = match prop with
 	|Ast.ClassMatch(s) -> "." ^ s
 	|Ast.IdMatch(s) -> "#" ^s
-	| Ast.AttributeExists(str) -> "[" ^ str ^ "]"
-	| Ast.AttributeEquals(attr,str) -> "[" ^ attr ^ "=" ^ str ^ "]"
-	| Ast.AttributeContains(attr,str) -> "[" ^ attr ^ "*=" ^ str ^ "]"
-	| Ast.AttributeBeginsWith(attr,str) -> "[" ^ attr ^ "^=" ^ str ^ "]"
-	| Ast.AttributeEndsWith(attr,str) -> "[" ^ attr ^ "$=" ^ str ^ "]"
-	| Ast.AttributeWhitespaceContains(attr,str) -> "[" ^ attr ^ "~=" ^ str ^ "]"
+	| Ast.AttributeExists(str) -> "[" ^ (strip_quotes str) ^ "]"
+	| Ast.AttributeEquals(attr, str) -> "[" ^ attr ^ "=" ^ (strip_quotes str) ^ "]"
+	| Ast.AttributeContains(attr,str) -> "[" ^ attr ^ "*=" ^ (strip_quotes str) ^ "]"
+	| Ast.AttributeBeginsWith(attr,str) -> "[" ^ attr ^ "^=" ^ (strip_quotes str) ^ "]"
+	| Ast.AttributeEndsWith(attr,str) -> "[" ^ attr ^ "$=" ^ (strip_quotes str) ^ "]"
+	| Ast.AttributeWhitespaceContains(attr,str) -> "[" ^ attr ^ "~=" ^ (strip_quotes str) ^ "]"
 
 let string_of_type_selector = function
 	|Ast.Elt(str) -> str
