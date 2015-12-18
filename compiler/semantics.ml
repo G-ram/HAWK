@@ -248,25 +248,37 @@ let find_return_type func_body =
 
 (*Find all return types of a statement 
 if a block, recursively search through sub-statements *)
-let is_return_stmt = function 
-		Return(_) -> true
-		| _ -> false 	
-
-let rec num_outer_returns = function 
-	[] -> 0
-	| stmt::tl -> if is_return_stmt stmt 
-				  then 1 + (num_outer_returns tl)
-				  else num_outer_returns tl
-
-let rec num_valid_if_returns = function
-	[] -> 0
-	| (If(_, s1, s2))::tl -> 
-		let stmt_lst1 = match s1 with Block(sl,_) -> sl in 
-		let stmt_lst2 = match s2 with Block(sl2,_) -> sl2 in 
-		if ((num_outer_returns stmt_lst1) = 1) && ((num_outer_returns stmt_lst2) = 1) 
-		then 1 + (num_valid_if_returns tl) 
-		else num_valid_if_returns tl
-	| _::tl -> num_valid_if_returns tl
+let rec is_guaranteed_if_return valid = function
+	If(_,Return(_),Return(_)) -> true
+	| If(_,Return(_),Block(sl,_))  -> is_guaranteed_block_return valid sl
+	| If(_,Block (sl,_), Return(_)) -> is_guaranteed_block_return valid sl
+	| If(_,Return(_),If(a,b,c)) -> is_guaranteed_if_return valid (If(a,b,c))
+	| If(_,If(a,b,c) ,Return(_)) -> is_guaranteed_if_return valid (If(a,b,c))
+	| If(_,If (a,b,c),If (d,e,f)) -> is_guaranteed_if_return valid (If(a,b,c)) && is_guaranteed_if_return valid (If(d,e,f))
+	| If(_,Block (sl,_),Block (sl',_)) -> is_guaranteed_block_return valid sl && is_guaranteed_block_return valid sl'
+	| If(_,If(a,b,c),Block (sl,_)) -> is_guaranteed_if_return valid (If(a,b,c)) && is_guaranteed_block_return valid sl
+	| If(_,Block (sl,_),If(a,b,c)) -> is_guaranteed_if_return valid (If(a,b,c)) && is_guaranteed_block_return valid sl
+	| If(_,_,_) -> false
+and is_guaranteed_block_return valid = function 
+	[] -> valid
+	| hd::tl -> 
+		match hd with 
+			Return(_) -> (match tl with 
+						 [] -> true
+						 | _ -> false)
+			| If (a,b,c) -> 
+				let valid_if = is_guaranteed_if_return valid (If(a,b,c)) in 
+				if valid_if then (match tl with 
+								  [] -> true
+								| _ -> false)
+				else is_guaranteed_block_return valid tl
+			| Block(sl, _) -> 
+				let valid_block = (is_guaranteed_block_return valid sl) in 
+				if valid_block then (match tl with 
+									 [] -> true
+									| _ -> false) 
+				else is_guaranteed_block_return valid tl
+			| _ -> is_guaranteed_block_return valid tl
 
 (*Find all return types of a statement 
 if a block, recursively search through sub-statements *)
@@ -298,8 +310,7 @@ let get_return_type_promise scope func_body =
 			[] -> Void
 			| type_list ->
 				if (Util.all_the_same type_list) then
-				let num_valids = num_valid_if_returns stmt_list + num_outer_returns stmt_list in 
-				if num_valids == 1 then 
+				if (is_guaranteed_block_return false stmt_list) then 
 					(List.hd type_list)
 				else raise (Failure "Invalid return type")
 				else
