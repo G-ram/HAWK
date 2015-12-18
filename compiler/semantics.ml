@@ -4,7 +4,7 @@ type b_arg_types = BAny | BTable | BString | BInt
 
 (*Built-in functions and their types*)
 let built_in = [("print", [BAny], Int); ("exists", [BAny], Int);
-                ("length", [BTable], Int); ("keys", [BTable], Int);
+                ("length", [BTable], Int); ("keys", [BTable], Table(String));
                 ("children", [BTable], String); ("inner_html", [BTable], String);
                 ("charAt", [BString; BInt], String); ("stringEqual", [BString; BString], Int);]
 
@@ -165,17 +165,17 @@ let rec retype_empty_table_literal table_literal new_table_type =
 				| _ -> old_e)
 			in
 			(key, (new_e,inner_t))::(retype_empty_table_literal tail new_table_type)
-		
+
 let get_table_literal_promise assigner tl =
 	let promise () =
-		let (_,new_t) = (find assigner.assign_scope assigner.id ) in 
+		let (_,new_t) = (find assigner.assign_scope assigner.id ) in
 		let nested_t = apply_nesting (new_t,(-assigner.nesting)) in
 		let new_tl = retype_empty_table_literal tl nested_t in
 		TableLiteral(new_tl),new_t
 	in promise
-	
-(* 
-Return a promise which will return 
+
+(*
+Return a promise which will return
 a SAST expression given our current knowledge of symbol tables
 Once the semantics stage has completed this promise will give us our best
 possible understanding of an expression
@@ -194,16 +194,16 @@ let get_expression_promise assigner assignee_e assignee_type assignee_scope =
 				Some(id,nesting) -> get_id_based_expr_promise id assignee_scope nesting assignee_e
 				| None -> raise (Failure "We shouldn't be here")
 			)
-		| TableLiteral(tl) -> 
+		| TableLiteral(tl) ->
 			(
-			match assigner with 
+			match assigner with
 				(* At this point we're out of luck, but since its a truly empty table with no references
 				to non-empties, it shouldn't matter *)
-				None -> noop_promise 
+				None -> noop_promise
 				| Some (assigner) -> get_table_literal_promise assigner tl
 			)
 		| _  -> raise (Failure "This type of expression should not yield an empty table.")
-		
+
 (*  Consider a statement like
 a = {}
 this should be deferred... we don't know how to construct 'a' until we know it's type
@@ -303,12 +303,12 @@ and is_guaranteed_block_return valid = function
 			| _ -> is_guaranteed_block_return valid tl
 
 
-(* 
+(*
 Just as with assignment, we may not know the return type of a function in advance due to empty tables.
 Assuming scope is available, this function will give you the proper return type
 *)
-let get_return_type_promise func_body env = 
-	let stmt_list = match func_body with Block(sl, _) -> sl in 
+let get_return_type_promise func_body env =
+	let stmt_list = match func_body with Block(sl, _) -> sl in
 	let all_return_type_promises = !(env.returns) in
 	let get_return_type () =
 		let all_return_types = List.map (fun f -> f () ) all_return_type_promises in
@@ -617,8 +617,8 @@ and check_stmt env global_env = function
     let envT = { env with scope = scopeT} in
     let sl = List.map (fun s -> (check_stmt envT global_env s)) sl in envT.scope.variables <- List.rev scopeT.variables;
     Block (sl, envT)
-  | Ast.Expr(e) -> 
-  		(match e with 
+  | Ast.Expr(e) ->
+  		(match e with
   		Assign(_) | TableAssign(_) | Call(_) -> Expr(check_expr env global_env e)
   		| _ -> raise (Failure("Expression is not statement in Java")))
   | Ast.Empty -> Empty
@@ -629,15 +629,15 @@ and check_stmt env global_env = function
     with Not_found -> (*valid function*)
       Func({fname = ""; params = []; body = []; return_type_promise = (fun () -> Int)}) (*This is not correct!*)
     )
-  | Ast.Return(e) -> 
+  | Ast.Return(e) ->
 	let (return_e,return_t) as return_expr = check_expr env global_env e in
-	let expr_promise = match env.return_assigner with 
-		None -> 
-			get_expression_promise None return_e return_t env.scope 
-		| Some(assigner) as assgn -> 
+	let expr_promise = match env.return_assigner with
+		None ->
+			get_expression_promise None return_e return_t env.scope
+		| Some(assigner) as assgn ->
 			create_linkage_if_applicable assigner.id assigner.nesting assigner.assign_scope return_e env.scope;
-			get_expression_promise assgn return_e return_t env.scope 
-	in 
+			get_expression_promise assgn return_e return_t env.scope
+	in
 	let return_type_promise = fun () -> (snd (expr_promise ())) in
 	env.returns:= return_type_promise::!(env.returns);
 	Return(expr_promise)
