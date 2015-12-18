@@ -562,8 +562,9 @@ let rec check_expr env global_env = function
 			let el_typed = List.map (fun e -> (check_expr env global_env e)) el in
 			let (arg_exprs,arg_types) = List.split el_typed in
 			let func_signature = (v, arg_types) in 
-			(*if func_signature_exists global_env func_signature then 
-				Call(get_existing_func_decl fname el_typed)*)
+			match get_existing_func_decl global_env func_signature with
+			Some(decl, return_type) -> Call((decl, el_typed)), return_type 
+			| None -> 
 			let typed_args = List.combine func_decl.params arg_types in
 			let func_env = {env with scope = {parent = None; variables = typed_args; update_table_links = []};
 									returns = ref [];
