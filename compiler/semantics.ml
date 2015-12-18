@@ -164,6 +164,46 @@ let rec retype_empty_table_literal table_literal new_table_type =
 			in
 			(key, (new_e,inner_t))::(retype_empty_table_literal tail new_table_type)
 		
+		
+let get_table_literal_promise assigner tl =
+	let promise () =
+		let (_,new_t) = (find assigner.assign_scope assigner.id ) in 
+		let nested_t = apply_nesting (new_t,(-assigner.nesting)) in
+		let new_tl = retype_empty_table_literal tl nested_t in
+		TableLiteral(new_tl),new_t
+	in promise
+	
+(* 
+Return a promise which will return 
+a SAST expression given our current knowledge of symbol tables
+
+Once the semantics stage has completed this promise will give us our best
+possible understanding of an expression
+*)
+let get_expression_promise assigner assignee_e assignee_type assignee_scope =
+	let is_et = (is_empty_table_container assignee_type) in
+	let id_info = get_identifier_expr_info assignee_e in
+	let noop_promise = (fun () -> assignee_e,assignee_type) in
+	match assignee_e with
+		_ when (not is_et) ->
+			(* If we're not dealing with an empty table, the expression and type should not change *)
+			noop_promise
+		| _ when id_info <> None ->
+			(match id_info with 
+				(*TODO: use assignee_scope instead *)
+				Some(id,nesting) -> get_id_based_expr_promise id assignee_scope nesting assignee_e
+				| None -> raise (Failure "We shouldn't be here")
+			)
+		| TableLiteral(tl) -> 
+			(
+			match assigner with 
+				(* At this point we're out of luck, but since its a truly empty table with no references
+				to non-empties, it shouldn't matter *)
+				None -> noop_promise 
+				| Some (assigner) -> get_table_literal_promise assigner tl
+			)
+		| _  -> raise (Failure "This type of expression should not yield an empty table.")
+		
 (*  Consider a statement like
 a = {}
 this should be deferred... we don't know how to construct 'a' until we know it's type
@@ -177,26 +217,8 @@ this promise will return the correct type of expressions of this sort,
 assuming the symbol table has been filled out properly
 *)
 let get_assignment_expression_promise assigner assignee_e assignee_type =
-	let is_et = (is_empty_table_container assignee_type) in
-	let id_info = get_identifier_expr_info assignee_e in
-	match assignee_e with
-		_ when (not is_et) ->
-			(* If we're not dealing with an empty table, the expression and type should not change *)
-			(fun () -> assignee_e,assignee_type)
-		| _ when id_info <> None ->
-			(match id_info with 
-				(*TODO: use assignee_scope instead *)
-				Some(id,nesting) -> get_id_based_expr_promise id assigner.assign_scope nesting assignee_e
-				| None -> raise (Failure "We shouldn't be here")
-			)
-		| TableLiteral(tl) -> 
-			(fun () ->
-				let (_,new_t) = (find assigner.assign_scope assigner.id ) in 
-				let nested_t = apply_nesting (new_t,(-assigner.nesting)) in
-				let new_tl = retype_empty_table_literal tl nested_t in
-				TableLiteral(new_tl),new_t
-			)
-		| _  -> raise (Failure "This type of expression should not yield an empty table.")
+	get_expression_promise (Some assigner) assignee_e assignee_type assigner.assign_scope
+
 
 (* Update the type of a table variable within a given symbol scope
 Need to ensure that table update links are respected *)
@@ -223,7 +245,7 @@ let rec update_table_type sym_tab table_id new_type =
 (*Find all return types of a statement 
 if a block, recursively search through sub-statements *)
 let rec find_all_return_types = function
-	Return(_,t) -> [t]
+	Return(promise) -> [(snd (promise () ))]
 	| Block(sl,_) -> List.concat (List.map find_all_return_types sl)
 	| If(_,s1,s2) -> 
 		(* For if *)
@@ -282,7 +304,9 @@ and is_guaranteed_block_return valid = function
 
 (*Find all return types of a statement 
 if a block, recursively search through sub-statements *)
-let rec get_all_return_type_promises scope = function
+
+(*
+let rec get_all_return_type_promises env = function
 	Return(expr,t) -> 
 		(match get_identifier_expr_info expr with
 			Some(id,nesting) -> 
@@ -296,14 +320,15 @@ let rec get_all_return_type_promises scope = function
 	| While(_, stmt) -> (get_all_return_type_promises scope stmt)
 	| For(_,_,stmt) -> (get_all_return_type_promises scope stmt)
 	| _ -> []
+*)
 	
 (* 
 Just as with assignment, we may not know the return type of a function in advance due to empty tables.
 Assuming scope is available, this function will give you the proper return type
 *)
-let get_return_type_promise scope func_body = 
+let get_return_type_promise func_body env = 
 	let stmt_list = match func_body with Block(sl, _) -> sl in 
-	let all_return_type_promises = get_all_return_type_promises scope func_body in
+	let all_return_type_promises = !(env.returns) in
 	let get_return_type () =
 		let all_return_types = List.map (fun f -> f () ) all_return_type_promises in
 		match all_return_types with
@@ -316,6 +341,7 @@ let get_return_type_promise scope func_body =
 				else
 					raise (Failure "Inconsistent return types in user defined function.")
 	in get_return_type
+
 	
 
 let is_table = function
@@ -411,6 +437,11 @@ let rec check_expr env global_env = function
     let (v, typ) = vdecl in
     Id(v), typ
   | Ast.TableAssign(table_id, index_list, e) -> (*TODO: MAKE THIS SHIT MORE LIKE ASSIGN WITH TABLE LINX AND SHIT *)
+	let nesting = (List.length index_list) in
+	let assignee_env = match e with
+		Call(_) -> {env with return_assigner=(Some {id=table_id;assign_scope=env.scope;nesting=nesting}) }
+		| _ -> env
+	in
 	let (assignee_e, assignee_type) as assignee = check_expr env global_env e in
 	assert_not_void assignee_type "Can't assign void to a table (or anything for that matter).";
 	let indices_sast = check_table_indices env global_env index_list in
@@ -418,7 +449,6 @@ let rec check_expr env global_env = function
       find env.scope table_id
     with Not_found ->
       raise (Failure("undeclared table identifier " ^ table_id)) in
-	let nesting = (List.length indices_sast) in
 	let assign_info = {id=table_id;assign_scope=env.scope;nesting=nesting} in
 	let expr_promise = get_assignment_expression_promise assign_info assignee_e assignee_type in
 	(* Most nested part of *)
@@ -450,7 +480,11 @@ let rec check_expr env global_env = function
 
 		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
   | Ast.Assign(v, assignee) ->
-    let (assignee_e, assignee_type) as assignee = check_expr env global_env assignee in
+	let assignee_env = match assignee with
+		Call(_) -> {env with return_assigner= (Some {id=v;assign_scope=env.scope;nesting=0}) }
+		| _ -> env
+	in
+    let (assignee_e, assignee_type) as assignee = check_expr assignee_env global_env assignee in
 	let assign_info = {id=v;assign_scope=env.scope;nesting=0} in
 	let expr_promise = get_assignment_expression_promise assign_info assignee_e assignee_type in
 	assert_not_void assignee_type "Can't assign void to a variable.";
@@ -512,14 +546,16 @@ let rec check_expr env global_env = function
 			let (arg_exprs,arg_types) = List.split el_typed in
 			let typed_args = List.combine func_decl.params arg_types in
 			let func_env = {env with scope = {parent = None; variables = typed_args; update_table_links = []};
-									returns = []} in
+									returns = ref [];
+									return_assigner = None} in
 			let link_argument (arg,assignee) =
 				create_linkage_if_applicable arg 0 func_env.scope assignee env.scope
 			in
 			(*Make sure that if any empty tables are passed in, proper type inference is done with them *)
 			List.iter link_argument (List.combine func_decl.params arg_exprs);
 			let func_body = check_stmt func_env global_env (Ast.Block func_decl.body) in
-			let return_type_promise = get_return_type_promise func_env.scope func_body in
+			print_string ("IN CALL: size of return list is " ^ (string_of_int (List.length !(func_env.returns))) ^ "\n");
+			let return_type_promise = get_return_type_promise func_body func_env in (*func_env.scope func_body in*)
 			(*TODO: find some way to link this with assignment as well *)
 			let initial_return_type = (return_type_promise ()) in
 			(
@@ -614,11 +650,18 @@ and check_stmt env global_env = function
       Func({fname = ""; params = []; body = []; return_type_promise = (fun () -> Int)}) (*This is not correct!*)
     )
   | Ast.Return(e) -> 
-	(* TODO: this
-	let return_type_promise = in
-	env.returns<- return_type_promise::(env.returns)
-	*)
-	Return(check_expr env global_env e)
+	let (return_e,return_t) as return_expr = check_expr env global_env e in
+	let expr_promise = match env.return_assigner with 
+		None -> 
+			get_expression_promise None return_e return_t env.scope 
+		| Some(assigner) as assgn -> 
+			create_linkage_if_applicable assigner.id assigner.nesting assigner.assign_scope return_e env.scope;
+			get_expression_promise assgn return_e return_t env.scope 
+	in 
+	let return_type_promise = fun () -> (snd (expr_promise ())) in
+	env.returns:= return_type_promise::!(env.returns);
+	print_string ("IN RETURN: size of return list is " ^ (string_of_int (List.length !(env.returns))) ^ "\n");
+	Return(expr_promise)
   | Ast.If(e, s1, s2) ->
     let (e, typ) = check_expr env global_env e in
     if typ != Int && typ != Double then raise (Failure("If statement does not support this type")) ;
@@ -669,7 +712,8 @@ let check_program p =
 					return = None;
 					func_decls = func_decls;
 					is_pattern = false;
-					returns = [] } in
+					return_assigner = None;
+					returns = ref [] } in
     let global_env = { funcs = [] } in
 	let (begin_block, env) = match check_stmt init_env global_env p.Ast.begin_stmt with
 								Block(begin_block, env) -> begin_block, env
