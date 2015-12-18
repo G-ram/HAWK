@@ -622,13 +622,10 @@ and check_stmt env global_env = function
   		Assign(_) | TableAssign(_) | Call(_) -> Expr(check_expr env global_env e)
   		| _ -> raise (Failure("Expression is not statement in Java")))
   | Ast.Empty -> Empty
-  | Ast.Func(f) ->(
-    try (*Test to see if user is trying to overwrite built-in function*)
-      ignore(find_built_in f.Ast.fname BAny) ;
-      raise (Failure("function is overwrites built-in function " ^ f.Ast.fname))
-    with Not_found -> (*valid function*)
-      Func({fname = ""; params = []; body = []; return_type_promise = (fun () -> Int)}) (*This is not correct!*)
-    )
+  | Ast.Func(f) ->
+	(* This is handled elsewhere, we don't need to worry about it here 
+	below is basically a no-op *)
+    Block([],env)
   | Ast.Return(e) -> 
 	let (return_e,return_t) as return_expr = check_expr env global_env e in
 	let expr_promise = match env.return_assigner with 
