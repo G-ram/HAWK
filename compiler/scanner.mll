@@ -11,13 +11,12 @@ let digits = ['0' - '9']+
 let signed_int = ['+' '-']? digits
 let decimal = ['+' '-']? (digits '.' ['0'-'9']* | '.' digits) (['e' 'E'] signed_int)?
 let id = ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*
-let css_id = ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '-' '_']*
+let css_id = ['a'-'z' 'A'-'Z'] ['a'-'z' 'A'-'Z' '0'-'9' '_' '-' ]*
 
 (*Rules for converting buf to tokens*)
 rule token pat = parse
 	[' ' '\t' '\r' '\n'] {token pat lexbuf}
 	| "/*"     { comment pat lexbuf }
-	| '.' {PERIOD}
 	| '[' {LBRACK} | ']' {RBRACK}
 	| '{' {LBRACE} | '}' {RBRACE}
 	| '(' {LPAREN} | ')' {RPAREN}
@@ -30,7 +29,6 @@ rule token pat = parse
 	| "while" {WHILE} | "for" {FOR}
 	| "this" {THIS}
 	| "return" {RETURN}
-	| '~' {TILDE}
 	| '<' {LT} | '>' {GT} | "==" {EQ} | ">=" {GEQ} | "<=" {LEQ} | "&&" {AND} | "||" {OR}
 	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '/' {DIVIDES} | '=' {ASSIGN} | '%' {MOD}
 	| "[/" {pat := REGEX ; LBRACK_FSLASH}
@@ -58,16 +56,20 @@ because regex expressions are more general than ID and are not strings.*)
 		| [^'"' '/' '.' '?' '|' '^' ']' '[' '(' ')' '-' '\\' '$' '*'] as lxm {REGEX_STRING((Char.escaped lxm))}
 		
 and css_scan pat = parse
-	"@]" {pat:= NO; AMP_RBRACK} 
+	[' ' '\t' '\r' '\n'] {css_scan pat lexbuf}
+	| "@]" {pat:= NO; AMP_RBRACK} 
 	| '(' {LPAREN} | ')' {RPAREN}
-	| id as lxm {ID(lxm)}
 	| css_id as lxm { CSSID(lxm) }
+	| id as lxm { ID(lxm)}
 	| '[' {LBRACK} | ']' {RBRACK}
 	| '(' {LPAREN} | ')' {RPAREN}
 	| '<' {LT} | '>' {GT} 
+	| '~' {TILDE}
 	| '#' {HASH}
-	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '=' {ASSIGN} 
+	| '+' {PLUS} | '*' {TIMES} | '=' {ASSIGN} 
 	| "*=" {TIMES_EQ} | "^=" {XOR_EQ} | "$=" {DOLLAR_EQ} | "~=" {TILDE_EQ}
+	| '"' [^ '"']+ '"' as lxm {STRING(lxm)}
+	| '.' {PERIOD}
 	| ',' {COMMA}
 	
 (*The function to get the next token; checks to see if it is scanning a regex pattern block*)
