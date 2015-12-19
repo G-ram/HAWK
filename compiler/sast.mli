@@ -1,6 +1,8 @@
-type t = Int | String | Double | Table of t | EmptyTable | Void
+type t = Int | String | Double | Table of t | EmptyTable | Void | UnknownReturn
+
 type type_promise = unit -> t
 
+type func_signature = string * (t list) 
 
 (*update_table_link represents table variables that a given variable is implicity attached to
 consider this code:
@@ -55,6 +57,7 @@ and expr_det =
   |Binop of expr_t * Ast.op * expr_t
   |Uminus of expr_t
   |Call of func_decl_t * (expr_t list) (* function, parameters *)
+  |CallStub of func_signature * (expr_t list)
   |BCall of string * (expr_t list) (* built-in function name, parameters *)
   |TableAccess of string * (expr_t list)
 and expr_t = expr_det * t
@@ -81,10 +84,9 @@ and stmt_t =
 	return_type_promise : type_promise
   }
 
-type func_signature = string * (t list) 
-
 type global_environment = {
   mutable funcs: func_decl_t list;
+  mutable func_signatures: (func_signature * t) list;
 }
 
 type pattern_action_t = Ast.pattern * stmt_t

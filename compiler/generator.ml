@@ -149,6 +149,7 @@ string_of_expr = function
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
 	| BCall(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
 	| Call(fdecl, expr_list), _ -> fdecl.fname ^ "(" ^ string_of_expr_list expr_list ^ ")"
+	| CallStub(func_sig,expr_list),_ -> (fst func_sig) ^ "(" ^ string_of_expr_list expr_list ^ ")"
 	| TableAccess(table_id, ind_list), _ ->
 		table_id ^ (String.concat "" (List.map string_of_get_index_expr ind_list))
 	| TableAssign(table_id,ind_list,expr_promise), t ->
