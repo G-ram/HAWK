@@ -216,13 +216,17 @@ property_selector_list:
 	property_selector { [$1]}
 	| property_selector property_selector_list { $1::$2}
 
+css_id:
+	CSSID {$1}
+	| ID {$1}
+	
 property_selector:
-	PERIOD CSSID {ClassMatch($2)}
-	| HASH CSSID {IdMatch($2)}
-	| LBRACK CSSID RBRACK {AttributeExists($2)}
-	| LBRACK CSSID ASSIGN STRING RBRACK {AttributeEquals($2,$4)}
-	| LBRACK CSSID TIMES_EQ STRING RBRACK {AttributeContains($2,$4)}
-	| LBRACK CSSID XOR_EQ STRING RBRACK {AttributeBeginsWith($2,$4)}
-	| LBRACK CSSID DOLLAR_EQ STRING RBRACK {AttributeEndsWith($2,$4)}
-	| LBRACK CSSID TILDE_EQ STRING RBRACK {AttributeWhitespaceContains($2,$4)}
+	PERIOD css_id {ClassMatch($2)}
+	| HASH css_id {IdMatch($2)}
+	| LBRACK css_id RBRACK {AttributeExists($2)}
+	| LBRACK css_id ASSIGN STRING RBRACK {AttributeEquals($2,$4)}
+	| LBRACK css_id TIMES_EQ STRING RBRACK {AttributeContains($2,$4)}
+	| LBRACK css_id XOR_EQ STRING RBRACK {AttributeBeginsWith($2,$4)}
+	| LBRACK css_id DOLLAR_EQ STRING RBRACK {AttributeEndsWith($2,$4)}
+	| LBRACK css_id TILDE_EQ STRING RBRACK {AttributeWhitespaceContains($2,$4)}
 /*end of CSS selector stuff */
