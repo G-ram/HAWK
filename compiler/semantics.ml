@@ -39,7 +39,8 @@ type b_arg_types = BAny | BTable | BString | BInt
 let built_in = [("_print_", [BAny], Int); ("_exists_", [BAny], Int);
                 ("_length_", [BTable], Int); ("_keys_", [BTable], Table(String));
                 ("_children_", [BTable], String); ("_inner_html_", [BTable], String);
-                ("_charAt_", [BString; BInt], String); ("_stringEqual_", [BString; BString], Int);]
+                ("_charAt_", [BString; BInt], String); ("_stringEqual_", [BString; BString], Int);
+				("_stringToInt_", [BString],Int) ]
 
 let rec find_var_and_scope (scope : symbol_table) name = try
   (List.find (fun (s, _) -> s = name) scope.variables),scope with Not_found ->
