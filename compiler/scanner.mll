@@ -2,7 +2,7 @@
 {
 	open Parser
 	open Util
-	type is_pat = REGEX | NO
+	type is_pat = REGEX | CSS | NO
 	let state_ref = ref NO
 }
 
@@ -10,6 +10,8 @@
 let digits = ['0' - '9']+
 let signed_int = ['+' '-']? digits
 let decimal = ['+' '-']? (digits '.' ['0'-'9']* | '.' digits) (['e' 'E'] signed_int)?
+let id = ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*
+let css_id = ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '-' '_']*
 
 (*Rules for converting buf to tokens*)
 rule token pat = parse
@@ -31,12 +33,10 @@ rule token pat = parse
 	| '~' {TILDE}
 	| '<' {LT} | '>' {GT} | "==" {EQ} | ">=" {GEQ} | "<=" {LEQ} | "&&" {AND} | "||" {OR}
 	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '/' {DIVIDES} | '=' {ASSIGN} | '%' {MOD}
-	| '#' {HASH}
 	| "[/" {pat := REGEX ; LBRACK_FSLASH}
-	| "[@" {LBRACK_AMP}  | "@]" {AMP_RBRACK} 
+	| "[@" {pat:= CSS; LBRACK_AMP} 
 	| "*=" {TIMES_EQ} | "^=" {XOR_EQ} | "$=" {DOLLAR_EQ} | "~=" {TILDE_EQ}
-	| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID( (wrap_id lxm) ) }
-	| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '-' '_']* as lxm { CSSID(lxm) }
+	| id as lxm {ID(wrap_id lxm) }
 	| digits as lxm {INT(int_of_string lxm)}
 	| decimal as lxm {DOUBLE(float_of_string lxm)}
 	| '"' [^ '"']+ '"' as lxm {STRING(lxm)}
@@ -56,10 +56,24 @@ because regex expressions are more general than ID and are not strings.*)
 		| '[' {LBRACK} | ']' {RBRACK}
 		| '(' {LPAREN} | ')' {RPAREN}
 		| [^'"' '/' '.' '?' '|' '^' ']' '[' '(' ')' '-' '\\' '$' '*'] as lxm {REGEX_STRING((Char.escaped lxm))}
-
+		
+and css_scan pat = parse
+	"@]" {pat:= NO; AMP_RBRACK} 
+	| '(' {LPAREN} | ')' {RPAREN}
+	| id as lxm {ID(lxm)}
+	| css_id as lxm { CSSID(lxm) }
+	| '[' {LBRACK} | ']' {RBRACK}
+	| '(' {LPAREN} | ')' {RPAREN}
+	| '<' {LT} | '>' {GT} 
+	| '#' {HASH}
+	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '=' {ASSIGN} 
+	| "*=" {TIMES_EQ} | "^=" {XOR_EQ} | "$=" {DOLLAR_EQ} | "~=" {TILDE_EQ}
+	| ',' {COMMA}
+	
 (*The function to get the next token; checks to see if it is scanning a regex pattern block*)
 {
 	let next_token lexbuf = match !state_ref with
 	    | NO -> token state_ref lexbuf
 	    | REGEX -> regex_scan state_ref lexbuf
+		| CSS -> css_scan state_ref lexbuf
 }

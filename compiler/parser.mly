@@ -212,7 +212,7 @@ typed_simple_selector_seq:
 
 type_selector:
 	TIMES {Universal}
-	|ID {Elt(unwrap_id $1)}
+	|ID {Elt($1)}
 
 property_selector_list:
 	property_selector { [$1]}
@@ -220,7 +220,7 @@ property_selector_list:
 
 css_id:
 	CSSID {$1}
-	| ID {unwrap_id $1}
+	| ID {$1}
 	
 property_selector:
 	PERIOD css_id {ClassMatch($2)}
