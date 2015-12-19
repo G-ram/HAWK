@@ -1,8 +1,13 @@
 ![HAWK](http://static.greatbigcanvas.com/images/square/national-geographic/a-red-tail-hawk,1407681.jpg?max=128)
 # HAWK Final Report
-**HTML is All We Know**
+## **HTML is All We Know**
 
-**Created By: Graham Gobieski, George Yu, Ethan Benjamin, Justin Chang, Jon Adelson**
+#### Team Members
+- Graham Gobieski (gsg2120)
+- George Yu (gy2206)
+- Ethan Benjamin (eb2947) 
+- Justin Chang (jc4137) 
+- Jon Adelson (jma2215)
 
 ##0. Contents
 
@@ -77,6 +82,27 @@
 		* 3.8.3 CSS Reference Manual
 		* 3.8.4 Lua Language Reference Manual
 		* 3.8.5 POSIX Reference Manual
+* 4 Project Plan
+	* 4.1 Process
+		* 4.1.1 Planning Process
+		* 4.1.2 Specification Process
+		* 4.1.3 Development Process
+		* 4.1.4 Testing Process
+	* 4.2 Team Responsibilities
+	* 4.3 Timeline
+* 5 Architectural Design
+	* 5.1 Block Diagram
+* 6 Test Plan
+	* 6.1 Source to Target 
+	* 6.2 Test Suite 
+	* 6.3 Test Automation
+* 7 Lessons Learned
+	* 7.1 Graham Gobieski
+	* 7.2 George Yu
+	* 7.3 Ethan Benjamin
+	* 7.4 Justin Chang
+	* 7.5 Jon Adelson
+
 
 ## 1. Introduction
 Websites hold their information in the structure of an HTML document, and parsing that information is generally accomplished through the use of external libraries to scan the document for CSS selectors and specific HTML tags. Just as AWK handles the parsing of standard text documents, the motivation for HAWK—**H**TML is **A**ll **W**e **K**now—was to build a language to allow the user to easily handle parsing websites without the need to import any external libraries.    
@@ -111,9 +137,7 @@ HAWK is built to parse HTML documents; it can do this by either searching for CS
 ```
 BEGIN{ }
 [@.get-me@]{
-    for(k : this){
-        print(this[k]["innerhtml"]);
-    }
+    print(this["innerhtml"]);
 }
 END{ }
 ```
@@ -797,4 +821,365 @@ HAWK implements a limited set of Regex expressions. Regex operators are further 
 
 [https://www.gnu.org/software/guile/manual/html_node/POSIX.html](https://www.gnu.org/software/guile/manual/html_node/POSIX.html)
 
+## 4. Project Plan 
 
+### 4.1 Process
+
+#### 4.1.1 Planning Process
+
+Our overall plans were guided partially by Richard Townsend's advice and partially
+by which features we knew would be difficult or easy to implement. Our plan was to make a
+well-defined Language Reference Manual that would guide all language feature  
+implementation, quickly get a scanner and parser up and running, and then implement 
+all language features, starting with basic ones, such as integers and strings, and 
+moving onto more complicated ones, such tables, functions, and CSS/regex. 
+
+#### 4.1.2 Specification Process
+
+We defined very clearly in our Language Reference Manual the syntax and semantics
+of the language. Although we tried our best to anticipate all potential issues in 
+the LRM, we did have to make certain changes to our language as the project unfolded.
+For example, we had initially decided that tables could hold any particular value but 
+ended up changing it so that any particular table must hold one particular type. However, the majority of the final language specification ended up being what we initially stated in the LRM. 
+
+#### 4.1.3 Development Process 
+We moved through development stages in what we viewed to be a necessary as well as 
+logical order. The first things to be completed were the lexer and parser. We next built
+the interface for the Semantic Abstract Syntax Tree, the semantic checker that would
+return an object of type SAST, as well as the beginnings of the code generation. The rest
+of the project was spent building up the SAST, and writing code to do semantic checking
+and code generation for the SAST types. 
+
+#### 4.1.4 Testing Process
+
+We built our initial test suite immediately after creating our "hello world" program.  
+All of our tests programs print out a result, which is compared to the correct output
+held in a different file. We then created a program which would compile all 
+of our test programs and compare the results to all of the correct outputs. As we 
+caught bugs in our programs or thought of additional functionality that we wanted to 
+ensure would be supported, we added more tests to the test suite. 
+
+#### 4.2 Team Responsibilities
+
+We ended up splitting up work primarily based on feature implementation. 
+
+| Team Member | Feature          |
+|-------------|------------------|
+| Graham      | Regex            |
+| Ethan       | Tables/Functions |
+| George      | CSS              |
+| Jon         | Functions        |
+| Justin      | CSS              |
+
+
+Everyone played a role in parsing, scanning, testing, semantic checking, and code generation
+
+#### 4.3 Timeline
+
+| Date         | Project Feature                                           |
+|--------------|-----------------------------------------------------------|
+| September 30 | Language Reference Manual                                 |
+| October 18   | Scanner/Parser                                            |
+| November 16  | Hello World code generation, testing suite created        |
+| November 23  | SAST created and beginning of semantic checking           |
+| December 11  | Regex complete                                            |
+| December 17  | Type inference complete, functions complete, CSS complete |
+| December 18  | All tests pass                                            |
+| December 20  | Final Report completed                                    |
+
+## 5. Architectural Design
+### 5.1 Block Diagram
+![Diagram](http://i.imgur.com/9v5bD3I.png)
+
+## 6. Test Plan
+### 6.1 Source to Target
+We use the same program used in 2.1 General Syntax
+
+Source Program:
+
+```
+BEGIN{
+    table = {1, 2, 3, 4, 5, 6};
+    i = 0;
+    while(i < length(table)){
+		if(table[i] % 2 == 1){
+        		table[i] = table[i] + 1;
+		}
+    }
+}
+END{
+    print(table);
+}
+```
+Target Result:
+
+```
+import _hawk_lib.*;
+public class Program {
+	public static void main(String[] _args){
+		_HAWKFileReader _fileReader = new _HAWKFileReader(_args);
+		_HAWKRegexMatcher _regexMatcher = new _HAWKRegexMatcher(_fileReader._getConcatFile());
+		_HAWKCSSMatcher _cssMatcher = new _HAWKCSSMatcher(_fileReader._getConcatFile());
+		_HAWKTable<Integer> _table_ = (new _HAWKTable<Integer>()).setIntIndexChained(0,1).setIntIndexChained(1,2).setIntIndexChained(2,3).setIntIndexChained(3,4).setIntIndexChained(4,5).setIntIndexChained(5,6);
+		int _i_ = 0;
+		while(_i_ < _length_(_table_)){
+			if(_checkIf(_table_.getIntIndex(_i_)%2 == 1)){
+			_table_.setIntIndex(_i_,_table_.getIntIndex(_i_) + 1);
+
+		}
+
+		}
+
+		_print_(_table_);
+
+	}
+	private static void _print_(Object o){
+	  System.out.println(o);
+	}
+	private static String _charAt_(String s, Integer i){
+	  return ""+s.charAt(i);
+	}
+	private static Integer _stringEqual_(String s1, String s2){
+	  if(s1.equals(s2)){
+	    return 1;
+	  }else{
+	    return 0;
+	  }
+	}
+	private static Boolean _checkIf(Integer i){
+	  return (i != 0) ? true : false;
+	}
+	private static Boolean _checkIf(Double d){
+	  return (d != 0.0) ? true : false;
+	}
+	private static Boolean _checkIf(Boolean b){
+	  return b;
+	}
+	private static <T> int _length_(_HAWKTable<T> t){
+	  return t.getLength();
+	}
+	
+	private static <T> int _exists_(T e){
+	  if(e == null){
+	    return 0;
+	  }
+	  return 1;
+	}
+	
+	private static int _stringToInt_ (String s){
+		return Integer.parseInt(s);
+	}
+	
+	private static <T> _HAWKTable<String> _keys_(_HAWKTable<T> t){
+	  java.util.Set<String> set = t.getKeys();
+	  _HAWKTable<String> hawkTable = new _HAWKTable<String>();
+	  int i = t.getLength()-1;
+	  for (String s : set) {
+	    hawkTable.setIntIndex(i, s);
+	    i--;
+	  }
+	  return hawkTable;
+	}
+
+}
+```
+
+### 6.2 Test Suite
+
+As we wrote the compiler, we also wrote tests for every feature we planned on including in the compiler. For each of these features, we wrote several small tests to test individual elements, such as simple operators, table literals, function calls, for loops, etc.
+
+```
+./testall.sh
+-n testresult/test-cf-exists-1...
+OK
+-n testresult/test-cf-if-1...
+OK
+-n testresult/test-cf-if-2...
+OK
+-n testresult/test-cf-if-3...
+OK
+-n testresult/test-cf-keys-1...
+OK
+-n testresult/test-cf-length-1...
+OK
+-n testresult/test-cf-print-1...
+OK
+-n testresult/test-cf-while-1...
+OK
+-n testresult/test-cf-while-2...
+OK
+-n testresult/test-for-1...
+OK
+-n testresult/test-for-2...
+OK
+-n testresult/test-fun-1...
+OK
+-n testresult/test-fun-10...
+OK
+-n testresult/test-fun-11...
+OK
+-n testresult/test-fun-12...
+OK
+-n testresult/test-fun-13...
+OK
+-n testresult/test-fun-14...
+OK
+-n testresult/test-fun-15...
+OK
+-n testresult/test-fun-16...
+OK
+-n testresult/test-fun-2...
+OK
+-n testresult/test-fun-3...
+OK
+-n testresult/test-fun-4...
+OK
+-n testresult/test-fun-5...
+OK
+-n testresult/test-fun-6...
+OK
+-n testresult/test-fun-7...
+OK
+-n testresult/test-fun-8...
+OK
+-n testresult/test-fun-9...
+OK
+-n testresult/test-op-arith1...
+OK
+-n testresult/test-op-arith10...
+OK
+-n testresult/test-op-arith11...
+OK
+-n testresult/test-op-arith12...
+OK
+-n testresult/test-op-arith13...
+OK
+-n testresult/test-op-arith14...
+OK
+-n testresult/test-op-arith15...
+OK
+-n testresult/test-op-arith16...
+OK
+-n testresult/test-op-arith17...
+OK
+-n testresult/test-op-arith18...
+OK
+-n testresult/test-op-arith19...
+OK
+-n testresult/test-op-arith20...
+OK
+-n testresult/test-op-arith22...
+OK
+-n testresult/test-op-arith23...
+OK
+-n testresult/test-op-arith3...
+OK
+-n testresult/test-op-arith4...
+OK
+-n testresult/test-op-arith5...
+OK
+-n testresult/test-op-arith6...
+OK
+-n testresult/test-op-arith7...
+OK
+-n testresult/test-op-arith8...
+OK
+-n testresult/test-op-arith9...
+OK
+-n testresult/test-pattern-css1...
+OK
+-n testresult/test-pattern-css10...
+OK
+-n testresult/test-pattern-css11...
+OK
+-n testresult/test-pattern-css12...
+OK
+-n testresult/test-pattern-css13...
+OK
+-n testresult/test-pattern-css2...
+OK
+-n testresult/test-pattern-css3...
+OK
+-n testresult/test-pattern-css4...
+OK
+-n testresult/test-pattern-css5...
+OK
+-n testresult/test-pattern-css6...
+OK
+-n testresult/test-pattern-css7...
+OK
+-n testresult/test-pattern-css8...
+OK
+-n testresult/test-pattern-css9...
+OK
+-n testresult/test-pattern-regex1...
+OK
+-n testresult/test-pattern-regex10...
+OK
+-n testresult/test-pattern-regex11...
+OK
+-n testresult/test-pattern-regex2...
+OK
+-n testresult/test-pattern-regex3...
+OK
+-n testresult/test-pattern-regex4...
+OK
+-n testresult/test-pattern-regex5...
+OK
+-n testresult/test-pattern-regex6...
+OK
+-n testresult/test-pattern-regex7...
+OK
+-n testresult/test-pattern-regex8...
+OK
+-n testresult/test-pattern-regex9...
+OK
+-n testresult/test-tbl1...
+OK
+-n testresult/test-tbl10...
+OK
+-n testresult/test-tbl2...
+OK
+-n testresult/test-tbl3...
+OK
+-n testresult/test-tbl4...
+OK
+-n testresult/test-tbl5...
+OK
+-n testresult/test-tbl6...
+OK
+-n testresult/test-tbl7...
+OK
+-n testresult/test-tbl8...
+OK
+-n testresult/test-tbl9...
+OK
+successes = 82
+failures = 0
+total tests = 82
+```
+
+### 6.3 Test Automation
+
+We had about 80 tests in our test suite, so we wrote a test script testall.sh that runs every test. It pipes the output of the program to a .i.out file, and then diffs it with a .out file that we created. If there are any differences, it will mark the test as a failure. The script will also print out the number of successes, failures, and total tests. 
+
+The tests are run with `make test`.
+
+The testing script is included in the Appendix.
+
+## 7 Lessons Learned
+
+### 7.1 Graham Gobieski
+
+### 7.2 George Yu
+
+### 7.3 Ethan Benjamin
+
+### 7.4 Justin Chang
+
+* Start early
+* Set deadlines by understanding work involved, when assigning/discussing next steps, actually talk through and figure out what has to be done
+* Work together! More efficient to bounce ideas off of each other, work in bursts as a group if possible
+* Don't push untested code and don't push without being aware of what other work is being done
+
+### 7.5 Jon Adelson
