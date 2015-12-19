@@ -1,10 +1,43 @@
 open Sast
 
+let rec type_to_str = function
+  Int -> "int"
+  | Double -> "double"
+  | Table(value_type) as t -> "Table(" ^ (type_to_str value_type) ^ ")"
+  | String -> "String"
+  | Void -> "void"
+  | EmptyTable -> "ET"
+  | UnknownReturn -> "UR"
+	
+let is_table = function
+	Table(_) | EmptyTable -> true
+	| _ -> false
+	
+let get_binop_type t1 op t2 =
+  match op with
+  Ast.Plus -> (
+	match t1, t2 with
+	_, UnknownReturn | UnknownReturn,_ -> UnknownReturn
+	|x, y when x = y && not (is_table x) ->  x
+	| x, y when x = String || y = String ->  String
+	| Int, Double -> Double
+	| Double, Int -> Double
+	| _ , _ -> raise (Failure("binary operation type mismatch"))
+	)
+  | _ -> (
+	match t1, t2 with
+	_, UnknownReturn | UnknownReturn,_ -> UnknownReturn
+	|x, y when x = y && not (is_table x) && x != String ->  x
+	| Int, Double ->  Double
+	| Double, Int ->  Double
+	| _ , _ -> raise (Failure("binary operation type mismatch or operation does not support these types"))
+	)
+
 type b_arg_types = BAny | BTable | BString | BInt
 
 (*Built-in functions and their types*)
 let built_in = [("print", [BAny], Int); ("exists", [BAny], Int);
-                ("length", [BTable], Int); ("keys", [BTable], Int);
+                ("length", [BTable], Int); ("keys", [BTable], Table(String));
                 ("children", [BTable], String); ("inner_html", [BTable], String);
                 ("charAt", [BString; BInt], String); ("stringEqual", [BString; BString], Int);]
 
@@ -25,6 +58,33 @@ let rec find (scope : symbol_table) name =
 let assert_not_void typ err =
 	if typ = Void then
 		raise (Failure err)
+		
+let get_sig_return_type global_env func_sig = 
+	List.assoc func_sig global_env.func_signatures
+		
+(*
+let get_existing_func_decl global_env func_signature = 
+	let matches_signature func_decl =
+		let param_type_promises = List.map snd func_decl.params in
+		let param_types = List.map (fun promise -> promise ()) param_type_promises in
+		func_decl.fname = (fst func_signature) && param_types = (snd func_signature)
+	in
+	try 
+		let fdecl = List.find matches_signature global_env.funcs in
+		let return_type = (fdecl.return_type_promise ()) in
+		Some (fdecl,return_type)
+	with Not_found -> None
+*)
+
+let add_initial_func_signature global_env func_signature =
+	ignore (global_env.func_signatures<- (func_signature,UnknownReturn)::(global_env.func_signatures))
+
+let get_existing_func_sig global_env func_signature = 
+	try 
+		let return_t = List.find (fun entry -> (fst entry) = func_signature) global_env.func_signatures in
+		Some (func_signature,return_t)
+	with Not_found -> None
+
 (*
 if a variable is of type t1, can it be assigned to a variable of type t2?
 obviously if:
@@ -156,36 +216,71 @@ if we later find out the type of t to be Table(Table(Int)) or something even mor
 types of the nested empty tables in this table literal
 *)
 let rec retype_empty_table_literal table_literal new_table_type =
-	let inner_t = apply_nesting (new_table_type,-1) in
 	match table_literal with
 		| [] -> []
 		| (key, (old_e, old_t))::tail ->
+			let inner_t = apply_nesting (new_table_type,-1) in
 			let new_e = (match old_e with
 				|TableLiteral(tl) -> TableLiteral (retype_empty_table_literal tl inner_t)
 				| _ -> old_e)
 			in
 			(key, (new_e,inner_t))::(retype_empty_table_literal tail new_table_type)
-		
+
 let get_table_literal_promise assigner tl =
 	let promise () =
-		let (_,new_t) = (find assigner.assign_scope assigner.id ) in 
+		let (_,new_t) = (find assigner.assign_scope assigner.id ) in
 		let nested_t = apply_nesting (new_t,(-assigner.nesting)) in
 		let new_tl = retype_empty_table_literal tl nested_t in
 		TableLiteral(new_tl),new_t
 	in promise
-	
-(* 
-Return a promise which will return 
+
+(*
+Return a promise which will return
 a SAST expression given our current knowledge of symbol tables
 Once the semantics stage has completed this promise will give us our best
 possible understanding of an expression
+
+These promises are used anytime an l-value or potential l-value is involved. This includes:
+
+1. assignment
+2. table assignment
+3. return statements
+
+Uncertainty arises from:
+
+1. Empty table literals (EmptyTable)
+2. Recursive calls  (UnknownReturn)
+
+But can always be resolved when syntactic analysis is over
 *)
-let get_expression_promise assigner assignee_e assignee_type assignee_scope =
+let rec get_expression_promise assigner global_env assignee_e assignee_type assignee_scope =
 	let is_et = (is_empty_table_container assignee_type) in
 	let id_info = get_identifier_expr_info assignee_e in
 	let noop_promise = (fun () -> assignee_e,assignee_type) in
 	match assignee_e with
-		_ when (not is_et) ->
+		Binop(e1,op,e2) ->
+			let (e1_e,e1_type) = e1 in
+			let (e2_e,e2_type) = e2 in
+			let e1_promise = get_expression_promise None global_env e1_e e1_type assignee_scope in
+			let e2_promise = get_expression_promise None global_env e2_e e2_type assignee_scope in
+			( fun () ->
+				let (e1_e,e1_type) as e1 = (e1_promise ()) in
+				let (e2_e,e2_type) as e2 = (e2_promise ()) in
+				Binop(e1,op,e2), (get_binop_type e1_type op e2_type)
+			)
+		| Uminus(e1) ->
+			let (e1_e,e1_type) = e1 in
+			let e1_promise = get_expression_promise None global_env e1_e e1_type assignee_scope in
+			( fun () ->
+				let (e1_e,e1_type) as e1 = (e1_promise ()) in
+				Uminus(e1), e1_type
+			)
+			
+		|CallStub(signature,_) -> 
+			(fun () -> 
+				let return_t = get_sig_return_type global_env signature in
+				assignee_e,return_t )
+		| _ when (not is_et) ->
 			(* If we're not dealing with an empty table, the expression and type should not change *)
 			noop_promise
 		| _ when id_info <> None ->
@@ -194,16 +289,17 @@ let get_expression_promise assigner assignee_e assignee_type assignee_scope =
 				Some(id,nesting) -> get_id_based_expr_promise id assignee_scope nesting assignee_e
 				| None -> raise (Failure "We shouldn't be here")
 			)
-		| TableLiteral(tl) -> 
+		| TableLiteral(tl) ->
 			(
-			match assigner with 
+			match assigner with
 				(* At this point we're out of luck, but since its a truly empty table with no references
 				to non-empties, it shouldn't matter *)
-				None -> noop_promise 
+				None -> noop_promise
 				| Some (assigner) -> get_table_literal_promise assigner tl
 			)
+		| Call(fdecl,_) -> (fun () -> assignee_e, (fdecl.return_type_promise ()) )
 		| _  -> raise (Failure "This type of expression should not yield an empty table.")
-		
+
 (*  Consider a statement like
 a = {}
 this should be deferred... we don't know how to construct 'a' until we know it's type
@@ -216,8 +312,8 @@ We can make fully informed assignment because we know the type of a
 this promise will return the correct type of expressions of this sort,
 assuming the symbol table has been filled out properly
 *)
-let get_assignment_expression_promise assigner assignee_e assignee_type =
-	get_expression_promise (Some assigner) assignee_e assignee_type assigner.assign_scope
+let get_assignment_expression_promise assigner global_env assignee_e assignee_type =
+	get_expression_promise (Some assigner) global_env assignee_e assignee_type assigner.assign_scope
 
 
 (* Update the type of a table variable within a given symbol scope
@@ -303,29 +399,41 @@ and is_guaranteed_block_return valid = function
 			| _ -> is_guaranteed_block_return valid tl
 
 
-(* 
+(*
 Just as with assignment, we may not know the return type of a function in advance due to empty tables.
 Assuming scope is available, this function will give you the proper return type
+
+force_concrete = do we tolerate UnknownReturn types for this promise?
 *)
-let get_return_type_promise func_body env = 
-	let stmt_list = match func_body with Block(sl, _) -> sl in 
+let get_return_type_promise_checked func_body env force_concrete =
+	let stmt_list = match func_body with Block(sl, _) -> sl in
 	let all_return_type_promises = !(env.returns) in
 	let get_return_type () =
 		let all_return_types = List.map (fun f -> f () ) all_return_type_promises in
 		match all_return_types with
 			[] -> Void
 			| type_list ->
-				if (Util.all_the_same type_list) then
-				if (is_guaranteed_block_return false stmt_list) then
-					(List.hd type_list)
-				else raise (Failure "No valid return statements")
+				let search_list = if force_concrete then 
+									type_list
+								else
+									List.filter (fun typ -> typ<>UnknownReturn ) type_list
+				in
+				if (Util.all_the_same search_list) then
+					if (is_guaranteed_block_return false stmt_list) then
+						(List.hd search_list)
+					else raise (Failure "No valid return statements")
 				else
 					raise (Failure "Inconsistent return types in user defined function.")
 	in get_return_type
+	
+let get_return_type_promise func_body env =
+	get_return_type_promise_checked func_body env true
+	
+let get_return_type func_body env =
+	let promise = get_return_type_promise_checked func_body env false in
+	(promise ())
 
-let is_table = function
-	Table(_) | EmptyTable -> true
-	| _ -> false
+
 
 let valid_table_index_type = function
 	Int | String -> true
@@ -395,6 +503,30 @@ let add_func_to_global_env global_env func_decl =
 	else
 		ignore (global_env.funcs <- func_decl::(global_env.funcs))
 
+let add_func_sig_to_global_env global_env func_signature return_type = 
+	let rec replace_func_sig = function
+		[] -> []
+		| (other_sig,_)::tl when other_sig=func_signature -> 
+			(other_sig,return_type)::(replace_func_sig tl)
+		| hd::tl -> hd::(replace_func_sig tl)
+	in
+	ignore (global_env.func_signatures <- (replace_func_sig global_env.func_signatures))
+
+(*
+let func_signature_exists global_env func_signature = 
+	let same_function_name = 
+		List.filter (fun func_sig -> ((fst func_sig) = (fst func_signature)))  global_env.func_signatures 
+	in
+	let same_signature_types = List.filter (fun func_sig -> (snd func_sig) = (snd func_signature)) same_function_name
+	in 
+	(match same_signature_types with
+		[] -> false
+		| _ -> true)
+
+let add_func_signature_to_global_env global_env func_signature = 
+	ignore (global_env.func_signatures <- (func_signature::(global_env.func_signatures)))
+*)
+
 
 (*
 Convert an AST expression to an SAST expression!
@@ -429,7 +561,7 @@ let rec check_expr env global_env = function
     with Not_found ->
       raise (Failure("undeclared table identifier " ^ table_id)) in
 	let assign_info = {id=table_id;assign_scope=env.scope;nesting=nesting} in
-	let expr_promise = get_assignment_expression_promise assign_info assignee_e assignee_type in
+	let expr_promise = get_assignment_expression_promise assign_info global_env assignee_e assignee_type in
 	(* Most nested part of *)
 	let final_table_t = apply_nesting (table_t,-(nesting - 1)) in
 	let rec update_empty_table_container_type old_table_t new_type =
@@ -459,13 +591,13 @@ let rec check_expr env global_env = function
 
 		| _ -> raise (Failure "Cannot do table assignment for a non-table"))
   | Ast.Assign(v, assignee) ->
+	let assign_info = {id=v;assign_scope=env.scope;nesting=0} in
 	let assignee_env = match assignee with
-		Call(_) -> {env with return_assigner= (Some {id=v;assign_scope=env.scope;nesting=0}) }
+		Call(_) -> {env with return_assigner= (Some assign_info) }
 		| _ -> env
 	in
     let (assignee_e, assignee_type) as assignee = check_expr assignee_env global_env assignee in
-	let assign_info = {id=v;assign_scope=env.scope;nesting=0} in
-	let expr_promise = get_assignment_expression_promise assign_info assignee_e assignee_type in
+	let expr_promise = get_assignment_expression_promise assign_info global_env assignee_e assignee_type in
 	assert_not_void assignee_type "Can't assign void to a variable.";
     let (new_e,new_type) as vdecl =
 	try (*Reassigning a variable to a different type is okay because assigment = declaration*)
@@ -489,28 +621,12 @@ let rec check_expr env global_env = function
     let _, t1 = e1
     and _, t2 = e2 in
     (*Operators come in*)
-    (
-      match op with
-      Ast.Plus -> (
-        match t1, t2 with
-        x, y when x = y && not (is_table x) -> Binop(e1, op, e2), x
-        | x, y when x = String || y = String -> Binop(e1, op, e2), String
-        | Int, Double -> Binop(e1, op, e2), Double
-        | Double, Int -> Binop(e1, op, e2), Double
-        | _ , _ -> raise (Failure("binary operation type mismatch"))
-        )
-      | _ -> (
-        match t1, t2 with
-        x, y when x = y && not (is_table x) && x != String -> Binop(e1, op, e2), x
-        | Int, Double -> Binop(e1, op, e2), Double
-        | Double, Int -> Binop(e1, op, e2), Double
-        | _ , _ -> raise (Failure("binary operation type mismatch or operation does not support these types"))
-        )
-    )
+	let return_type = get_binop_type t1 op t2 in
+	Binop(e1,op,e2),return_type
   | Ast.Uminus(e) ->
     let (e, typ) = check_expr env global_env e in
     (*Check for int or double*)
-    if typ != Int && typ != Double then raise (Failure("unary minus operation does not support this type")) ;
+    if typ != Int && typ != Double && typ != UnknownReturn then raise (Failure("unary minus operation does not support this type")) ;
     Uminus((e, typ)), typ
   | Ast.Call(v, el) ->
 	let func_decl =
@@ -523,50 +639,63 @@ let rec check_expr env global_env = function
 		Some(func_decl) ->
 			let el_typed = List.map (fun e -> (check_expr env global_env e)) el in
 			let (arg_exprs,arg_types) = List.split el_typed in
-			let typed_args = List.combine func_decl.params arg_types in
-			let func_env = {env with scope = {parent = None; variables = typed_args; update_table_links = []};
-									returns = ref [];
-									return_assigner = None} in
-			let link_argument (arg,assignee) =
-				create_linkage_if_applicable arg 0 func_env.scope assignee env.scope
-			in
-			(*Make sure that if any empty tables are passed in, proper type inference is done with them *)
-			List.iter link_argument (List.combine func_decl.params arg_exprs);
-			let func_body = check_stmt func_env global_env (Ast.Block func_decl.body) in
-			let return_type_promise = get_return_type_promise func_body func_env in (*func_env.scope func_body in*)
-			(*TODO: find some way to link this with assignment as well *)
-			let initial_return_type = (return_type_promise ()) in
+			let func_signature = (v, arg_types) in 
+			
+			(* See if the function signature eixsts *)
 			(
-			match func_body with
-				Block(stmt_list,_) ->
-					let func_body_list = stmt_list in
-					let typed_func_call = Call(v, el_typed), initial_return_type in
-					let arg_type_promises = List.map (get_var_type_promise func_env.scope) func_decl.params in
-					let params = List.combine func_decl.params arg_type_promises in
-					let func_decl_typed = { fname = v; params = params;
-											body = func_body_list;
-											return_type_promise = return_type_promise } in
-					add_func_to_global_env global_env func_decl_typed;
-					typed_func_call
-				| _ -> raise (Failure "Function body must be a Block.")
+			match get_existing_func_sig global_env func_signature with
+				Some(signature, _) -> CallStub(signature, el_typed), UnknownReturn
+				| None -> 
+
+				(* Add function signature before proceeding *)
+				add_initial_func_signature global_env func_signature;
+				
+				let typed_args = List.combine func_decl.params arg_types in
+				let func_env = {env with scope = {parent = None; variables = typed_args; update_table_links = []};
+								returns = ref [];
+								} in
+				let link_argument (arg,assignee) =
+					create_linkage_if_applicable arg 0 func_env.scope assignee env.scope
+				in
+				(*Make sure that if any empty tables are passed in, proper type inference is done with them *)
+				List.iter link_argument (List.combine func_decl.params arg_exprs);
+				let func_body = check_stmt func_env global_env (Ast.Block func_decl.body) in
+				let return_type_promise = get_return_type_promise func_body func_env in (*func_env.scope func_body in*)
+				(*TODO: find some way to link this with assignment as well *)
+				let initial_return_type = get_return_type func_body func_env in
+				(
+				match func_body with
+					Block(stmt_list,_) ->
+						let func_body_list = stmt_list in
+						let arg_type_promises = List.map (get_var_type_promise func_env.scope) func_decl.params in
+						let params = List.combine func_decl.params arg_type_promises in
+						let func_decl_typed = { fname = v; params = params;
+												body = func_body_list;
+												return_type_promise = return_type_promise } in
+						add_func_to_global_env global_env func_decl_typed;
+						add_func_sig_to_global_env global_env func_signature initial_return_type;
+						let typed_func_call = Call(func_decl_typed, el_typed), initial_return_type in
+						typed_func_call
+					| _ -> raise (Failure "Function body must be a Block.")
+				)
 			)
 		(* No user function with this name defined. Check built-ins *)
 		| None ->
 			let el = List.map (fun e -> (check_expr env global_env e)) el in
-      let (built_in_name, built_in_typs, return_typ) = find_built_in v in
-      let check = try
-        if (List.length el) = (List.length built_in_typs) then
-          List.map2 (fun (_, typ) j -> match typ, j with
-            String, BString -> true
-            | Table(_), BTable -> true
-            | Int, BInt -> true
-            | _, BAny -> true
-            | _,_ -> raise (Failure("Parameter types do not match for function with name " ^ v))
-          ) el built_in_typs
-        else
-          raise (Failure("Length of parameter lists do not match for function with name " ^ v))
-        with Not_found -> raise (Failure("Function with name " ^ v ^ " is not defined in any space.")) in
-      Call(v, el), return_typ
+			let (built_in_name, built_in_typs, return_typ) = find_built_in v in
+			let check = try
+				if (List.length el) = (List.length built_in_typs) then
+				  List.map2 (fun (_, typ) j -> match typ, j with
+					String, BString -> true
+					| Table(_), BTable -> true
+					| Int, BInt -> true
+					| _, BAny -> true
+					| _,_ -> raise (Failure("Parameter types do not match for function with name " ^ v))
+				  ) el built_in_typs
+				else
+				  raise (Failure("Length of parameter lists do not match for function with name " ^ v))
+			with Not_found -> raise (Failure("Function with name " ^ v ^ " is not defined in any space.")) in
+			  BCall(v, el), return_typ
 	)
   | Ast.TableAccess(table_id,index_exprs) ->
 	(*First, get table variable if it exists *)
@@ -617,8 +746,8 @@ and check_stmt env global_env = function
     let envT = { env with scope = scopeT} in
     let sl = List.map (fun s -> (check_stmt envT global_env s)) sl in envT.scope.variables <- List.rev scopeT.variables;
     Block (sl, envT)
-  | Ast.Expr(e) -> 
-  		(match e with 
+  | Ast.Expr(e) ->
+  		(match e with
   		Assign(_) | TableAssign(_) | Call(_) -> Expr(check_expr env global_env e)
   		| _ -> raise (Failure("Expression is not statement in Java")))
   | Ast.Empty -> Empty
@@ -627,17 +756,18 @@ and check_stmt env global_env = function
       ignore(find_built_in f.Ast.fname) ;
       raise (Failure("function is overwrites built-in function " ^ f.Ast.fname))
     with Not_found -> (*valid function*)
-      Func({fname = ""; params = []; body = []; return_type_promise = (fun () -> Int)}) (*This is not correct!*)
+	  (*We handle func generation elsewhere so can make this a no-op *)
+      Block([], env )
     )
-  | Ast.Return(e) -> 
+  | Ast.Return(e) ->
 	let (return_e,return_t) as return_expr = check_expr env global_env e in
-	let expr_promise = match env.return_assigner with 
-		None -> 
-			get_expression_promise None return_e return_t env.scope 
-		| Some(assigner) as assgn -> 
+	let expr_promise = match env.return_assigner with
+		None ->
+			get_expression_promise None global_env return_e return_t env.scope
+		| Some(assigner) as assgn ->
 			create_linkage_if_applicable assigner.id assigner.nesting assigner.assign_scope return_e env.scope;
-			get_expression_promise assgn return_e return_t env.scope 
-	in 
+			get_expression_promise assgn global_env return_e return_t env.scope
+	in
 	let return_type_promise = fun () -> (snd (expr_promise ())) in
 	env.returns:= return_type_promise::!(env.returns);
 	Return(expr_promise)
@@ -693,7 +823,7 @@ let check_program p =
 					is_pattern = false;
 					return_assigner = None;
 					returns = ref [] } in
-    let global_env = { funcs = [] } in
+    let global_env = { funcs = []; func_signatures = []} in
 	let (begin_block, env) = match check_stmt init_env global_env p.Ast.begin_stmt with
 								Block(begin_block, env) -> begin_block, env
 								| _ -> raise (Failure("begin is not a block")) in

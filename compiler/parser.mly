@@ -18,6 +18,7 @@
 %token <int> INT
 %token <float> DOUBLE
 %token <string> ID
+%token <string> CSSID
 
 /*Program structure*/
 %token BEGIN END
@@ -216,12 +217,12 @@ property_selector_list:
 	| property_selector property_selector_list { $1::$2}
 
 property_selector:
-	PERIOD ID {ClassMatch($2)}
-	| HASH ID {IdMatch($2)}
-	| LBRACK ID RBRACK {AttributeExists($2)}
-	| LBRACK ID ASSIGN STRING RBRACK {AttributeEquals($2,$4)}
-	| LBRACK ID TIMES_EQ STRING RBRACK {AttributeContains($2,$4)}
-	| LBRACK ID XOR_EQ STRING RBRACK {AttributeBeginsWith($2,$4)}
-	| LBRACK ID DOLLAR_EQ STRING RBRACK {AttributeEndsWith($2,$4)}
-	| LBRACK ID TILDE_EQ STRING RBRACK {AttributeWhitespaceContains($2,$4)}
+	PERIOD CSSID {ClassMatch($2)}
+	| HASH CSSID {IdMatch($2)}
+	| LBRACK CSSID RBRACK {AttributeExists($2)}
+	| LBRACK CSSID ASSIGN STRING RBRACK {AttributeEquals($2,$4)}
+	| LBRACK CSSID TIMES_EQ STRING RBRACK {AttributeContains($2,$4)}
+	| LBRACK CSSID XOR_EQ STRING RBRACK {AttributeBeginsWith($2,$4)}
+	| LBRACK CSSID DOLLAR_EQ STRING RBRACK {AttributeEndsWith($2,$4)}
+	| LBRACK CSSID TILDE_EQ STRING RBRACK {AttributeWhitespaceContains($2,$4)}
 /*end of CSS selector stuff */

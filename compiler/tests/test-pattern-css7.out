@@ -1,0 +1,66 @@
+innerhtml=<a href="http://www.mediawiki.org/"><img src="/skins/common/images/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" width="88" height="31"></a>
+nextChild=
+id=footer-poweredbyico
+innerhtml=<a href="/WikiCU:General_disclaimer" title="WikiCU:General disclaimer">Disclaimers</a>
+nextChild=
+id=footer-places-disclaimer
+innerhtml=<a href="/WikiCU:About" title="WikiCU:About">About WikiCU</a>
+nextChild=
+id=footer-places-about
+innerhtml=Content is available under <a class="external" href="http://www.gnu.org/copyleft/fdl.html">GNU Free Documentation License 1.3 or later</a>.
+nextChild=
+id=footer-info-copyright
+innerhtml=This page has been accessed 157 times.
+nextChild=
+id=footer-info-viewcount
+innerhtml=<a href="/index.php5?title=Srikar_Varadaraj&amp;oldid=54050" title="Permanent link to this revision of the page">Permanent link</a>
+nextChild=
+id=t-permalink
+innerhtml=<a href="/index.php5?title=Srikar_Varadaraj&amp;printable=yes" rel="alternate">Printable version</a>
+nextChild=
+id=
+innerhtml=<a href="/Special:SpecialPages" title="A list of all special pages [q]" accesskey="q">Special pages</a>
+nextChild=
+id=t-specialpages
+innerhtml=<a href="/Special:RecentChangesLinked/Srikar_Varadaraj" title="Recent changes in pages linked from this page [k]" accesskey="k">Related changes</a>
+nextChild=
+id=t-recentchangeslinked
+innerhtml=<a href="http://www.wikicu.com/Help:Contents" rel="nofollow" title="The place to find out">Help</a>
+nextChild=
+id=n-Help
+innerhtml=<a href="/Special:Random">Random article</a>
+nextChild=
+id=n-Random-article
+innerhtml=<a href="/Special:RecentChanges">Recent changes</a>
+nextChild=
+id=n-Recent-changes
+innerhtml=<a href="/WikiCU:Community_portal">Community portal</a>
+nextChild=
+id=n-Community-portal
+innerhtml=<span><a href="/index.php5?title=Srikar_Varadaraj&amp;action=history" title="Past revisions of this page [h]" accesskey="h">View history</a></span>
+nextChild=
+class=collapsible
+id=ca-history
+innerhtml=<span><a href="/index.php5?title=Srikar_Varadaraj&amp;action=edit" title="This page is protected.
+You can view its source [e]" accesskey="e">View source</a></span>
+nextChild=
+id=ca-viewsource
+innerhtml=<span><a href="/Talk:Srikar_Varadaraj" title="Discussion about the content page [t]" accesskey="t">Discussion</a></span>
+nextChild=
+id=ca-talk
+innerhtml=<a href="#Attractiveness"><span class="tocnumber">5</span> <span class="toctext">Attractiveness</span></a>
+nextChild=
+class=toclevel-1 tocsection-5
+id=
+innerhtml=<a href="#Mating_Calls"><span class="tocnumber">4</span> <span class="toctext">Mating Calls</span></a>
+nextChild=
+class=toclevel-1 tocsection-4
+id=
+innerhtml=<a href="#Basketball_Scouting_Report"><span class="tocnumber">3</span> <span class="toctext">Basketball Scouting Report</span></a>
+nextChild=
+class=toclevel-1 tocsection-3
+id=
+innerhtml=<a href="#Academic_Success"><span class="tocnumber">2</span> <span class="toctext">Academic Success</span></a>
+nextChild=
+class=toclevel-1 tocsection-2
+id=

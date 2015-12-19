@@ -1,3 +1,5 @@
 BEGIN{}
-[@[href^=some]@]{}
+[@h2 *@]{
+  print(this);
+}
 END{}

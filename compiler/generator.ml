@@ -1,5 +1,10 @@
 open Sast
 
+let strip_quotes str =
+  match String.length str with
+  | 0 | 1 | 2 -> ""
+  | len -> String.sub str 1 (len - 2)
+
 let rec type_to_str = function
   Int -> "int"
   | Double -> "double"
@@ -53,12 +58,12 @@ and string_of_regex_sequence seq = String.concat "" (List.map string_of_regex se
 let string_of_property prop = match prop with
 	|Ast.ClassMatch(s) -> "." ^ s
 	|Ast.IdMatch(s) -> "#" ^s
-	| Ast.AttributeExists(str) -> "[" ^ str ^ "]"
-	| Ast.AttributeEquals(attr,str) -> "[" ^ attr ^ "=" ^ str ^ "]"
-	| Ast.AttributeContains(attr,str) -> "[" ^ attr ^ "*=" ^ str ^ "]"
-	| Ast.AttributeBeginsWith(attr,str) -> "[" ^ attr ^ "^=" ^ str ^ "]"
-	| Ast.AttributeEndsWith(attr,str) -> "[" ^ attr ^ "$=" ^ str ^ "]"
-	| Ast.AttributeWhitespaceContains(attr,str) -> "[" ^ attr ^ "~=" ^ str ^ "]"
+	| Ast.AttributeExists(str) -> "[" ^ (strip_quotes str) ^ "]"
+	| Ast.AttributeEquals(attr, str) -> "[" ^ attr ^ "=" ^ (strip_quotes str) ^ "]"
+	| Ast.AttributeContains(attr,str) -> "[" ^ attr ^ "*=" ^ (strip_quotes str) ^ "]"
+	| Ast.AttributeBeginsWith(attr,str) -> "[" ^ attr ^ "^=" ^ (strip_quotes str) ^ "]"
+	| Ast.AttributeEndsWith(attr,str) -> "[" ^ attr ^ "$=" ^ (strip_quotes str) ^ "]"
+	| Ast.AttributeWhitespaceContains(attr,str) -> "[" ^ attr ^ "~=" ^ (strip_quotes str) ^ "]"
 
 let string_of_type_selector = function
 	|Ast.Elt(str) -> str
@@ -133,35 +138,46 @@ and
 string_of_expr = function
 	Id(id), _ -> id
 	| Literal(lit), t -> string_of_literal (lit,t)
+	(* Assigning to something that stays empty for the duration of the program is a no-op *)
 	| TableLiteral(kv_list), Table(val_type) -> string_of_table_literal kv_list val_type
 	| VAssign(id, expr_promise), t ->
 		let (_,typ) as expr = expr_promise () in
-		(type_to_str typ) ^ " " ^ id ^ " = " ^ (string_of_expr expr)
+		if (Semantics.is_empty_table_container typ) then
+			""
+		else
+			(type_to_str typ) ^ " " ^ id ^ " = " ^ (string_of_expr expr)
 	| Assign(id, expr_promise), t ->
 		let (_,typ) as expr = expr_promise () in
-		id ^ " = " ^ (string_of_expr expr)
+		if (Semantics.is_empty_table_container typ) then
+			""
+		else
+			id ^ " = " ^ (string_of_expr expr)
 	| Binop(expr1, op, expr2), _ -> (string_of_expr expr1) ^ (string_of_op op) ^ (string_of_expr expr2)
 	| Uminus(expr), _ -> "-" ^ (string_of_expr expr)
-	| Call(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
+	| BCall(id, expr_list), _ -> id ^ "(" ^ string_of_expr_list expr_list ^ ")"
+	| Call(fdecl, expr_list), _ -> fdecl.fname ^ "(" ^ string_of_expr_list expr_list ^ ")"
+	| CallStub(func_sig,expr_list),_ -> (fst func_sig) ^ "(" ^ string_of_expr_list expr_list ^ ")"
 	| TableAccess(table_id, ind_list), _ ->
 		table_id ^ (String.concat "" (List.map string_of_get_index_expr ind_list))
 	| TableAssign(table_id,ind_list,expr_promise), t ->
 		let (_,typ) as expr = expr_promise () in
-		let nesting_level = (List.length ind_list) in
-		let nestings = (Util.range 1 (nesting_level+1)) in
-		let enum_ind_list = (List.combine ind_list nestings) in
-		let value_str =  string_of_expr expr
-		in
-		(*
-		a[1][2][3] = 4 gets an inner table, which gets an inner table, which then sets index 3 to 4
-		*)
-		let ind_to_string (ind_expr,nesting) =
-			match ind_expr,nesting with
-				ind_e,n when n=nesting_level -> string_of_set_index_expr_with_value_str ind_e value_str
-				|ind_e,_ -> string_of_get_index_expr ind_e
-		in
-		table_id ^ (String.concat "" (List.map ind_to_string enum_ind_list))
-
+		if (Semantics.is_empty_table_container typ) then
+			""
+		else
+			let nesting_level = (List.length ind_list) in
+			let nestings = (Util.range 1 (nesting_level+1)) in
+			let enum_ind_list = (List.combine ind_list nestings) in
+			let value_str =  string_of_expr expr
+			in
+			(*
+			a[1][2][3] = 4 gets an inner table, which gets an inner table, which then sets index 3 to 4
+			*)
+			let ind_to_string (ind_expr,nesting) =
+				match ind_expr,nesting with
+					ind_e,n when n=nesting_level -> string_of_set_index_expr_with_value_str ind_e value_str
+					|ind_e,_ -> string_of_get_index_expr ind_e
+			in
+			table_id ^ (String.concat "" (List.map ind_to_string enum_ind_list))
 	| _ -> raise (Failure "We shouldn't be here.")
 and string_of_func_decl func_decl  =
 	let param_names = (List.map fst func_decl.params) in

@@ -1,3 +1,5 @@
 BEGIN{}
-[@div p@]{}
+[@div p@]{
+  print(this);
+}
 END{}

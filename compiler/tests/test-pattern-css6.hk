@@ -1,3 +1,5 @@
 BEGIN{}
-[@element1 ~ element2@]{}@]{}
+[@div ~ p@]{
+  print(this);
+}
 END{}

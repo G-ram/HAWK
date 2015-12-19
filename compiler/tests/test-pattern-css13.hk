@@ -1,3 +1,5 @@
 BEGIN{}
-[@[href~=some]@]{}
+[@ .graham-dash @]{
+  print(5);
+}
 END{}
