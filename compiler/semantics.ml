@@ -8,11 +8,11 @@ let rec type_to_str = function
   | Void -> "void"
   | EmptyTable -> "ET"
   | UnknownReturn -> "UR"
-	
+
 let is_table = function
 	Table(_) | EmptyTable -> true
 	| _ -> false
-	
+
 let get_binop_type t1 op t2 =
   match op with
   Ast.Plus -> (
@@ -37,7 +37,7 @@ type b_arg_types = BAny | BTable | BString | BInt
 
 (*Built-in functions and their types*)
 let built_in = [("_print_", [BAny], Int); ("_exists_", [BAny], Int);
-                ("_length_", [BTable], Int); ("_keys_", [BTable], Table(String));
+                ("_length_", [BAny], Int); ("_keys_", [BTable], Table(String));
                 ("_children_", [BTable], String); ("_inner_html_", [BTable], String);
                 ("_charAt_", [BString; BInt], String); ("_stringEqual_", [BString; BString], Int);
 				("_stringToInt_", [BString],Int) ]
@@ -59,18 +59,18 @@ let rec find (scope : symbol_table) name =
 let assert_not_void typ err =
 	if typ = Void then
 		raise (Failure err)
-		
-let get_sig_return_type global_env func_sig = 
+
+let get_sig_return_type global_env func_sig =
 	List.assoc func_sig global_env.func_signatures
-		
+
 (*
-let get_existing_func_decl global_env func_signature = 
+let get_existing_func_decl global_env func_signature =
 	let matches_signature func_decl =
 		let param_type_promises = List.map snd func_decl.params in
 		let param_types = List.map (fun promise -> promise ()) param_type_promises in
 		func_decl.fname = (fst func_signature) && param_types = (snd func_signature)
 	in
-	try 
+	try
 		let fdecl = List.find matches_signature global_env.funcs in
 		let return_type = (fdecl.return_type_promise ()) in
 		Some (fdecl,return_type)
@@ -80,8 +80,8 @@ let get_existing_func_decl global_env func_signature =
 let add_initial_func_signature global_env func_signature =
 	ignore (global_env.func_signatures<- (func_signature,UnknownReturn)::(global_env.func_signatures))
 
-let get_existing_func_sig global_env func_signature = 
-	try 
+let get_existing_func_sig global_env func_signature =
+	try
 		let return_t = List.find (fun entry -> (fst entry) = func_signature) global_env.func_signatures in
 		Some (func_signature,return_t)
 	with Not_found -> None
@@ -276,9 +276,9 @@ let rec get_expression_promise assigner global_env assignee_e assignee_type assi
 				let (e1_e,e1_type) as e1 = (e1_promise ()) in
 				Uminus(e1), e1_type
 			)
-			
-		|CallStub(signature,_) -> 
-			(fun () -> 
+
+		|CallStub(signature,_) ->
+			(fun () ->
 				let return_t = get_sig_return_type global_env signature in
 				assignee_e,return_t )
 		| _ when (not is_et) ->
@@ -414,7 +414,7 @@ let get_return_type_promise_checked func_body env force_concrete =
 		match all_return_types with
 			[] -> Void
 			| type_list ->
-				let search_list = if force_concrete then 
+				let search_list = if force_concrete then
 									type_list
 								else
 									List.filter (fun typ -> typ<>UnknownReturn ) type_list
@@ -426,10 +426,10 @@ let get_return_type_promise_checked func_body env force_concrete =
 				else
 					raise (Failure "Inconsistent return types in user defined function.")
 	in get_return_type
-	
+
 let get_return_type_promise func_body env =
 	get_return_type_promise_checked func_body env true
-	
+
 let get_return_type func_body env =
 	let promise = get_return_type_promise_checked func_body env false in
 	(promise ())
@@ -504,27 +504,27 @@ let add_func_to_global_env global_env func_decl =
 	else
 		ignore (global_env.funcs <- func_decl::(global_env.funcs))
 
-let add_func_sig_to_global_env global_env func_signature return_type = 
+let add_func_sig_to_global_env global_env func_signature return_type =
 	let rec replace_func_sig = function
 		[] -> []
-		| (other_sig,_)::tl when other_sig=func_signature -> 
+		| (other_sig,_)::tl when other_sig=func_signature ->
 			(other_sig,return_type)::(replace_func_sig tl)
 		| hd::tl -> hd::(replace_func_sig tl)
 	in
 	ignore (global_env.func_signatures <- (replace_func_sig global_env.func_signatures))
 
 (*
-let func_signature_exists global_env func_signature = 
-	let same_function_name = 
-		List.filter (fun func_sig -> ((fst func_sig) = (fst func_signature)))  global_env.func_signatures 
+let func_signature_exists global_env func_signature =
+	let same_function_name =
+		List.filter (fun func_sig -> ((fst func_sig) = (fst func_signature)))  global_env.func_signatures
 	in
 	let same_signature_types = List.filter (fun func_sig -> (snd func_sig) = (snd func_signature)) same_function_name
-	in 
+	in
 	(match same_signature_types with
 		[] -> false
 		| _ -> true)
 
-let add_func_signature_to_global_env global_env func_signature = 
+let add_func_signature_to_global_env global_env func_signature =
 	ignore (global_env.func_signatures <- (func_signature::(global_env.func_signatures)))
 *)
 
@@ -640,17 +640,17 @@ let rec check_expr env global_env = function
 		Some(func_decl) ->
 			let el_typed = List.map (fun e -> (check_expr env global_env e)) el in
 			let (arg_exprs,arg_types) = List.split el_typed in
-			let func_signature = (v, arg_types) in 
-			
+			let func_signature = (v, arg_types) in
+
 			(* See if the function signature eixsts *)
 			(
 			match get_existing_func_sig global_env func_signature with
 				Some(signature, _) -> CallStub(signature, el_typed), UnknownReturn
-				| None -> 
+				| None ->
 
 				(* Add function signature before proceeding *)
 				add_initial_func_signature global_env func_signature;
-				
+
 				let typed_args = List.combine func_decl.params arg_types in
 				let func_env = {env with scope = {parent = None; variables = typed_args; update_table_links = []};
 								returns = ref [];

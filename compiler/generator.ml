@@ -195,7 +195,7 @@ and string_of_stmt stmt nested = match stmt with
 	| Return(expr_promise) ->
 		let expr = (expr_promise ()) in
 		(string_for_indent nested) ^ "return " ^ (string_of_expr expr) ^ ";"
-	| If(expr, stmt1, stmt2) -> (match stmt2 with 
+	| If(expr, stmt1, stmt2) -> (match stmt2 with
 		| Block([], _)  -> (string_for_indent nested) ^ "if(_checkIf(" ^ (string_of_expr expr) ^ "))" ^ (string_of_stmt stmt1 nested)
 		| _ -> (string_for_indent nested) ^ "if(_checkIf(" ^ (string_of_expr expr) ^ "))" ^ (string_of_stmt stmt1 nested) ^ "else" ^ (string_of_stmt stmt2 nested))
 	| While(expr, stmt) -> (string_for_indent nested) ^ "while(" ^ (string_of_expr expr) ^ ")" ^ (string_of_stmt stmt (nested + 1))
@@ -211,7 +211,7 @@ let string_of_begin_end block nested= match block with
 
 let string_of_pattern pat = match pat with
 		Ast.CssPattern(css_selector) -> "for(_HAWKTable<String> _this : _cssMatcher._match(\"" ^ (string_of_css_selector css_selector) ^"\"))"
-		| Ast.RegexPattern(regex_seq) -> "for(String _this : _regexMatcher._match(\""^string_of_regex_sequence regex_seq^"\"))"
+		| Ast.RegexPattern(regex_seq) -> "for(_HAWKTable<String> _this : _regexMatcher._match(\""^string_of_regex_sequence regex_seq^"\"))"
 
 let string_of_pattern_action nested (pattern,action) =
 	(string_of_pattern pattern) ^ (string_of_stmt action nested)

@@ -1,0 +1,88 @@
+BEGIN{
+  primes = {};
+  fun toInt(s){
+    n = {};
+    index = 0;
+    val = 0;
+    isChar = 0;
+    if(length(s) == 0){
+      return -1;
+    }
+    while(index < length(s)){
+     if(stringEqual(charAt(s, index),"0")){
+       val = val + 0;
+     }else{isChar = isChar + 1;}
+     if(stringEqual(charAt(s, index),"1")){
+       val = val + 1;
+     }else{isChar = isChar + 1;}
+     if(stringEqual(charAt(s, index),"2")){
+       val = val + 2;
+     }else{isChar = isChar + 1;}
+     if(stringEqual(charAt(s, index),"3")){
+       val = val +  3;
+     }else{isChar = isChar + 1;}
+     if(stringEqual(charAt(s, index),"4")){
+       val = val + 4;
+     }else{isChar = isChar + 1;}
+     if(stringEqual(charAt(s, index),"5")){
+       val = val + 5;
+     }else{isChar = isChar + 1;}
+     if(stringEqual(charAt(s, index),"6")){
+       val = val + 6;
+     }else{isChar = isChar + 1;}
+     if(stringEqual(charAt(s, index),"7")){
+       val = val + 7;
+     }else{isChar = isChar + 1;}
+     if(stringEqual(charAt(s, index),"8")){
+       val = val + 8;
+     }else{isChar = isChar + 1;}
+     if(stringEqual(charAt(s, index),"9")){
+       val = val + 9;
+     }else{isChar = isChar + 1;}
+     if(isChar >= 10){
+       if(index == 0){
+         return -1;
+       }else{
+         return val/10;
+       }
+     }
+     val = val * 10;
+     index = index + 1;
+     isChar = 0;
+   }
+   return val/10;
+  }
+  fun isPrime(i){
+    if(i <= 1){
+      return 0;
+    }
+    if(i == 2){
+      return 1;
+    }
+    if(i % 2 == 0 || i % 3 == 0){
+      return 0;
+    }
+    n = 5;
+    while(n*n <= i){
+        if (i % n == 0 || i % (n + 2) == 0){
+            return 0;
+        }
+        n = n + 6;
+    }
+    return 1;
+  }
+  print(isPrime(23));
+}
+[/[0-9]* /]{
+  a = this[0];
+  /*if(exists(this)){
+
+  }
+  print(this);
+  if(isPrime(toInt())){
+    primes[this] = 1;
+  }*/
+}
+END{
+  /*print(keys(primes));*/
+}
