@@ -26,12 +26,18 @@ private static int _length_(String s){
 private static <T> int _length_(_HAWKTable<T> t){
   return t.getLength();
 }
+
 private static <T> int _exists_(T e){
   if(e == null){
     return 0;
   }
   return 1;
 }
+
+private static int _stringToInt_ (String s){
+	return Integer.parseInt(s);
+}
+
 private static <T> _HAWKTable<String> _keys_(_HAWKTable<T> t){
   java.util.Set<String> set = t.getKeys();
   _HAWKTable<String> hawkTable = new _HAWKTable<String>();

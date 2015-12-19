@@ -60,6 +60,7 @@ and expr_det =
   |CallStub of func_signature * (expr_t list)
   |BCall of string * (expr_t list) (* built-in function name, parameters *)
   |TableAccess of string * (expr_t list)
+  |ThisAccess of expr_t
 and expr_t = expr_det * t
 (* Sometimes the accurate type of an expression is not known in advance
 (when empty tables are involved)
@@ -75,6 +76,7 @@ and stmt_t =
   | If of expr_t * stmt_t * stmt_t
   | While of expr_t * stmt_t
   | For of string * string * stmt_t
+  | ForThis of string * stmt_t
   | Empty
   and
   func_decl_t = {

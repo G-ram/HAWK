@@ -77,6 +77,7 @@ and expr =
 	|Uminus of expr
 	|Call of string * expr list
 	|TableAccess of string * (expr list)(* e.g t[1] or (t[2][3])[4]  *)
+	|ThisAccess of expr 
 	|TableAssign of string * (expr list) * expr
 
 (*Program Structure and Action Syntax*)
@@ -88,6 +89,7 @@ type stmt =
 	| If of expr * stmt * stmt
 	| While of expr * stmt
 	| For of string * string * stmt
+	| ForThis of string * stmt
 	| Empty
 and
 func_decl = {
