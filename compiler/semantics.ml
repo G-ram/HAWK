@@ -36,10 +36,10 @@ let get_binop_type t1 op t2 =
 type b_arg_types = BAny | BTable | BString | BInt
 
 (*Built-in functions and their types*)
-let built_in = [("print", [BAny], Int); ("exists", [BAny], Int);
-                ("length", [BTable], Int); ("keys", [BTable], Table(String));
-                ("children", [BTable], String); ("inner_html", [BTable], String);
-                ("charAt", [BString; BInt], String); ("stringEqual", [BString; BString], Int);]
+let built_in = [("_print_", [BAny], Int); ("_exists_", [BAny], Int);
+                ("_length_", [BTable], Int); ("_keys_", [BTable], Table(String));
+                ("_children_", [BTable], String); ("_inner_html_", [BTable], String);
+                ("_charAt_", [BString; BInt], String); ("_stringEqual_", [BString; BString], Int);]
 
 let rec find_var_and_scope (scope : symbol_table) name = try
   (List.find (fun (s, _) -> s = name) scope.variables),scope with Not_found ->

@@ -1,0 +1,10 @@
+0a1,9
+> innerhtml=<div id="mw-normal-catlinks">
+>  <a href="/Special:Categories" title="Special:Categories">Category</a>:
+>  <ul>
+>   <li><a href="/Category:Miscellaneous_people" title="Category:Miscellaneous people">Miscellaneous people</a></li>
+>  </ul>
+> </div>
+> nextChild=mw-normal-catlinks
+> class=catlinks
+> id=catlinks

@@ -3,6 +3,7 @@
 	open Parser
 	type is_pat = YES_REG | NO
 	let state_ref = ref NO
+	let add_underscores str = "_" ^ str ^ "_"
 }
 
 (*Some standard character classes*)
@@ -34,7 +35,7 @@ rule token pat = parse
 	| "[/" {pat := YES_REG ; LBRACK_FSLASH}
 	| "[@" {LBRACK_AMP} | "@]" {AMP_RBRACK}
 	| "*=" {TIMES_EQ} | "^=" {XOR_EQ} | "$=" {DOLLAR_EQ} | "~=" {TILDE_EQ}
-	| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
+	| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID( (add_underscores lxm) ) }
 	| digits as lxm {INT(int_of_string lxm)}
 	| decimal as lxm {DOUBLE(float_of_string lxm)}
 	| '"' [^ '"']+ '"' as lxm {STRING(lxm)}
