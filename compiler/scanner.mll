@@ -29,7 +29,7 @@ rule token pat = parse
 	| "while" {WHILE} | "for" {FOR}
 	| "this" {THIS}
 	| "return" {RETURN}
-	| '<' {LT} | '>' {GT} | "==" {EQ} | ">=" {GEQ} | "<=" {LEQ} | "&&" {AND} | "||" {OR}
+	| '<' {LT} | '>' {GT} | "==" {EQ} | "!=" {NEQ} | ">=" {GEQ} | "<=" {LEQ} | "&&" {AND} | "||" {OR}
 	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '/' {DIVIDES} | '=' {ASSIGN} | '%' {MOD}
 	| "[/" {pat := REGEX ; LBRACK_FSLASH}
 	| "[@" {pat:= CSS; LBRACK_AMP} 
