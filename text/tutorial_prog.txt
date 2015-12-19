@@ -1,0 +1,51 @@
+HAWK uses a syntax that is very similar to the syntax of AWK. There is a BEGIN block and an END block, which respectively start and end each program, and between the two blocks are any number of pattern-action blocks.
+
+Below is a general program with no pattern matching done on its input. This simply creates a table of integers, increments each of its odd elements by 1, and prints the elements in the table.
+PROG
+
+BEGIN{
+    table = {1, 2, 3, 4, 5, 6};
+    i = 0;
+    while(i < length(table)){
+	if(table[i] % 2 == 1){
+        	table[i] = table[i] + 1;
+	}
+    }
+}
+END{
+    print(table);
+}
+
+PROG
+
+HAWK is built to parse HTML documents; it can do this by either searching for CSS patterns or by searching for regex. Each item that is found is stored as a table containing the id, attributes, and the id of the next child, if they exist. All element tables go into a table called this,  Say I wanted to print out the inner HTML of each element with class .get-me; here is how it would be done:
+
+PROG
+
+BEGIN{
+
+}
+[@.get-me@]{
+    for(k : this){
+        print(this[k]["innerhtml"]);
+    }
+}
+END{
+
+}
+
+PROG
+
+Here is a HAWK program that uses a regex pattern. Say we wanted to look for the heights of certain objects in feet. We can use a regex pattern to find these like so:
+PROG
+
+BEGIN{ }
+[/ ['0'-'9']+ ft /]{ 
+    height = int_to_string(this);
+    if( height >= 14000 && height <=15000){
+        print("found");
+    }
+}
+END{ }
+
+PROG
