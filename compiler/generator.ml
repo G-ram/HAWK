@@ -138,6 +138,10 @@ and
 string_of_expr = function
 	Id(id), _ -> id
 	| Literal(lit), t -> string_of_literal (lit,t)
+	(* Assigning to something that stays empty for the duration of the program is a no-op *)
+	| Assign(_), t when (Semantics.is_empty_table_container t) -> ""
+	| VAssign(_), t when (Semantics.is_empty_table_container t) -> ""
+	| TableAssign(_), t when (Semantics.is_empty_table_container t) -> ""
 	| TableLiteral(kv_list), Table(val_type) -> string_of_table_literal kv_list val_type
 	| VAssign(id, expr_promise), t ->
 		let (_,typ) as expr = expr_promise () in
@@ -168,7 +172,6 @@ string_of_expr = function
 				|ind_e,_ -> string_of_get_index_expr ind_e
 		in
 		table_id ^ (String.concat "" (List.map ind_to_string enum_ind_list))
-
 	| _ -> raise (Failure "We shouldn't be here.")
 and string_of_func_decl func_decl  =
 	let param_names = (List.map fst func_decl.params) in

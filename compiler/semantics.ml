@@ -216,10 +216,10 @@ if we later find out the type of t to be Table(Table(Int)) or something even mor
 types of the nested empty tables in this table literal
 *)
 let rec retype_empty_table_literal table_literal new_table_type =
-	let inner_t = apply_nesting (new_table_type,-1) in
 	match table_literal with
 		| [] -> []
 		| (key, (old_e, old_t))::tail ->
+			let inner_t = apply_nesting (new_table_type,-1) in
 			let new_e = (match old_e with
 				|TableLiteral(tl) -> TableLiteral (retype_empty_table_literal tl inner_t)
 				| _ -> old_e)
