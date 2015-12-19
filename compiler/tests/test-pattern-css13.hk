@@ -1,0 +1,5 @@
+BEGIN{}
+[@ .graham-dash @]{
+  print(5);
+}
+END{}
