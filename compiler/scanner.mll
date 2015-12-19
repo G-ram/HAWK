@@ -59,8 +59,8 @@ and css_scan pat = parse
 	[' ' '\t' '\r' '\n'] {css_scan pat lexbuf}
 	| "@]" {pat:= NO; AMP_RBRACK} 
 	| '(' {LPAREN} | ')' {RPAREN}
-	| css_id as lxm { CSSID(lxm) }
 	| id as lxm { ID(lxm)}
+	| css_id as lxm { CSSID(lxm) }
 	| '[' {LBRACK} | ']' {RBRACK}
 	| '(' {LPAREN} | ')' {RPAREN}
 	| '<' {LT} | '>' {GT} 
