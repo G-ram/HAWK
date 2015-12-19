@@ -357,10 +357,11 @@ let get_return_type_promise func_body env =
 		match all_return_types with
 			[] -> Void
 			| type_list ->
+				let type_list = List.filter (fun typ -> typ<>UnknownReturn ) type_list in
 				if (Util.all_the_same type_list) then
-				if (is_guaranteed_block_return false stmt_list) then
-					(List.hd type_list)
-				else raise (Failure "No valid return statements")
+					if (is_guaranteed_block_return false stmt_list) then
+						(List.hd type_list)
+					else raise (Failure "No valid return statements")
 				else
 					raise (Failure "Inconsistent return types in user defined function.")
 	in get_return_type
@@ -441,6 +442,7 @@ let add_func_sig_to_global_env global_env func_signature return_type =
 	let rec replace_func_sig = function
 		[] -> []
 		| (other_sig,_)::tl when other_sig=func_signature -> 
+			print_string "Replacing!\n";
 			(other_sig,return_type)::(replace_func_sig tl)
 		| hd::tl -> hd::(replace_func_sig tl)
 	in
@@ -623,6 +625,8 @@ let rec check_expr env global_env = function
 												body = func_body_list;
 												return_type_promise = return_type_promise } in
 						add_func_to_global_env global_env func_decl_typed;
+						
+						print_string ("Initial return type is " ^ (type_to_str initial_return_type) ^"\n");
 						add_func_sig_to_global_env global_env func_signature initial_return_type;
 						let typed_func_call = Call(func_decl_typed, el_typed), initial_return_type in
 						typed_func_call
