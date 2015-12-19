@@ -9,6 +9,30 @@ let rec type_to_str = function
   | EmptyTable -> "ET"
   | UnknownReturn -> "UR"
 	
+let is_table = function
+	Table(_) | EmptyTable -> true
+	| _ -> false
+	
+let get_binop_type t1 op t2 =
+  match op with
+  Ast.Plus -> (
+	match t1, t2 with\
+	_, UnknownReturn | UnknownReturn,_ -> UnknownReturn
+	|x, y when x = y && not (is_table x) ->  x
+	| x, y when x = String || y = String ->  String
+	| Int, Double -> Double
+	| Double, Int -> Double
+	| _ , _ -> raise (Failure("binary operation type mismatch"))
+	)
+  | _ -> (
+	match t1, t2 with
+	_, UnknownReturn | UnknownReturn,_ -> UnknownReturn
+	|x, y when x = y && not (is_table x) && x != String ->  x
+	| Int, Double ->  Double
+	| Double, Int ->  Double
+	| _ , _ -> raise (Failure("binary operation type mismatch or operation does not support these types"))
+	)
+
 type b_arg_types = BAny | BTable | BString | BInt
 
 (*Built-in functions and their types*)
@@ -215,13 +239,44 @@ Return a promise which will return
 a SAST expression given our current knowledge of symbol tables
 Once the semantics stage has completed this promise will give us our best
 possible understanding of an expression
+
+These promises are used anytime an l-value or potential l-value is involved. This includes:
+
+1. assignment
+2. table assignment
+3. return statements
+
+Uncertainty arises from:
+
+1. Empty table literals (EmptyTable)
+2. Recursive calls  (UnknownReturn)
+
+But can always be resolved when syntactic analysis is over
 *)
-let get_expression_promise assigner global_env assignee_e assignee_type assignee_scope =
+let rec get_expression_promise assigner global_env assignee_e assignee_type assignee_scope =
 	let is_et = (is_empty_table_container assignee_type) in
 	let id_info = get_identifier_expr_info assignee_e in
 	let noop_promise = (fun () -> assignee_e,assignee_type) in
 	match assignee_e with
-		CallStub(signature,_) -> 
+		Binop(e1,op,e2) ->
+			let (e1_e,e1_type) = e1 in
+			let (e2_e,e2_type) = e2 in
+			let e1_promise = get_expression_promise assigner global_env e1_e e1_type assignee_scope in
+			let e2_promise = get_expression_promise assigner global_env e2_e e2_type assignee_scope in
+			( fun () ->
+				let (e1_e,e1_type) as e1 = (e1_promise ()) in
+				let (e2_e,e2_type) as e2 = (e2_promise ()) in
+				Binop(e1,op,e2), (get_binop_type e1_type op e2_type)
+			)
+		| Uminus(e1) ->
+			let (e1_e,e1_type) = e1 in
+			let e1_promise = get_expression_promise assigner global_env e1_e e1_type assignee_scope in
+			( fun () ->
+				let (e1_e,e1_type) as e1 = (e1_promise ()) in
+				Uminus(e1), e1_type
+			)
+			
+		|CallStub(signature,_) -> 
 			(fun () -> 
 				let return_t = get_sig_return_type global_env signature in
 				assignee_e,return_t )
@@ -347,8 +402,10 @@ and is_guaranteed_block_return valid = function
 (*
 Just as with assignment, we may not know the return type of a function in advance due to empty tables.
 Assuming scope is available, this function will give you the proper return type
+
+force_concrete = do we tolerate UnknownReturn types for this promise?
 *)
-let get_return_type_promise func_body env =
+let get_return_type_promise_checked func_body env force_concrete =
 	let stmt_list = match func_body with Block(sl, _) -> sl in
 	let all_return_type_promises = !(env.returns) in
 	let get_return_type () =
@@ -356,18 +413,27 @@ let get_return_type_promise func_body env =
 		match all_return_types with
 			[] -> Void
 			| type_list ->
-				let type_list = List.filter (fun typ -> typ<>UnknownReturn ) type_list in
-				if (Util.all_the_same type_list) then
+				let search_list = if force_concrete then 
+									type_list
+								else
+									List.filter (fun typ -> typ<>UnknownReturn ) type_list
+				in
+				if (Util.all_the_same search_list) then
 					if (is_guaranteed_block_return false stmt_list) then
-						(List.hd type_list)
+						(List.hd search_list)
 					else raise (Failure "No valid return statements")
 				else
 					raise (Failure "Inconsistent return types in user defined function.")
 	in get_return_type
+	
+let get_return_type_promise func_body env =
+	get_return_type_promise_checked func_body env true
+	
+let get_return_type func_body env =
+	let promise = get_return_type_promise_checked func_body env false in
+	(promise ())
 
-let is_table = function
-	Table(_) | EmptyTable -> true
-	| _ -> false
+
 
 let valid_table_index_type = function
 	Int | String -> true
@@ -555,28 +621,12 @@ let rec check_expr env global_env = function
     let _, t1 = e1
     and _, t2 = e2 in
     (*Operators come in*)
-    (
-      match op with
-      Ast.Plus -> (
-        match t1, t2 with
-        x, y when x = y && not (is_table x) -> Binop(e1, op, e2), x
-        | x, y when x = String || y = String -> Binop(e1, op, e2), String
-        | Int, Double -> Binop(e1, op, e2), Double
-        | Double, Int -> Binop(e1, op, e2), Double
-        | _ , _ -> raise (Failure("binary operation type mismatch"))
-        )
-      | _ -> (
-        match t1, t2 with
-        x, y when x = y && not (is_table x) && x != String -> Binop(e1, op, e2), x
-        | Int, Double -> Binop(e1, op, e2), Double
-        | Double, Int -> Binop(e1, op, e2), Double
-        | _ , _ -> raise (Failure("binary operation type mismatch or operation does not support these types"))
-        )
-    )
+	let return_type = get_binop_type t1 op t2 in
+	Binop(e1,op,e2),return_type
   | Ast.Uminus(e) ->
     let (e, typ) = check_expr env global_env e in
     (*Check for int or double*)
-    if typ != Int && typ != Double then raise (Failure("unary minus operation does not support this type")) ;
+    if typ != Int && typ != Double && typ != UnknownReturn then raise (Failure("unary minus operation does not support this type")) ;
     Uminus((e, typ)), typ
   | Ast.Call(v, el) ->
 	let func_decl =
@@ -612,7 +662,7 @@ let rec check_expr env global_env = function
 				let func_body = check_stmt func_env global_env (Ast.Block func_decl.body) in
 				let return_type_promise = get_return_type_promise func_body func_env in (*func_env.scope func_body in*)
 				(*TODO: find some way to link this with assignment as well *)
-				let initial_return_type = (return_type_promise ()) in
+				let initial_return_type = get_return_type func_body func_env in
 				(
 				match func_body with
 					Block(stmt_list,_) ->
