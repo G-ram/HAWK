@@ -21,7 +21,7 @@ private static Boolean _checkIf(Boolean b){
   return b;
 }
 private static int _length_(String s){
-  return s.length;
+  return s.length();
 }
 private static <T> int _length_(_HAWKTable<T> t){
   return t.getLength();
