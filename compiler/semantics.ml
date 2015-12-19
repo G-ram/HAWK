@@ -16,7 +16,7 @@ let is_table = function
 let get_binop_type t1 op t2 =
   match op with
   Ast.Plus -> (
-	match t1, t2 with\
+	match t1, t2 with
 	_, UnknownReturn | UnknownReturn,_ -> UnknownReturn
 	|x, y when x = y && not (is_table x) ->  x
 	| x, y when x = String || y = String ->  String
