@@ -89,7 +89,9 @@
 		* 4.1.3 Development Process
 		* 4.1.4 Testing Process
 	* 4.2 Team Responsibilities
-	* 4.3 Timeline
+	* 4.3 Programming Style Guide
+	* 4.4 Software Development Environment
+	* 4.5 Timeline
 * 5 Architectural Design
 	* 5.1 Block Diagram
 * 6 Test Plan
@@ -874,7 +876,17 @@ We ended up splitting up work primarily based on feature implementation.
 
 Everyone played a role in parsing, scanning, testing, semantic checking, and code generation
 
-#### 4.3 Timeline
+#### 4.3 Programming Style Guide
+
+We tried to use consistent programming style so that each segment was easy to read for each group member, although we did not have an official guide that we required everyone to use. 
+
+We wrote comments before each section to clarify what the purpose of each block of code was. 
+
+#### 4.4 Software Development Environment
+
+We used Ocaml to write our compiler, including Ocamlyacc and Ocamllex. We also used shell scripts to run our test suite. 
+
+#### 4.5 Timeline
 
 | Date         | Project Feature                                           |
 |--------------|-----------------------------------------------------------|
@@ -886,6 +898,7 @@ Everyone played a role in parsing, scanning, testing, semantic checking, and cod
 | December 17  | Type inference complete, functions complete, CSS complete |
 | December 18  | All tests pass                                            |
 | December 20  | Final Report completed                                    |
+
 
 ## 5. Architectural Design
 ### 5.1 Block Diagram
@@ -1183,3 +1196,7 @@ The testing script is included in the Appendix.
 * Don't push untested code and don't push without being aware of what other work is being done
 
 ### 7.5 Jon Adelson
+
+* While a seemingly obvious statement, knowing Ocaml well helps a lot when writing a compiler in Ocaml. Familiarity with Ocaml List functions makes code much clearer and likely error free. Additionally, getting used to making mistakes in Ocaml is an important part of the development process. Initially, I would get frustrated because I believed that Ocaml was incorrectly complaining about a seemingly valid program, only to find that I had in fact passed in the incorrect type, forgotten an argument to a function, or made one of many other possible mistakes. Learning to read Ocaml error messages and understanding where the real error exists is an important skill. 
+* It is important to know what other people have already completed because you do not want two people writing the same pieces of code and you can easily leverage what others have written to accomplish new tasks. For example, when incorporating functions into the language, Graham had already written most of the code to semantically check statements, so it was reasonably straightforward to check all of the statements within the body of a function declaration. 
+* Although it is more interesting to think about the functionality and syntax of your language, you do need to take time to consider what is legal in your target language. For example, there were a couple scenarios we had to guard against when returning values from functions. Java does not like if a non-void function is not guaranteed to return a value, such as if the return statement is within an if statement that does not also have an else clause. Additionally, Java does not like when you have unreachable code, such as when there are additional statements after a return statement that is guaranteed to execute. 
