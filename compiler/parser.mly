@@ -1,6 +1,8 @@
 /*NOTE: much of the parsing code for statements/expressions is directly adapted from MicroC*/
 
-%{ open Ast %}
+%{ open Ast 
+   open Util
+%}
 
 %token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE
 %token PLUS MINUS TIMES DIVIDES MOD
@@ -218,7 +220,7 @@ property_selector_list:
 
 css_id:
 	CSSID {$1}
-	| ID {$1}
+	| ID {unwrap_id $1}
 	
 property_selector:
 	PERIOD css_id {ClassMatch($2)}

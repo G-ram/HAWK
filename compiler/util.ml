@@ -17,3 +17,6 @@ let all_the_same = function
 	| lst ->
 		(let hd = (List.hd lst) in
 		List.for_all ((=) hd) lst)
+		
+let wrap_id str = "_" ^ str ^ "_"
+let unwrap_id s = String.sub s 1 ( (String.length s) - 2)
