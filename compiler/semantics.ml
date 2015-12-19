@@ -82,8 +82,8 @@ let add_initial_func_signature global_env func_signature =
 
 let get_existing_func_sig global_env func_signature =
 	try
-		let return_t = List.find (fun entry -> (fst entry) = func_signature) global_env.func_signatures in
-		Some (func_signature,return_t)
+		let entry = List.find (fun entry -> (fst entry) = func_signature) global_env.func_signatures in
+		Some (func_signature,(snd entry))
 	with Not_found -> None
 
 (*
@@ -645,7 +645,7 @@ let rec check_expr env global_env = function
 			(* See if the function signature eixsts *)
 			(
 			match get_existing_func_sig global_env func_signature with
-				Some(signature, _) -> CallStub(signature, el_typed), UnknownReturn
+				Some(signature, t) -> CallStub (signature, el_typed), t
 				| None ->
 
 				(* Add function signature before proceeding *)
