@@ -9,6 +9,7 @@ BEGIN {
 	}
 
 	x = fac(3);
+	print(x);
 	
 }
 END {
