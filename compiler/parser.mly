@@ -212,7 +212,7 @@ typed_simple_selector_seq:
 
 type_selector:
 	TIMES {Universal}
-	|ID {Elt($1)}
+	|ID {Elt(unwrap_id $1)}
 
 property_selector_list:
 	property_selector { [$1]}
