@@ -224,7 +224,6 @@ let get_expression_promise assigner global_env assignee_e assignee_type assignee
 		CallStub(signature,_) -> 
 			(fun () -> 
 				let return_t = get_sig_return_type global_env signature in
-				print_string ("Return type for call stub is " ^ (type_to_str return_t) ^ "\n");
 				assignee_e,return_t )
 		| _ when (not is_et) ->
 			(* If we're not dealing with an empty table, the expression and type should not change *)
@@ -442,7 +441,6 @@ let add_func_sig_to_global_env global_env func_signature return_type =
 	let rec replace_func_sig = function
 		[] -> []
 		| (other_sig,_)::tl when other_sig=func_signature -> 
-			print_string "Replacing!\n";
 			(other_sig,return_type)::(replace_func_sig tl)
 		| hd::tl -> hd::(replace_func_sig tl)
 	in
@@ -625,8 +623,6 @@ let rec check_expr env global_env = function
 												body = func_body_list;
 												return_type_promise = return_type_promise } in
 						add_func_to_global_env global_env func_decl_typed;
-						
-						print_string ("Initial return type is " ^ (type_to_str initial_return_type) ^"\n");
 						add_func_sig_to_global_env global_env func_signature initial_return_type;
 						let typed_func_call = Call(func_decl_typed, el_typed), initial_return_type in
 						typed_func_call
