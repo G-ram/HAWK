@@ -712,6 +712,9 @@ let rec check_expr env global_env = function
 		TableAccess (table_id,indices_sast),final_table_t
 	else
 		raise (Failure ("Attempting to index non-table"))
+	| Ast.ThisAccess(expr) ->
+		let ind_expr = check_expr env global_env expr in
+		ThisAccess(ind_expr), String
 and check_table_indices env global_env index_expr_lst =
 	let index_sast = (List.map (check_expr env global_env) index_expr_lst) in
 	let index_types = (List.map snd index_sast) in
@@ -793,6 +796,11 @@ and check_stmt env global_env = function
 		For(key_id,table_id,stmt)
 	else
 		raise (Failure("Cannot do for statement on non-table " ^ table_id))
+	| Ast.ForThis(key_id, stmt) ->
+		let scopeT = { parent = Some(env.scope); variables = [(key_id,String)]; update_table_links=[] } in
+		let envT = { env with scope = scopeT} in
+		let stmt = check_stmt envT global_env stmt in
+		ForThis(key_id,stmt)
 
 let check_pattern env global_env a = check_stmt env global_env a
 

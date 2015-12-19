@@ -81,6 +81,7 @@ stmt:
 	| IF LPAREN expr RPAREN stmt ELSE stmt { If($3,$5,$7) }
 	| WHILE LPAREN expr RPAREN stmt { While($3,$5) }
 	| FOR LPAREN ID IN ID RPAREN stmt { For($3,$5,$7) }
+	| FOR LPAREN ID IN THIS RPAREN stmt { ForThis($3,$7) }
 	| FUN func_decl {Func($2)}
 	| SEMI {Empty}
 
@@ -109,6 +110,7 @@ expr_no_brace:
 	| ID LPAREN expr_list RPAREN {Call($1,$3)}
 	| ID LPAREN  RPAREN {Call($1,[])}
 	| ID bracket_expr_list {TableAccess($1,$2)}
+	| THIS LBRACK expr RBRACK {ThisAccess($3)}
 	| ID bracket_expr_list ASSIGN expr {TableAssign($1,$2,$4)}
     | LPAREN expr RPAREN {$2}
     | MINUS expr_no_brace %prec UMINUS {Uminus($2)}

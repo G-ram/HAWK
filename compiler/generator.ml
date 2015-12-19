@@ -159,6 +159,8 @@ string_of_expr = function
 	| CallStub(func_sig,expr_list),_ -> (fst func_sig) ^ "(" ^ string_of_expr_list expr_list ^ ")"
 	| TableAccess(table_id, ind_list), _ ->
 		table_id ^ (String.concat "" (List.map string_of_get_index_expr ind_list))
+	| ThisAccess(expr),_ ->
+		string_of_expr ((TableAccess ("_this",[expr])),String)
 	| TableAssign(table_id,ind_list,expr_promise), t ->
 		let (_,typ) as expr = expr_promise () in
 		if (Semantics.is_empty_table_container typ) then
@@ -200,6 +202,8 @@ and string_of_stmt stmt nested = match stmt with
   | Empty -> ""
 	| For(key_id, table_id, stmt) ->
 		(string_for_indent nested) ^ "for(String " ^ key_id ^ " : " ^ table_id ^ ".getKeys())" ^ (string_of_stmt stmt nested)
+	| ForThis(key_id, stmt) ->
+		string_of_stmt (For (key_id,"_this",stmt)) nested
 
 let string_of_begin_end block nested= match block with
   Block(stmt_list, _) -> string_of_stmt_list stmt_list nested
