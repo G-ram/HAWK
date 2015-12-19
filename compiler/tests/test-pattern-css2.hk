@@ -1,3 +1,5 @@
 BEGIN{}
-[@#id@]{}
+[@#catlinks@]{
+  print(this);
+}
 END{}

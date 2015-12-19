@@ -1,3 +1,5 @@
 BEGIN{}
-[@[href]@]{}
+[@a[href$="http://www.wikicu.com/Main_Page"]@]{
+    print(this);
+}
 END{}
