@@ -1,0 +1,16 @@
+BEGIN {
+
+	fun f1(x){
+		return f2(34);
+	}
+	fun f2(a){
+		return "dog";
+	}
+
+	x = f1(10);
+	print(x);
+	
+}
+END {
+
+}
