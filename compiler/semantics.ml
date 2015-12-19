@@ -261,8 +261,8 @@ let rec get_expression_promise assigner global_env assignee_e assignee_type assi
 		Binop(e1,op,e2) ->
 			let (e1_e,e1_type) = e1 in
 			let (e2_e,e2_type) = e2 in
-			let e1_promise = get_expression_promise assigner global_env e1_e e1_type assignee_scope in
-			let e2_promise = get_expression_promise assigner global_env e2_e e2_type assignee_scope in
+			let e1_promise = get_expression_promise None global_env e1_e e1_type assignee_scope in
+			let e2_promise = get_expression_promise None global_env e2_e e2_type assignee_scope in
 			( fun () ->
 				let (e1_e,e1_type) as e1 = (e1_promise ()) in
 				let (e2_e,e2_type) as e2 = (e2_promise ()) in
@@ -270,7 +270,7 @@ let rec get_expression_promise assigner global_env assignee_e assignee_type assi
 			)
 		| Uminus(e1) ->
 			let (e1_e,e1_type) = e1 in
-			let e1_promise = get_expression_promise assigner global_env e1_e e1_type assignee_scope in
+			let e1_promise = get_expression_promise None global_env e1_e e1_type assignee_scope in
 			( fun () ->
 				let (e1_e,e1_type) as e1 = (e1_promise ()) in
 				Uminus(e1), e1_type
