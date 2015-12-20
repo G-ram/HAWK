@@ -63,19 +63,6 @@ let assert_not_void typ err =
 let get_sig_return_type global_env func_sig =
 	List.assoc func_sig global_env.func_signatures
 
-(*
-let get_existing_func_decl global_env func_signature =
-	let matches_signature func_decl =
-		let param_type_promises = List.map snd func_decl.params in
-		let param_types = List.map (fun promise -> promise ()) param_type_promises in
-		func_decl.fname = (fst func_signature) && param_types = (snd func_signature)
-	in
-	try
-		let fdecl = List.find matches_signature global_env.funcs in
-		let return_type = (fdecl.return_type_promise ()) in
-		Some (fdecl,return_type)
-	with Not_found -> None
-*)
 
 let add_initial_func_signature global_env func_signature =
 	ignore (global_env.func_signatures<- (func_signature,UnknownReturn)::(global_env.func_signatures))
@@ -261,8 +248,9 @@ let rec get_expression_promise assigner global_env assignee_e assignee_type assi
 	let checked_promise promise = 
 		(fun () ->
 			match assigner with
-				None -> (promise ())
-				| Some(assgn) ->
+				| _ when (not global_env.finished) -> (promise ())
+				| None -> (promise ())
+				| Some(assgn) when global_env.finished ->
 					let (_,assgn_t) = (find assgn.assign_scope assgn.id) in
 					let assgn_t = apply_nesting (assgn_t,-assgn.nesting) in
 					let (_,new_t) as result = (promise ()) in
@@ -590,9 +578,6 @@ let rec check_expr env global_env = function
 	in
 	(*let new_table_type = (update_empty_table_container_type table_t assignee_type) in*)
 	let new_table_type = apply_nesting (assignee_type,nesting) in
-	(*
-	print_string ("new type of " ^ table_id ^ " is " ^ (type_to_str new_table_type) ^"\n");
-	*)
 	update_table_type env.scope table_id new_table_type;
 	(match table_t with
 		Table(_) | EmptyTable ->
@@ -634,9 +619,6 @@ let rec check_expr env global_env = function
 	in
 	(if (is_table new_type) then
 		create_assignment_linkage_if_applicable v 0 env.scope assignee_e;
-		(*
-		print_string ("new type of " ^ v ^ " is " ^ (type_to_str new_type) ^"\n");
-		*)
 		update_table_type env.scope v new_type);
 	vdecl
   | Ast.Binop(e1, op, e2) ->
@@ -856,7 +838,7 @@ let check_program p =
 					is_pattern = false;
 					return_assigner = None;
 					returns = ref [] } in
-    let global_env = { funcs = []; func_signatures = []} in
+    let global_env = { funcs = []; func_signatures = []; finished=false} in
 	let (begin_block, env) = match check_stmt init_env global_env p.Ast.begin_stmt with
 								Block(begin_block, env) -> begin_block, env
 								| _ -> raise (Failure("begin is not a block")) in
@@ -866,6 +848,7 @@ let check_program p =
   let (end_block, env) = match check_stmt env global_env p.Ast.end_stmt with
 								Block(end_block, env) -> end_block, env
 								| _ -> raise (Failure("end is not a block")) in
+	global_env.finished<-true;
 	{concrete_funcs = global_env.funcs;
 	begin_stmt = Block(begin_block, env);
 	pattern_actions = pattern_actions;

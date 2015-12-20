@@ -89,6 +89,7 @@ and stmt_t =
 type global_environment = {
   mutable funcs: func_decl_t list;
   mutable func_signatures: (func_signature * t) list;
+  mutable finished : bool;
 }
 
 type pattern_action_t = Ast.pattern * stmt_t
