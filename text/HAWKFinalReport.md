@@ -107,7 +107,7 @@
 
 
 ## 1. Introduction
-Websites hold their information in the structure of an HTML document, and parsing that information is generally accomplished through the use of external libraries to scan the document for CSS selectors and specific HTML tags. Just as AWK handles the parsing of standard text documents, the motivation for HAWK—**H**TML is **A**ll **W**e **K**now—was to build a language to allow the user to easily handle parsing websites without the need to import any external libraries.    
+Websites hold their information in the structure of an HTML document, and parsing that information is generally accomplished through the use of web scraping libraries to scan the document for CSS selectors and specific HTML tags. Just as AWK handles the parsing of standard text documents, the motivation for HAWK—**H**TML is **A**ll **W**e **K**now—was to build a language to allow the user to easily handle parsing websites without the need to import any external libraries.    
 
 HAWK is a programming language designed for web scraping. Our solution to this was inspired by AWK’s powerful text parsing capabilities and we use the same (pattern, action) model as the basis for our HAWK programs. HAWK matches against both regular expressions and CSS selectors to select elements of a website document. The HAWK compiler compiles code to Java code, which is compiled to Java Bytecode, and then run on a Java Virtual Machine.
 ## 2. Code Samples
@@ -120,10 +120,16 @@ Below is a general program with no pattern matching done on its input. This simp
 ```
 BEGIN{
     table = {1, 2, 3, 4, 5, 6};
+	keyValueTable = {"oddSum":0,"evenSum":0};
+	
     i = 0;
     while(i < length(table)){
 		if(table[i] % 2 == 1){
         		table[i] = table[i] + 1;
+				keyValueTable["oddSum"] = keyValueTable["oddSum"] + i;
+		}
+		else{
+			keyValueTable["evenSum"] = keyValueTable["evenSum"] + i;
 		}
     }
 }
@@ -182,6 +188,10 @@ The following identifiers are keywords reserved for particular use:
 * `BEGIN`  
 * `END` 
 * `this` 
+* `fun` 
+* `for` 
+* `while` 
+* `return` 
 
 #### 3.1.5 Constants
 
@@ -423,13 +433,17 @@ If a variable is initialized within any block other than a *BEGIN* or *END* bloc
 
 #### 3.2.3 Basic Types
 
-
-There are four basic types in HAWK: 
+There three basic types in HAWK:
 
 * integer
 * double
 * string
-* table
+
+And one parameterized type:
+
+* table T
+
+Where T can be any type.
 
 Integers are 32-bit signed two's complement integer. Doubles are double-precision 64-bit IEEE 754 floating point. We will refer to doubles and integers arithmetic type. 
 
@@ -437,9 +451,9 @@ Strings are a sequence of 0 or more unicode characters. They are guaranteed to o
 
 Both arithmetic types and strings are immutable, which means that their value cannot be changed once they are created. When a variable with an immutable type is assigned a new value, the old value and underlying storage are destroyed. 
 
-Tables, unlike the immutable types, are objects and are mutable. This means that variables do not contain tables, but rather contain references to tables. Assigning a table to a variable results in that variable storing a reference to that table. Similarly, when tables are passed as parameters to functions or returned from functions, the respective parameters and return values are references. In each of these operations, there is no copying of internal table data, only copying of references. 
+A table of type T is an associative array in which keys are of type string and values are of type T. Tables, unlike the immutable types, are objects and are mutable. This means that variables do not contain tables, but rather contain references to tables. Assigning a table to a variable results in that variable storing a reference to that table. Similarly, when tables are passed as parameters to functions or returned from functions, the respective parameters and return values are references. In each of these operations, there is no copying of internal table data, only copying of references. 
 
-HAWK uses reference counting to keep track of how many variables store references to the same table. When a table no longer has any variables referencing it, the underlying storage for the table is destroyed.  
+HAWK uses reference counting to keep track of how many variables store references to the same table. When a table no longer has any variables referencing it, the underlying storage for the table is destroyed.   
 
 #### 3.2.4 Automatic Conversions
 
