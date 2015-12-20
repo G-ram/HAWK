@@ -32,12 +32,12 @@ rule token pat = parse
 	| '<' {LT} | '>' {GT} | "==" {EQ} | "!=" {NEQ} | ">=" {GEQ} | "<=" {LEQ} | "&&" {AND} | "||" {OR}
 	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '/' {DIVIDES} | '=' {ASSIGN} | '%' {MOD}
 	| "[/" {pat := REGEX ; LBRACK_FSLASH}
-	| "[@" {pat:= CSS; LBRACK_AMP} 
+	| "[@" {pat:= CSS; LBRACK_AMP}
 	| "*=" {TIMES_EQ} | "^=" {XOR_EQ} | "$=" {DOLLAR_EQ} | "~=" {TILDE_EQ}
 	| id as lxm {ID(wrap_id lxm) }
 	| digits as lxm {INT(int_of_string lxm)}
 	| decimal as lxm {DOUBLE(float_of_string lxm)}
-	| '"' [^ '"']+ '"' as lxm {STRING(lxm)}
+	| '"' [^ '"']* '"' as lxm {STRING(lxm)}
 	| eof {EOF}
 
 (*Switch to this rule when a comment is encountered*)
@@ -54,24 +54,24 @@ because regex expressions are more general than ID and are not strings.*)
 		| '[' {LBRACK} | ']' {RBRACK}
 		| '(' {LPAREN} | ')' {RPAREN}
 		| [^'"' '/' '.' '?' '|' '^' ']' '[' '(' ')' '-' '\\' '$' '*'] as lxm {REGEX_STRING((Char.escaped lxm))}
-		
+
 and css_scan pat = parse
 	[' ' '\t' '\r' '\n'] {css_scan pat lexbuf}
-	| "@]" {pat:= NO; AMP_RBRACK} 
+	| "@]" {pat:= NO; AMP_RBRACK}
 	| '(' {LPAREN} | ')' {RPAREN}
 	| id as lxm { ID(lxm)}
 	| css_id as lxm { CSSID(lxm) }
 	| '[' {LBRACK} | ']' {RBRACK}
 	| '(' {LPAREN} | ')' {RPAREN}
-	| '<' {LT} | '>' {GT} 
+	| '<' {LT} | '>' {GT}
 	| '~' {TILDE}
 	| '#' {HASH}
-	| '+' {PLUS} | '*' {TIMES} | '=' {ASSIGN} 
+	| '+' {PLUS} | '*' {TIMES} | '=' {ASSIGN}
 	| "*=" {TIMES_EQ} | "^=" {XOR_EQ} | "$=" {DOLLAR_EQ} | "~=" {TILDE_EQ}
 	| '"' [^ '"']+ '"' as lxm {STRING(lxm)}
 	| '.' {PERIOD}
 	| ',' {COMMA}
-	
+
 (*The function to get the next token; checks to see if it is scanning a regex pattern block*)
 {
 	let next_token lexbuf = match !state_ref with
