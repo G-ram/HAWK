@@ -1,0 +1,26 @@
+BEGIN{
+
+	fun getSingletonTable(x){
+		return {x};
+	}
+	
+	fun modifyTable(t){
+		t[0] = getSingletonTable(42);
+	}
+	
+	table = {};
+	table[0] = {{}};
+	
+	nestedTable = table[0];
+	modifyTable(nestedTable);
+	
+	nestedNestedTable = table[0][0][0];
+	
+	value = nestedNestedTable[0];
+	print(value);
+	
+}
+
+END{
+
+}
