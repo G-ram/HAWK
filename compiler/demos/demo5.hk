@@ -1,8 +1,7 @@
 BEGIN{
 
 	fun getSingletonTable(x){
-		tab = {x};
-		return tab;
+		return {x};
 	}
 	
 	fun modifyTable(t){
