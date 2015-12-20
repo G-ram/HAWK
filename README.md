@@ -130,7 +130,8 @@ String literals are immutable, and thus cannot be altered. Any operations perfor
 
 A table literal is a comma-separated sequence delimited by curly braces. The comma-separated sequence can take two forms. 
 
-* A sequence of values of any type — there can be different types in this sequence. However, these values have to be constants. This generates a table where the values are keyed in sequential order from the integer 0 to sequence length-1. 
+* A comma separated sequence of expressions which share the same type. This generates a table where the values are keyed in sequential order from the integer 0 to sequence length-1. 
+
 * A sequence of key-value pairs written in the form key : val. As before, values can vary within a table. Keys are restricted to string types; integers are treated as strings.
 
 
@@ -139,7 +140,7 @@ Patterns utilize valid Regex or CSS selector syntax and are defined with special
 
 ####2.6.A CSS Selector Patterns
 
-HAWK implements a limited syntax of the standard W3 definition of CSS selectors. A CSS selector contains special syntax used to find elements in an HTML document which match particular criteria. In HAWK, a CSS selector pattern consists of a CSS selector enclosed by @ symbols which are themselves enclosed by brackets.
+HAWK implements a subset of the standard W3 definition of CSS selectors. A CSS selector contains special syntax used to find elements in an HTML document which match particular criteria. In HAWK, a CSS selector pattern consists of a CSS selector enclosed by @ symbols which are themselves enclosed by brackets.
 
 	[@ css-selector @]
 	
@@ -155,9 +156,9 @@ A CSS selector consists of one or more simple selector sequences chained by comb
 
 #####2.6.A.2 Simple Selector Sequences
 
-A simple selector sequence consists of a single type selector, or an optional type selector followed by one or more property selectors. These are the essential building blocks of CSS selectors.
+A simple selector sequence consists of a single type selector, or an optional type selector followed by one or more property selectors. Simple selector sequences the essential building blocks of CSS selectors.
 
-Intuitively, a type selector is used to find HTML elements with specific tags (e.g. `<div>` or `<td>` or `<span>`) while property selectors are predicates on attributes and associated values within a tag (e.g. blah1, blah2, "something1", and "something2" in `<td blah1="something" blah2="somethingelse">`).
+Type selectors are used to find HTML elements with specific tags (e.g. `<div>` or `<td>` or `<span>`) while property selectors are predicates on attributes and associated values within a tag (e.g. blah1, blah2, "something1", and "something2" in `<td blah1="something" blah2="somethingelse">`).
 
 *simple-selector-sequence*:
 
@@ -167,7 +168,7 @@ Intuitively, a type selector is used to find HTML elements with specific tags (e
 	
 #####2.6.A.3 Type Selectors
 
-A type selector can either specify a specific tag type, or can select any tag using the universal selector. We allow matching on non-standard tag types named by any valid identifier, even those not typically supported in web browsers.
+A type selector can either specify a specific tag type, or can select tags of any type using the universal selector. 
 
 *type-selector*:
 
@@ -330,7 +331,7 @@ Please see the POSIX and AWK language reference manuals for additional explanati
 
 ### 3.1 Meaning of Identifiers/Variables
 
-Identifiers are names which can refer to functions, variables, and table fields. Each identifier is a string consisting of digits, letters, and underscores, and has to start with a letter.
+Identifiers are names which can refer to functions and variables. Each identifier is a string consisting of digits, letters, and underscores, and has to start with a letter.
 
 Variables are storage locations that contain values. Depending on where in a program variables are initialized, they are either global or local to a particular scope. See Storage Scope for more details.	
 
@@ -338,19 +339,24 @@ HAWK is statically typed, which means that every variable has a type. The type o
 
 ### 3.2 Storage Scope
 
-The visibility of an identifier and liftetime of a variable's storage depends on where a variable is initialized. If a variable is initialized within a *BEGIN* or *END* block, it is a global variable. A global variable can be accessed by any part of the program below the global variable's initialization. It's storage stays alive throughout the entire execution of the program.
+The visibility of an identifier and liftetime of a variable's storage depends on where a variable is initialized. If a variable is initialized within the outer level of a *BEGIN* or *END* block, it is a global variable. A global variable can be accessed by any part of the program below the global variable's initialization. Its storage stays alive throughout the entire execution of the program.
 
 If a variable is initialized within any block other than a *BEGIN* or *END* block, it is a local variable. A local variable can be accessed within the scope it is initialized, at or below its initialization. Its storage will be destroyed at the end of the scope.
 
 ### 3.3 Basic Types
 
 
-There are four basic types in HAWK: 
+There three basic types in HAWK:
 
 * integer
 * double
 * string
-* table
+
+And one parameterized type:
+
+* table T
+
+Where T can be any type.
 
 Integers are 32-bit signed two's complement integer. Doubles are double-precision 64-bit IEEE 754 floating point. We will refer to doubles and integers arithmetic type. 
 
@@ -358,7 +364,7 @@ Strings are a sequence of 0 or more unicode characters. They are guaranteed to o
 
 Both arithmetic types and strings are immutable, which means that their value cannot be changed once they are created. When a variable with an immutable type is assigned a new value, the old value and underlying storage are destroyed. 
 
-Tables, unlike the immutable types, are objects and are mutable. This means that variables do not contain tables, but rather contain references to tables. Assigning a table to a variable results in that variable storing a reference to that table. Similarly, when tables are passed as parameters to functions or returned from functions, the respective parameters and return values are references. In each of these operations, there is no copying of internal table data, only copying of references. 
+A table of type T is an associative array in which keys are of type string and values are of type T. Tables, unlike the immutable types, are objects and are mutable. This means that variables do not contain tables, but rather contain references to tables. Assigning a table to a variable results in that variable storing a reference to that table. Similarly, when tables are passed as parameters to functions or returned from functions, the respective parameters and return values are references. In each of these operations, there is no copying of internal table data, only copying of references. 
 
 HAWK uses reference counting to keep track of how many variables store references to the same table. When a table no longer has any variables referencing it, the underlying storage for the table is destroyed.  
 
