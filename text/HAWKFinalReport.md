@@ -531,12 +531,13 @@ Operators in postfix expressions group left to right.
 *postfix-expression*:
 
 * *primary-expression*
-* *postfix-expression[expression]*
-* *postfix-expression(argument-expression-list)* //arglist is optional
+* *identifier[expression]*
+* *identifier[expression_1]...[expression_n]*
+* *identifier(argument-expression-list)* //arglist is optional
 
 ##### 3.3.2.A Table References
 
-A postfix expression followed by an expression in square brackets is a postfix expression denoting a subscripted table reference. The expression in square brackets must be a table key of type string, the postfix expression must be a table. The whole expression is of type table, string (the value of the value associated with the key).
+A identifier followed by one or more square brackets, each containing an expression, is an expression denoting a subscripted table reference. The expressions in square brackets must be a table key of type string or an integer (which will be automatically converted to a string). The identifier must reference a table. The whole expression is the type of value type of the table nested by the number of indices provided.
 
 ##### 3.3.2.B Function Calls
 A function call is a postfix expression (function designator) followed by parentheses containing a possibly empty, comma-separated list of expressions which constitute the arguments to the function. A declaration for the function must previously exist in scope. Recursive functions are permitted.
