@@ -19,7 +19,7 @@
 		* 3.1.2 Comments
 		* 3.1.3 Identifiers 
 		* 3.1.4 Keywords
-		* 3.1.5 Constants
+		* 3.1.5 Literals
 			* 3.1.5.A Integer Constants
 			* 3.1.5.B Double Constants
 			* 3.1.5.C String Literals
@@ -179,7 +179,7 @@ END{ }
 
 #### 3.1.1 Tokens
 
-There are several tokens in HAWK: identifiers, keywords, constants, operators, and patterns. Whitespace and comments are ignored except as separators of tokens.
+There are several tokens in HAWK: identifiers, keywords, literals, operators, and patterns. Whitespace and comments are ignored except as separators of tokens.
 
 #### 3.1.2 Comments
 
@@ -201,9 +201,9 @@ The following identifiers are keywords reserved for particular use:
 * `while` 
 * `return` 
 
-#### 3.1.5 Constants
+#### 3.1.5 Literals
 
-There are four types of constants, described in detail below.
+There are four types of literals, described in detail below.
 
 ##### 3.1.5.A Integer Constants
 
@@ -229,8 +229,9 @@ String literals are immutable, and thus cannot be altered. Any operations perfor
 
 A table literal is a comma-separated sequence delimited by curly braces. The comma-separated sequence can take two forms. 
 
-* A sequence of values of any type — there can be different types in this sequence. However, these values have to be constants. This generates a table where the values are keyed in sequential order from the integer 0 to sequence length-1. 
-* A sequence of key-value pairs written in the form key : val. As before, values can vary within a table. Keys are restricted to string types; integers are treated as strings.
+* A comma separated sequence of zero or more literals, where each literal is of the same type. This generates a table where the values are keyed in sequential order from the integer 0 to sequence length-1. 
+* A sequence of comma separated key-value pairs written in the form key : val, where values are literals that must be of the same type. Keys are restricted to string types; integers are treated as strings.
+
 
 
 #### 3.1.6 Patterns
@@ -479,12 +480,12 @@ The precedence of expression operations is the same as the order of the major su
 
 #### 3.3.1 Primary Expressions
 
-Primary Expressions are identifiers, constants, strings, or expressions in parentheses. 
+Primary Expressions are identifiers, literals, strings, or expressions in parentheses. 
 
 *primary expressions*:
 
 * *identifier*
-* *constant*
+* *literal*
 * *string*
 * *(expression)*
 
@@ -612,6 +613,7 @@ HAWK includes several built-in functions that are reserved and are specially-int
 * `charAt(String s, Integer i)` : returns the character at index i of string s
 * `exists(table[i])` : checks to see if a table element exists. Returns 1 if so, otherwise 0.
 * `stringEqual(String s1, String s2)` : checks if s1 and s2 are equal. Returns 1 if so, otherwise 0.
+* `stringToInt(String s)`: If s can be parsed as an integer, returns that integer. Otherwise throws a runtime exception.
 * `length(table)` : returns the length of a table
 * `keys(table)` : returns a table containing every key of the passed table. The returned table uses the index as a the key and the return key value as the value.
 * `children()` : takes the `this` data structure and returns a table populated with the children of the found element. Only defined in CSS selector patterns.
@@ -836,7 +838,7 @@ HAWK implements a limited set of CSS selectors. See the CSS reference manual for
 [https://developer.mozilla.org/en-US/docs/Web/CSS/Reference](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
 
 #### 3.8.4 LUA Language Reference Manual
-HAWK tables take inspiration from Lua tables. See the Lua LRM as further reference material.
+HAWK tables take inspiration from Lua tables, and just as in Lua tables are the only built in data structure in HAWK. See the Lua LRM as further reference material.
 
 [http://www.lua.org/manual/5.3/](http://www.lua.org/manual/5.3/)
 
