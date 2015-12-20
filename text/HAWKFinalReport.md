@@ -2720,6 +2720,7 @@ END{}
 ```
 #####test-for-1.hk
 ```
+
 BEGIN {
     t = {1,2,3,4,5};
 	sum = 0;
@@ -2728,6 +2729,7 @@ BEGIN {
 	}
 	print(sum);
 }
+
 END {}
 ```
 #####test-for-1.out
@@ -2736,6 +2738,7 @@ END {}
 ```
 #####test-for-2.hk
 ```
+
 BEGIN {
     t = {{1,2},{3,4}};
 	sum = 0;
@@ -2747,6 +2750,7 @@ BEGIN {
 	}
 	print(sum);
 }
+
 END {}
 ```
 #####test-for-2.out
