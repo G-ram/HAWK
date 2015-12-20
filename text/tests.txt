@@ -1,14 +1,14 @@
-
------------hello.hk-----------
-
+```
+#####./tests/hello.hk
+```
 BEGIN{}
 [@h2 *@]{
   print(this);
 }
 END{}
-
------------test-cf-exists-1.hk-----------
-
+```
+#####./tests/test-cf-exists-1.hk
+```
 BEGIN{
     table = {0,1,2};
     if(exists(table[0])){
@@ -19,14 +19,14 @@ BEGIN{
     }
 }
 END{}
-
------------test-cf-exists-1.out-----------
-
+```
+#####./tests/test-cf-exists-1.out
+```
 exists
 nope
-
------------test-cf-if-1.hk-----------
-
+```
+#####./tests/test-cf-if-1.hk
+```
 BEGIN{
     i = 0;
     if(i < 0){
@@ -36,13 +36,13 @@ BEGIN{
     print("I should be here");
 }
 END{}
-
------------test-cf-if-1.out-----------
-
+```
+#####./tests/test-cf-if-1.out
+```
 I should be here
-
------------test-cf-if-2.hk-----------
-
+```
+#####./tests/test-cf-if-2.hk
+```
 BEGIN{
     i = 0;
     if(i < 0){
@@ -54,13 +54,13 @@ BEGIN{
     }
 }
 END{}
-
------------test-cf-if-2.out-----------
-
+```
+#####./tests/test-cf-if-2.out
+```
 hello
-
------------test-cf-if-3.hk-----------
-
+```
+#####./tests/test-cf-if-3.hk
+```
 BEGIN{
     i = -1;
     if(i < 0){
@@ -72,13 +72,13 @@ BEGIN{
     print(i);
 }
 END{}
-
------------test-cf-if-3.out-----------
-
+```
+#####./tests/test-cf-if-3.out
+```
 2
-
------------test-cf-keys-1.hk-----------
-
+```
+#####./tests/test-cf-keys-1.hk
+```
 BEGIN{
   table = {0,1,2};
   print(table);
@@ -86,9 +86,9 @@ BEGIN{
   print(keys(table));
 }
 END{}
-
------------test-cf-keys-1.out-----------
-
+```
+#####./tests/test-cf-keys-1.out
+```
 2=2
 1=1
 0=0
@@ -96,33 +96,33 @@ END{}
 2=2
 1=1
 0=0
-
------------test-cf-length-1.hk-----------
-
+```
+#####./tests/test-cf-length-1.hk
+```
 BEGIN{
     table = {0,1};
     x = length(table);
     print(x);
 }
 END{}
-
------------test-cf-length-1.out-----------
-
+```
+#####./tests/test-cf-length-1.out
+```
 2
-
------------test-cf-print-1.hk-----------
-
+```
+#####./tests/test-cf-print-1.hk
+```
 BEGIN{
     print("Hello world!");
 }
 END{}
-
------------test-cf-print-1.out-----------
-
+```
+#####./tests/test-cf-print-1.out
+```
 Hello world!
-
------------test-cf-while-1.hk-----------
-
+```
+#####./tests/test-cf-while-1.hk
+```
 BEGIN{
     i = 0;
     while(i < 1){
@@ -131,13 +131,13 @@ BEGIN{
     print(i);
 }
 END{}
-
------------test-cf-while-1.out-----------
-
+```
+#####./tests/test-cf-while-1.out
+```
 1
-
------------test-cf-while-2.hk-----------
-
+```
+#####./tests/test-cf-while-2.hk
+```
 BEGIN{
     i = 0;
     while(i < 1){
@@ -146,13 +146,13 @@ BEGIN{
     print(i);
 }
 END{}
-
------------test-cf-while-2.out-----------
-
+```
+#####./tests/test-cf-while-2.out
+```
 2
-
------------test-for-1.hk-----------
-
+```
+#####./tests/test-for-1.hk
+```
 BEGIN {
     t = {1,2,3,4,5};
 	sum = 0;
@@ -162,13 +162,13 @@ BEGIN {
 	print(sum);
 }
 END {}
-
------------test-for-1.out-----------
-
+```
+#####./tests/test-for-1.out
+```
 15
-
------------test-for-2.hk-----------
-
+```
+#####./tests/test-for-2.hk
+```
 BEGIN {
     t = {{1,2},{3,4}};
 	sum = 0;
@@ -181,13 +181,13 @@ BEGIN {
 	print(sum);
 }
 END {}
-
------------test-for-2.out-----------
-
+```
+#####./tests/test-for-2.out
+```
 10
-
------------test-fun-1.hk-----------
-
+```
+#####./tests/test-fun-1.hk
+```
 BEGIN {
     fun f(a){
     	return a;
@@ -198,13 +198,13 @@ BEGIN {
 END {
 
 }
-
------------test-fun-1.out-----------
-
+```
+#####./tests/test-fun-1.out
+```
 3
-
------------test-fun-10.hk-----------
-
+```
+#####./tests/test-fun-10.hk
+```
 BEGIN {
 	fun f(b,c){
 		
@@ -220,13 +220,13 @@ BEGIN {
 END {
 
 }
-
------------test-fun-10.out-----------
-
+```
+#####./tests/test-fun-10.out
+```
 42
-
------------test-fun-11.hk-----------
-
+```
+#####./tests/test-fun-11.hk
+```
 BEGIN {
 	fun f(x){
 		return x;
@@ -238,13 +238,13 @@ BEGIN {
 END {
 
 }
-
------------test-fun-11.out-----------
-
+```
+#####./tests/test-fun-11.out
+```
 42
-
------------test-fun-12.hk-----------
-
+```
+#####./tests/test-fun-12.hk
+```
 BEGIN {
 	fun f(){
 		y = {};
@@ -261,13 +261,13 @@ BEGIN {
 END {
 
 }
-
------------test-fun-12.out-----------
-
+```
+#####./tests/test-fun-12.out
+```
 42
-
------------test-fun-13.hk-----------
-
+```
+#####./tests/test-fun-13.hk
+```
 BEGIN {
 	fun f(){
 		y = {{}};
@@ -284,13 +284,13 @@ BEGIN {
 END {
 
 }
-
------------test-fun-13.out-----------
-
+```
+#####./tests/test-fun-13.out
+```
 42
-
------------test-fun-14.hk-----------
-
+```
+#####./tests/test-fun-14.hk
+```
 BEGIN {
 	fun f(a){
 		if(a == 1){
@@ -306,13 +306,13 @@ BEGIN {
 END {
 
 }
-
------------test-fun-14.out-----------
-
+```
+#####./tests/test-fun-14.out
+```
 1
-
------------test-fun-15.hk-----------
-
+```
+#####./tests/test-fun-15.hk
+```
 BEGIN {
 
 	fun f1(x){
@@ -329,13 +329,37 @@ BEGIN {
 END {
 
 }
-
------------test-fun-15.out-----------
-
+```
+#####./tests/test-fun-15.out
+```
 dog
+```
+#####./tests/test-fun-16.hk
+```
+BEGIN {
 
------------test-fun-2.hk-----------
+	fun fac(x){
+		if(x==1){
+			return 1;
+		}
+		
+		return fac(x-1)*x;
+	}
 
+	x = fac(3);
+	print(x);
+	
+}
+END {
+
+}
+```
+#####./tests/test-fun-16.out
+```
+6
+```
+#####./tests/test-fun-2.hk
+```
 BEGIN {
     fun f(a){
     	return a;
@@ -346,13 +370,13 @@ BEGIN {
 END {
 
 }
-
------------test-fun-2.out-----------
-
+```
+#####./tests/test-fun-2.out
+```
 hello
-
------------test-fun-3.hk-----------
-
+```
+#####./tests/test-fun-3.hk
+```
 BEGIN {
     fun f(a){
     	return a;
@@ -363,13 +387,13 @@ BEGIN {
 END {
 
 }
-
------------test-fun-3.out-----------
-
+```
+#####./tests/test-fun-3.out
+```
 4.5
-
------------test-fun-4.hk-----------
-
+```
+#####./tests/test-fun-4.hk
+```
 BEGIN {
     fun f(a){
     	return a;
@@ -380,13 +404,13 @@ BEGIN {
 END {
 
 }
-
------------test-fun-4.out-----------
-
+```
+#####./tests/test-fun-4.out
+```
 4.5
-
------------test-fun-5.hk-----------
-
+```
+#####./tests/test-fun-5.hk
+```
 BEGIN {
     fun f(a,b){
     	return a + b;
@@ -397,13 +421,13 @@ BEGIN {
 END {
 
 }
-
------------test-fun-5.out-----------
-
+```
+#####./tests/test-fun-5.out
+```
 2.5
-
------------test-fun-6.hk-----------
-
+```
+#####./tests/test-fun-6.hk
+```
 BEGIN {
     fun f(a,b){
     	return a + b;
@@ -414,13 +438,13 @@ BEGIN {
 END {
 
 }
-
------------test-fun-6.out-----------
-
+```
+#####./tests/test-fun-6.out
+```
 hello1
-
------------test-fun-7.hk-----------
-
+```
+#####./tests/test-fun-7.hk
+```
 BEGIN {
     fun f(a,b){
     	y = 2;
@@ -433,13 +457,13 @@ BEGIN {
 END {
 
 }
-
------------test-fun-7.out-----------
-
+```
+#####./tests/test-fun-7.out
+```
 hello1
-
------------test-fun-8.hk-----------
-
+```
+#####./tests/test-fun-8.hk
+```
 BEGIN {
     fun f(a,b){
 		if(a==2){
@@ -455,13 +479,13 @@ BEGIN {
 END {
 
 }
-
------------test-fun-8.out-----------
-
+```
+#####./tests/test-fun-8.out
+```
 6
-
------------test-fun-9.hk-----------
-
+```
+#####./tests/test-fun-9.hk
+```
 BEGIN {
     fun f(a){
 		print(a);
@@ -471,301 +495,317 @@ BEGIN {
 END {
 
 }
-
------------test-fun-9.out-----------
-
+```
+#####./tests/test-fun-9.out
+```
 42
-
------------test-op-arith1.hk-----------
-
+```
+#####./tests/test-op-arith1.hk
+```
 BEGIN{
   i = 1+1;
   print(i);
 }
 END{}
-
------------test-op-arith1.out-----------
-
+```
+#####./tests/test-op-arith1.out
+```
 2
-
------------test-op-arith10.hk-----------
-
+```
+#####./tests/test-op-arith10.hk
+```
 BEGIN{
   print(1 - 1.0);
 }
 END{}
-
------------test-op-arith10.out-----------
-
+```
+#####./tests/test-op-arith10.out
+```
 0.0
-
------------test-op-arith11.hk-----------
-
+```
+#####./tests/test-op-arith11.hk
+```
 BEGIN{
   print(1.0 - 1.0);
 }
 END{}
-
------------test-op-arith11.out-----------
-
+```
+#####./tests/test-op-arith11.out
+```
 0.0
-
------------test-op-arith12.hk-----------
-
+```
+#####./tests/test-op-arith12.hk
+```
 BEGIN{
   print(1 * 1);
 }
 END{}
-
------------test-op-arith12.out-----------
-
+```
+#####./tests/test-op-arith12.out
+```
 1
-
------------test-op-arith13.hk-----------
-
+```
+#####./tests/test-op-arith13.hk
+```
 BEGIN{
   print(1 * 1.0);
 }
 END{}
-
------------test-op-arith13.out-----------
-
+```
+#####./tests/test-op-arith13.out
+```
 1.0
-
------------test-op-arith14.hk-----------
-
+```
+#####./tests/test-op-arith14.hk
+```
 BEGIN{
   print(1.0 * 1.0);
 }
 END{}
-
------------test-op-arith14.out-----------
-
+```
+#####./tests/test-op-arith14.out
+```
 1.0
-
------------test-op-arith15.hk-----------
-
+```
+#####./tests/test-op-arith15.hk
+```
 BEGIN{
   print(1 / 1);
 }
 END{}
-
------------test-op-arith15.out-----------
-
+```
+#####./tests/test-op-arith15.out
+```
 1
-
------------test-op-arith16.hk-----------
-
+```
+#####./tests/test-op-arith16.hk
+```
 BEGIN{
   print(1 / 1.0);
 }
 END{}
-
------------test-op-arith16.out-----------
-
+```
+#####./tests/test-op-arith16.out
+```
 1.0
-
------------test-op-arith17.hk-----------
-
+```
+#####./tests/test-op-arith17.hk
+```
 BEGIN{
   print(1.0 / 1.0);
 }
 END{}
-
------------test-op-arith17.out-----------
-
+```
+#####./tests/test-op-arith17.out
+```
 1.0
-
------------test-op-arith18.hk-----------
-
+```
+#####./tests/test-op-arith18.hk
+```
 BEGIN{
   print(1 % 1);
 }
 END{}
-
------------test-op-arith18.out-----------
-
+```
+#####./tests/test-op-arith18.out
+```
 0
-
------------test-op-arith19.hk-----------
-
+```
+#####./tests/test-op-arith19.hk
+```
 BEGIN{
   print(1 % 1.0);
 }
 END{}
-
------------test-op-arith19.out-----------
-
+```
+#####./tests/test-op-arith19.out
+```
 0.0
-
------------test-op-arith20.hk-----------
-
+```
+#####./tests/test-op-arith20.hk
+```
 BEGIN{
   print(1.0 % 1.0);
 }
 END{}
-
------------test-op-arith20.out-----------
-
+```
+#####./tests/test-op-arith20.out
+```
 0.0
-
------------test-op-arith22.hk-----------
-
+```
+#####./tests/test-op-arith22.hk
+```
 BEGIN{
   print(-1);
 }
 END{}
-
------------test-op-arith22.out-----------
-
+```
+#####./tests/test-op-arith22.out
+```
 -1
-
------------test-op-arith23.hk-----------
-
+```
+#####./tests/test-op-arith23.hk
+```
 BEGIN{
   print(-1.0);
 }
 END{}
-
------------test-op-arith23.out-----------
-
+```
+#####./tests/test-op-arith23.out
+```
 -1.0
-
------------test-op-arith3.hk-----------
-
+```
+#####./tests/test-op-arith24.hk
+```
+BEGIN{
+	if(1!=1){
+		print("Dog");
+	}
+	else{
+		print(42);
+	}
+}
+END{}
+```
+#####./tests/test-op-arith24.out
+```
+42
+```
+#####./tests/test-op-arith3.hk
+```
 BEGIN{
   print(1 + 1);
 }
 END{}
-
------------test-op-arith3.out-----------
-
+```
+#####./tests/test-op-arith3.out
+```
 2
-
------------test-op-arith4.hk-----------
-
+```
+#####./tests/test-op-arith4.hk
+```
 BEGIN{
   print(1 + 1.0);
 }
 END{}
-
------------test-op-arith4.out-----------
-
+```
+#####./tests/test-op-arith4.out
+```
 2.0
-
------------test-op-arith5.hk-----------
-
+```
+#####./tests/test-op-arith5.hk
+```
 BEGIN{
   print(1 + "test");
 }
 END{}
-
------------test-op-arith5.out-----------
-
+```
+#####./tests/test-op-arith5.out
+```
 1test
-
------------test-op-arith6.hk-----------
-
+```
+#####./tests/test-op-arith6.hk
+```
 BEGIN{
   print(1.0 + "test");
 }
 END{}
-
------------test-op-arith6.out-----------
-
+```
+#####./tests/test-op-arith6.out
+```
 1.0test
-
------------test-op-arith7.hk-----------
-
+```
+#####./tests/test-op-arith7.hk
+```
 BEGIN{
   print("test" + "test");
 }
 END{}
-
------------test-op-arith7.out-----------
-
+```
+#####./tests/test-op-arith7.out
+```
 testtest
-
------------test-op-arith8.hk-----------
-
+```
+#####./tests/test-op-arith8.hk
+```
 BEGIN{
  print(1.0 + 1.0);
 }
 END{}
-
------------test-op-arith8.out-----------
-
+```
+#####./tests/test-op-arith8.out
+```
 2.0
-
------------test-op-arith9.hk-----------
-
+```
+#####./tests/test-op-arith9.hk
+```
 BEGIN{
   print(1 - 1);
 }
 END{}
-
------------test-op-arith9.out-----------
-
+```
+#####./tests/test-op-arith9.out
+```
 0
-
------------test-pattern-css1.hk-----------
-
+```
+#####./tests/test-pattern-css1.hk
+```
 /* passing http://www.wikicu.com/Srikar_Varadaraj */
 BEGIN{}
 [@#Basketball_Scouting_Report@]{
     print(this);
 }
 END{}
-
------------test-pattern-css1.out-----------
-
+```
+#####./tests/test-pattern-css1.out
+```
 innerhtml=Basketball Scouting Report
 nextChild=
 class=mw-headline
 id=Basketball_Scouting_Report
-
------------test-pattern-css10.hk-----------
-
+```
+#####./tests/test-pattern-css10.hk
+```
 BEGIN{}
 [@a[href^="http://www.wikicu.com/Main_Page"]@]{
     print(this);
 }
 END{}
-
------------test-pattern-css10.out-----------
-
+```
+#####./tests/test-pattern-css10.out
+```
 rel=nofollow
 href=http://www.wikicu.com/Main_Page
 innerhtml=Main page
 nextChild=
 id=
-
------------test-pattern-css11.hk-----------
-
+```
+#####./tests/test-pattern-css11.hk
+```
 BEGIN{}
 [@a[href~="http://www.wikicu.com/Main_Page"]@]{
     print(this);
 }
 END{}
-
------------test-pattern-css11.out-----------
-
+```
+#####./tests/test-pattern-css11.out
+```
 rel=nofollow
 href=http://www.wikicu.com/Main_Page
 innerhtml=Main page
 nextChild=
 id=
-
------------test-pattern-css12.hk-----------
-
+```
+#####./tests/test-pattern-css12.hk
+```
 BEGIN{}
 [@h2 *@]{
   print(this);
 }
 END{}
-
------------test-pattern-css12.out-----------
-
+```
+#####./tests/test-pattern-css12.out
+```
 innerhtml=Attractiveness
 nextChild=
 class=mw-headline
@@ -786,17 +826,29 @@ innerhtml=History
 nextChild=
 class=mw-headline
 id=History
+```
+#####./tests/test-pattern-css13.hk
+```
+BEGIN{}
+[@ .graham-dash @]{
+}
 
------------test-pattern-css2.hk-----------
-
+END{print(5);}
+```
+#####./tests/test-pattern-css13.out
+```
+5
+```
+#####./tests/test-pattern-css2.hk
+```
 BEGIN{}
 [@#catlinks@]{
   print(this);
 }
 END{}
-
------------test-pattern-css2.out-----------
-
+```
+#####./tests/test-pattern-css2.out
+```
 innerhtml=<div id="mw-normal-catlinks">
  <a href="/Special:Categories" title="Special:Categories">Category</a>:
  <ul>
@@ -806,17 +858,17 @@ innerhtml=<div id="mw-normal-catlinks">
 nextChild=mw-normal-catlinks
 class=catlinks
 id=catlinks
-
------------test-pattern-css3.hk-----------
-
+```
+#####./tests/test-pattern-css3.hk
+```
 BEGIN{}
 [@p@]{
   print(this);
 }
 END{}
-
------------test-pattern-css3.out-----------
-
+```
+#####./tests/test-pattern-css3.out
+```
 innerhtml=Pokemon Type: Wood
 nextChild=
 id=
@@ -832,17 +884,17 @@ id=
 innerhtml=Known as the world's smartest chocolate labrador, Srikar was born in India, lived in India, and raised in India. Fell in love with a whale but as we know a dog and whale love story is bound to end in failure.
 nextChild=
 id=
-
------------test-pattern-css4.hk-----------
-
+```
+#####./tests/test-pattern-css4.hk
+```
 BEGIN{}
 [@div p@]{
   print(this);
 }
 END{}
-
------------test-pattern-css4.out-----------
-
+```
+#####./tests/test-pattern-css4.out
+```
 innerhtml=Pokemon Type: Wood
 nextChild=
 id=
@@ -858,17 +910,17 @@ id=
 innerhtml=Known as the world's smartest chocolate labrador, Srikar was born in India, lived in India, and raised in India. Fell in love with a whale but as we know a dog and whale love story is bound to end in failure.
 nextChild=
 id=
-
------------test-pattern-css5.hk-----------
-
+```
+#####./tests/test-pattern-css5.hk
+```
 BEGIN{}
 [@div > p@]{
   print(this);
 }
 END{}
-
------------test-pattern-css5.out-----------
-
+```
+#####./tests/test-pattern-css5.out
+```
 innerhtml=Pokemon Type: Wood
 nextChild=
 id=
@@ -884,17 +936,17 @@ id=
 innerhtml=Known as the world's smartest chocolate labrador, Srikar was born in India, lived in India, and raised in India. Fell in love with a whale but as we know a dog and whale love story is bound to end in failure.
 nextChild=
 id=
-
------------test-pattern-css6.hk-----------
-
+```
+#####./tests/test-pattern-css6.hk
+```
 BEGIN{}
 [@div ~ p@]{
   print(this);
 }
 END{}
-
------------test-pattern-css6.out-----------
-
+```
+#####./tests/test-pattern-css6.out
+```
 innerhtml=Pokemon Type: Wood
 nextChild=
 id=
@@ -910,17 +962,17 @@ id=
 innerhtml=Known as the world's smartest chocolate labrador, Srikar was born in India, lived in India, and raised in India. Fell in love with a whale but as we know a dog and whale love story is bound to end in failure.
 nextChild=
 id=
-
------------test-pattern-css7.hk-----------
-
+```
+#####./tests/test-pattern-css7.hk
+```
 BEGIN{}
 [@li + li@]{
   print(this);
 }
 END{}
-
------------test-pattern-css7.out-----------
-
+```
+#####./tests/test-pattern-css7.out
+```
 innerhtml=<a href="http://www.mediawiki.org/"><img src="/skins/common/images/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" width="88" height="31"></a>
 nextChild=
 id=footer-poweredbyico
@@ -987,47 +1039,47 @@ innerhtml=<a href="#Academic_Success"><span class="tocnumber">2</span> <span cla
 nextChild=
 class=toclevel-1 tocsection-2
 id=
-
------------test-pattern-css8.hk-----------
-
+```
+#####./tests/test-pattern-css8.hk
+```
 BEGIN{}
 [@a[href*="http://www.wikicu.com/Main_Page"]@]{
     print(this);
 }
 END{}
-
------------test-pattern-css8.out-----------
-
+```
+#####./tests/test-pattern-css8.out
+```
 rel=nofollow
 href=http://www.wikicu.com/Main_Page
 innerhtml=Main page
 nextChild=
 id=
-
------------test-pattern-css9.hk-----------
-
+```
+#####./tests/test-pattern-css9.hk
+```
 BEGIN{}
 [@a[href$="http://www.wikicu.com/Main_Page"]@]{
     print(this);
 }
 END{}
-
------------test-pattern-css9.out-----------
-
+```
+#####./tests/test-pattern-css9.out
+```
 rel=nofollow
 href=http://www.wikicu.com/Main_Page
 innerhtml=Main page
 nextChild=
 id=
-
------------test-pattern-regex1.hk-----------
-
+```
+#####./tests/test-pattern-regex1.hk
+```
 BEGIN{}
 [/c/]{print("Found c");}
 END{}
-
------------test-pattern-regex1.out-----------
-
+```
+#####./tests/test-pattern-regex1.out
+```
 Found c
 Found c
 Found c
@@ -1530,19 +1582,19 @@ Found c
 Found c
 Found c
 Found c
-
------------test-pattern-regex10.hk-----------
-
+```
+#####./tests/test-pattern-regex10.hk
+```
 BEGIN{}
 [/[a]hey/]{print("Found [a]hey");}
 END{}
-
------------test-pattern-regex10.out-----------
-
+```
+#####./tests/test-pattern-regex10.out
+```
 Found [a]hey
-
------------test-pattern-regex11.hk-----------
-
+```
+#####./tests/test-pattern-regex11.hk
+```
 BEGIN{
   a = 0;
 }
@@ -1552,23 +1604,23 @@ BEGIN{
 END{
   print(a);
 }
-
------------test-pattern-regex11.out-----------
-
+```
+#####./tests/test-pattern-regex11.out
+```
 6
-
------------test-pattern-regex2.hk-----------
-
+```
+#####./tests/test-pattern-regex2.hk
+```
 BEGIN{}
 [/~/]{print("Found ~");}
 END{}
-
------------test-pattern-regex2.out-----------
-
+```
+#####./tests/test-pattern-regex2.out
+```
 Found ~
-
------------test-pattern-regex3.hk-----------
-
+```
+#####./tests/test-pattern-regex3.hk
+```
 BEGIN{
 a = 0;
 }
@@ -1578,13 +1630,13 @@ a = 0;
 END{
   print(a);
 }
-
------------test-pattern-regex3.out-----------
-
+```
+#####./tests/test-pattern-regex3.out
+```
 6
-
------------test-pattern-regex4.hk-----------
-
+```
+#####./tests/test-pattern-regex4.hk
+```
 BEGIN{
   a = 8;
 }
@@ -1594,13 +1646,13 @@ BEGIN{
 END{
   print(a);
 }
-
------------test-pattern-regex4.out-----------
-
+```
+#####./tests/test-pattern-regex4.out
+```
 9
-
------------test-pattern-regex5.hk-----------
-
+```
+#####./tests/test-pattern-regex5.hk
+```
 BEGIN{
   a = 0;
 }
@@ -1610,13 +1662,13 @@ BEGIN{
 END{
   print(a);
 }
-
------------test-pattern-regex5.out-----------
-
+```
+#####./tests/test-pattern-regex5.out
+```
 9
-
------------test-pattern-regex6.hk-----------
-
+```
+#####./tests/test-pattern-regex6.hk
+```
 BEGIN{
   a = 8;
 }
@@ -1626,33 +1678,33 @@ BEGIN{
 END{
   print(a);
 }
-
------------test-pattern-regex6.out-----------
-
+```
+#####./tests/test-pattern-regex6.out
+```
 9
-
------------test-pattern-regex7.hk-----------
-
+```
+#####./tests/test-pattern-regex7.hk
+```
 BEGIN{}
 [/(hello)where/]{
   print("Found hello where");
 }
 END{}
-
------------test-pattern-regex7.out-----------
-
+```
+#####./tests/test-pattern-regex7.out
+```
 Found hello where
-
------------test-pattern-regex8.hk-----------
-
+```
+#####./tests/test-pattern-regex8.hk
+```
 BEGIN{}
 [/[a]+/]{
   print("Found seq of a's");
 }
 END{}
-
------------test-pattern-regex8.out-----------
-
+```
+#####./tests/test-pattern-regex8.out
+```
 Found seq of a's
 Found seq of a's
 Found seq of a's
@@ -2625,9 +2677,9 @@ Found seq of a's
 Found seq of a's
 Found seq of a's
 Found seq of a's
-
------------test-pattern-regex9.hk-----------
-
+```
+#####./tests/test-pattern-regex9.hk
+```
 BEGIN{
   a = 0;
 }
@@ -2637,25 +2689,25 @@ BEGIN{
 END{
   print(a);
 }
-
------------test-pattern-regex9.out-----------
-
+```
+#####./tests/test-pattern-regex9.out
+```
 6
-
------------test-tbl1.hk-----------
-
+```
+#####./tests/test-tbl1.hk
+```
 BEGIN {
     t = {5};
     print(t[0]);
 }
 END {}
-
------------test-tbl1.out-----------
-
+```
+#####./tests/test-tbl1.out
+```
 5
-
------------test-tbl10.hk-----------
-
+```
+#####./tests/test-tbl10.hk
+```
 BEGIN {
 	t = {3};
 	t[0] = 4;
@@ -2663,26 +2715,26 @@ BEGIN {
 	print(t[1]);
 }
 END {}
-
------------test-tbl10.out-----------
-
+```
+#####./tests/test-tbl10.out
+```
 4
-
------------test-tbl2.hk-----------
-
+```
+#####./tests/test-tbl2.hk
+```
 BEGIN {
     t = {};
     t[0] = 5;
     print(t[0]);
 }
 END {}
-
------------test-tbl2.out-----------
-
+```
+#####./tests/test-tbl2.out
+```
 5
-
------------test-tbl3.hk-----------
-
+```
+#####./tests/test-tbl3.hk
+```
 BEGIN {
     t = {};
     t[0] = 5;
@@ -2690,13 +2742,13 @@ BEGIN {
     print(s[0]);
 }
 END {}
-
------------test-tbl3.out-----------
-
+```
+#####./tests/test-tbl3.out
+```
 5
-
------------test-tbl4.hk-----------
-
+```
+#####./tests/test-tbl4.hk
+```
 BEGIN {
     t = {};
     t[0] = "dog";
@@ -2705,13 +2757,13 @@ BEGIN {
     print(t["fish"]);
 }
 END {}
-
------------test-tbl4.out-----------
-
+```
+#####./tests/test-tbl4.out
+```
 dogcat
-
------------test-tbl5.hk-----------
-
+```
+#####./tests/test-tbl5.hk
+```
 BEGIN {
     t = {};
     t[0] = 5;
@@ -2720,38 +2772,38 @@ BEGIN {
 	print(t[0]);
 }
 END {}
-
------------test-tbl5.out-----------
-
+```
+#####./tests/test-tbl5.out
+```
 6
-
------------test-tbl6.hk-----------
-
+```
+#####./tests/test-tbl6.hk
+```
 BEGIN {
     t = {"dog":"cat"+"mouse"};
 	print(t["dog"]);
 }
 END {}
-
------------test-tbl6.out-----------
-
+```
+#####./tests/test-tbl6.out
+```
 catmouse
-
------------test-tbl7.hk-----------
-
+```
+#####./tests/test-tbl7.hk
+```
 BEGIN {
     t = {};
     t[0] = {{"dog":3}};
 	print(t[0][0]["dog"]);
 }
 END {}
-
------------test-tbl7.out-----------
-
+```
+#####./tests/test-tbl7.out
+```
 3
-
------------test-tbl8.hk-----------
-
+```
+#####./tests/test-tbl8.hk
+```
 BEGIN {
     t = {};
     t[0] = {3};
@@ -2759,26 +2811,26 @@ BEGIN {
 	print(t[0][0] + t[1][0]+t[1][1]);
 }
 END {}
-
------------test-tbl8.out-----------
-
+```
+#####./tests/test-tbl8.out
+```
 12
-
------------test-tbl9.hk-----------
-
+```
+#####./tests/test-tbl9.hk
+```
 BEGIN {
 	t = {1:{2:{}}};
 	t[1][2][3] = {4:5};
 	print(t[1][2][3][4]);
 }
 END {}
-
------------test-tbl9.out-----------
-
+```
+#####./tests/test-tbl9.out
+```
 5
-
------------testinput.txt-----------
-
+```
+#####./tests/testinput.txt
+```
 ccccc
 ahey~
 89
