@@ -646,14 +646,13 @@ The result is int.
 HAWK includes several built-in functions that are reserved and are specially-interpreted by the compiler. These include:
 
 * `print("...")` : prints a strings to standard output.
-* `charAt(String s, Integer i)` : returns the character at index i of string s
+* `charAt(string s, int i)` : returns the character at index i of string s
 * `exists(table[i])` : checks to see if a table element exists. Returns 1 if so, otherwise 0.
-* `stringEqual(String s1, String s2)` : checks if s1 and s2 are equal. Returns 1 if so, otherwise 0.
-* `stringToInt(String s)`: If s can be parsed as an integer, returns that integer. Otherwise throws a runtime exception.
+* `stringEqual(string s1, string s2)` : checks if s1 and s2 are equal. Returns 1 if so, otherwise 0.
+* `stringToInt(string s)`: If s can be parsed as an integer, returns that integer. Otherwise throws a runtime exception.
 * `length(table)` : returns the length of a table
+* `length(string)` : returns the length of a string
 * `keys(table)` : returns a table containing every key of the passed table. The returned table uses the index as a the key and the return key value as the value.
-* `children()` : takes the `this` data structure and returns a table populated with the children of the found element. Only defined in CSS selector patterns.
-* `inner_html()`: returns the inner_html corresponding to the element defined by `this`. Only defined in CSS selector patterns.
 
 ### 3.4 Declarators
 Declarations give a specific meaning to each identifier.
