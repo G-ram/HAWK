@@ -540,7 +540,7 @@ Operators in postfix expressions group left to right.
 A identifier followed by one or more square brackets, each containing an expression, is an expression denoting a subscripted table reference. The expressions in square brackets must be a table key of type string or an integer (which will be automatically converted to a string). The identifier must reference a table. The whole expression is the type of value type of the table nested by the number of indices provided.
 
 ##### 3.3.2.B Function Calls
-A function call is a postfix expression (function designator) followed by parentheses containing a possibly empty, comma-separated list of expressions which constitute the arguments to the function. A declaration for the function must previously exist in scope. Recursive functions are permitted.
+A function call is a postfix expression (function designator) followed by parentheses containing a possibly empty, comma-separated list of expressions which constitute the arguments to the function. A declaration for the function must previously exist in the global scope. Recursive functions are permitted whenever no arguments are empty tables.
 
 The term *argument* refers to an expression passed by a function call, the term *parameter* refers to an input object or its identifier received by the function definition. 
 
