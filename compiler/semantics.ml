@@ -1,17 +1,17 @@
 open Sast
 
+let is_table = function
+	Table(_) | EmptyTable -> true
+	| _ -> false
+	
 let rec type_to_str = function
   Int -> "int"
   | Double -> "double"
   | Table(value_type) as t -> "Table(" ^ (type_to_str value_type) ^ ")"
   | String -> "String"
-  | Void -> "void"
-  | EmptyTable -> "ET"
-  | UnknownReturn -> "UR"
-
-let is_table = function
-	Table(_) | EmptyTable -> true
-	| _ -> false
+	| Void -> "void"
+	| EmptyTable -> "ET"
+	| UnknownReturn -> "UR"
 
 let get_binop_type t1 op t2 =
   match op with
@@ -232,7 +232,7 @@ let get_table_literal_promise assigner tl =
 		let (_,new_t) = (find assigner.assign_scope assigner.id ) in
 		let nested_t = apply_nesting (new_t,(-assigner.nesting)) in
 		let new_tl = retype_empty_table_literal tl nested_t in
-		TableLiteral(new_tl),new_t
+		TableLiteral(new_tl),nested_t
 	in promise
 
 (*
@@ -258,7 +258,23 @@ let rec get_expression_promise assigner global_env assignee_e assignee_type assi
 	let is_et = (is_empty_table_container assignee_type) in
 	let id_info = get_identifier_expr_info assignee_e in
 	let noop_promise = (fun () -> assignee_e,assignee_type) in
-	match assignee_e with
+	let checked_promise promise = 
+		(fun () ->
+			match assigner with
+				None -> (promise ())
+				| Some(assgn) ->
+					let (_,assgn_t) = (find assgn.assign_scope assgn.id) in
+					let assgn_t = apply_nesting (assgn_t,-assgn.nesting) in
+					let (_,new_t) as result = (promise ()) in
+					if assgn_t<>new_t then
+						raise 
+						(Failure ("Trying to assign variable " ^ assgn.id ^ 
+						" of type " ^ (type_to_str assgn_t) ^ " with incompatible type " ^ (type_to_str new_t)))
+					else
+						result
+		)
+	in
+	let promise = (match assignee_e with
 		Binop(e1,op,e2) ->
 			let (e1_e,e1_type) = e1 in
 			let (e2_e,e2_type) = e2 in
@@ -300,7 +316,8 @@ let rec get_expression_promise assigner global_env assignee_e assignee_type assi
 			)
 		| Call(fdecl,_) -> (fun () -> assignee_e, (fdecl.return_type_promise ()) )
 		| _  -> raise (Failure "This type of expression should not yield an empty table.")
-
+	)
+	in checked_promise promise
 (*  Consider a statement like
 a = {}
 this should be deferred... we don't know how to construct 'a' until we know it's type
@@ -571,7 +588,11 @@ let rec check_expr env global_env = function
 			| EmptyTable -> Table(new_type)
 			| t -> t
 	in
-	let new_table_type = (update_empty_table_container_type table_t assignee_type) in
+	(*let new_table_type = (update_empty_table_container_type table_t assignee_type) in*)
+	let new_table_type = apply_nesting (assignee_type,nesting) in
+	(*
+	print_string ("new type of " ^ table_id ^ " is " ^ (type_to_str new_table_type) ^"\n");
+	*)
 	update_table_type env.scope table_id new_table_type;
 	(match table_t with
 		Table(_) | EmptyTable ->
@@ -613,6 +634,9 @@ let rec check_expr env global_env = function
 	in
 	(if (is_table new_type) then
 		create_assignment_linkage_if_applicable v 0 env.scope assignee_e;
+		(*
+		print_string ("new type of " ^ v ^ " is " ^ (type_to_str new_type) ^"\n");
+		*)
 		update_table_type env.scope v new_type);
 	vdecl
   | Ast.Binop(e1, op, e2) ->

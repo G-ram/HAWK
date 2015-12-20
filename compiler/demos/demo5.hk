@@ -1,7 +1,8 @@
 BEGIN{
 
 	fun getSingletonTable(x){
-		return {x};
+		tab = {x};
+		return tab;
 	}
 	
 	fun modifyTable(t){
@@ -9,13 +10,12 @@ BEGIN{
 	}
 	
 	table = {};
-	table[0] = {{}};
-	
+	table[0] = {};
 	nestedTable = table[0];
+	
 	modifyTable(nestedTable);
 	
-	nestedNestedTable = table[0][0][0];
-	
+	nestedNestedTable = table[0][0];
 	value = nestedNestedTable[0];
 	print(value);
 	
