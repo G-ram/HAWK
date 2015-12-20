@@ -142,11 +142,18 @@
 
 
 ## 1. Introduction
-Websites hold their information in the structure of an HTML document, and parsing that information is generally accomplished through the use of web scraping libraries to scan the document for CSS selectors and specific HTML tags. Just as AWK handles the parsing of standard text documents, the motivation for HAWK—**H**TML is **A**ll **W**e **K**now—was to build a language to allow the user to easily handle parsing websites without the need to import any external libraries.    
 
-HAWK is a programming language designed for web scraping. Our solution to this was inspired by AWK’s powerful text parsing capabilities and we use the same (pattern, action) model as the basis for our HAWK programs. HAWK matches against both regular expressions and CSS selectors to select elements of a website document. The HAWK compiler compiles code to Java code, which is compiled to Java Bytecode, and then run on a Java Virtual Machine.
+As of 2015 there are over one billion websites. The vast wealth of information contained by the internet motivates the creation of "web scraping" software, whose purpose is to to analyze websites and extract pertinent information from them.
 
-## 2. Language Tutorial
+Websites hold their information in the structure of an HTML document. To find information in a web page, a developer can either traverse the structure of the document (through CSS selectors, XPath, or related XML techniques) or treat the document as a raw string and use technqiues like regular expression search. Typically, effective web scraping applications require a mix of different approaches. This often necessitates combining a variety of libraries which have mutually inconsistent abstractions. 
+
+Furthermore, many web scrapers share a common workflow which requires a certain amount of boilerplate in most programming languages. In particular, web scraping often consists of finding all parts of a web document which match a certain criteria, and then taking a relevant action.
+
+HAWK—**H**TML is **A**ll **W**e **K**now aims to make web scraping easy by unifying disparate pattern matching techniques under a single abstraction and making the commonly used pattern-action workflow of web scrapers an integral part of the language. We are heavily inspired by AWK's pattern-action mechanism as well as its syntactic simplicity. Just as AWK greatly simplified information extraction in text documents, we hope to do the same for web documents. 
+
+HAWK aims to deliver both concision and type safety to developers. To this end, HAWK is statically typed and has full type inference. The current implementation of HAWK generates Java code, which is then compiled to Java Bytecode and run a Java Virtual Machine. 
+
+## 2. Code Samples
 HAWK uses a syntax that is very similar to the syntax of AWK. There is a BEGIN block and an END block, which respectively start and end each program, and between the two blocks are any number of pattern-action blocks.
 
 Below is a general program with no pattern matching done on its input. This simply creates a table of integers, increments each of its odd elements by 1, and prints the elements in the table.
