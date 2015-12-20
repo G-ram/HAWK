@@ -97,6 +97,10 @@ The following identifiers are keywords reserved for particular use:
 * `BEGIN`  
 * `END` 
 * `this` 
+* `fun` 
+* `for` 
+* `while` 
+* `return` 
 
 ### 2.5 Constants
 
