@@ -1,0 +1,25 @@
+BEGIN{
+  fun getSub(s,c){
+    i = 0;
+    sub = "";
+    while(i < length(s)){
+      char = charAt(s, i);
+      if(stringEqual(char, c)){
+        return sub;
+      }
+      sub = sub + char;
+      i = i + 1;
+    }
+    return sub;
+  }
+}
+[@.city-nav-header@]{
+  print(getSub(this["innerhtml"],"<"));
+}
+[@#curTemp > span > .wx-value@]{
+  print("Temperature: "+this["innerhtml"]+"F");
+}
+[@#curCond > span@]{
+  print("Current Conditions: "+this["innerhtml"]);
+}
+END{}

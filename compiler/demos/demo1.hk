@@ -78,7 +78,7 @@ BEGIN{
     if(val == -1){
     }else{
       if(isPrime(val)){
-        primes[this[0]] = 1;
+        primes[val] = 1;
       }
     }
   }

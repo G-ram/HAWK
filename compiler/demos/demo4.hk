@@ -1,0 +1,9 @@
+BEGIN{
+  lineCount = 0;
+}
+[/[\n]/]{
+  lineCount = lineCount + 1;
+}
+END{
+  print(lineCount);
+}
