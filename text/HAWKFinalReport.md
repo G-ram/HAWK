@@ -965,29 +965,44 @@ We used OCaml to write our compiler, including OCamlyacc and OCamllex. We also u
 
 ### 5.2 Lexical Scanner
 
-The lexical scanner takes a HAWK program as input and generates a stream of lexical tokens. It has four states of operation depending on what part of code it is reading: action code scanning, CSS pattern scanning, regex pattern scanning, and comment scanning. Action code produces a stream of identifiers, keywords, and numerical constants and operators. CSS and regex code produce a stream of pattern-relevant operators and identifiers. Comments are treated as whitespace and ignored.
+The lexical scanner is written in OCamllexx. It takes a HAWK program as input and generates a stream of lexical tokens. It has four states of operation depending on what part of code it is reading: action code scanning, CSS pattern scanning, regex pattern scanning, and comment scanning. Action code produces a stream of identifiers, keywords, and numerical constants and operators. CSS and regex code produce a stream of pattern-relevant operators and identifiers. Comments are treated as whitespace and ignored.
 
 ### 5.3 Parser 
 
-The parser takes a stream of lexical tokens as input and produces an abstract syntax tree (AST) as output. 
+The parser is written in OCamlyacc. It takes a stream of lexical tokens as input and produces a HAWK abstract syntax tree (AST) as output. If this stage succeeds, we know that the the pattern-action segments of the source program are gramatically (if not semantically) valid. We also know that any CSS or regex patterns used are valid CSS or regex patterns. This compile time checking of CSS and regex is in contrast to most programming languages where CSS selectors and regexes are passed in as strings and can result in runtime errors if malformed. 
+
 
 ### 5.4 Semantic Analyzer
 
-The semantic analyzer takes in an AST and produced a type-checked SAST. 
+The semantic analyzer takes in an AST and produced a type-checked SAST which can easily be converted to code. It recursively traverses the abstract syntax tree, and for each AST node builds corresponding SAST nodes which augment underlying AST data with additional, particularly type information.  While building the SAST, the semantic analyzer updates translation environment and consults the translation environment. This is particularly important for identifier resolution and type inference (see section 5.5). 
+
+Because HAWK uses type inference and has no explicit type annotation, every unique call to a function (where uniqueness is determined by function name and the types of arguments) has a different body and thus generates a different SAST function declaration. 
+
+
 
 ### 5.5 The Translation Environment
 
-The translation environment contains information about a program which is used for identifier resolution (variables as well as functions) and type inference. 
+The translation environment contains mutiple pieces of information about a program which are used for identifier resolution (variables as well as functions) and type inference. 
 
-Firstly, the translation environment contains a symbol table for every scope found by the semantic analyzer. This symbol table stores a type for each variable in a scope. In cases where a table of unresolvable type is assigned to a variable (which happens when we assign an empty table literal or nested empty table literal such as {} or {{{}}} ) we denote this with a special type called EmptyTable that is invisible to the user and only used during semantic analysis. 
+Firstly, the translation environment contains a symbol table for every scope found by the semantic analyzer. This symbol table stores a type for each variable in a scope. In cases where a table of unresolvable type is assigned to a variable (which happens when we assign an empty table literal or nested empty table literal) we denote this with a special type called EmptyTable that is invisible to the user and only used during semantic analysis. 
 
-Additionally, the translation environment stores "update table type links" for each variable, which allow variables referring to the same underlying empty table to share information about unresolved table types and aid type inference. When the fortunes of two variables storing empty tables become linked (such as through an assignment like a=b), each adds a table type link to the other. When a concrete table is finally assigned to a variable storing an empty table (either directly or implicitly through table index assignment or function argument behavior) this information propagates through a graph of table links using depth first search. 
+Additionally, the translation environment stores "update table type links" for each variable, which allow variables referring to the same underlying empty table to share information about unresolved table types and aid type inference. When the fortunes of two variables storing empty tables become linked (such as through an assignment like a=b), each adds a table type link to the other along with scope and relative nesting information. When a concrete table is finally assigned to a variable referencing an empty table (either directly or implicitly through table index assignment or function argument behavior) this information propagates through a graph of table links using depth first search and updates the types of all linked variables. 
 
 The translation environment contains mutable state. After the semantic analysis stage, the translation environment is complete and will no longer be changed. However, certain objects in the SAST contain closures which refer to objects in the translation environment. These closures assume that the translation environment is complete and thus that all type information that can be known, is known. In the generation stage we call certain closures and therefore read from the filled out translation environment, but do not write to it.
 
+
+
 ### 5.6 The Code Generator
 
+We directly generate Java code from our SAST. Many expressions are straightforward to translate, as HAWK types all have a corresponding Java type. Our parameterized table type corresponds to a generic class we define the runtime library (see Section 5.7). Care is taken to use boxed Java types rather than primitive types where it is required, particularly for generic java classes. Additionally, many HAWK constructs (such as nested table indexing, and first class CSS/regex patterns) have no direct analogue in Java. For these, we generate Java code which calls upon routines from our runtime library.
+
+
 ### 5.7 The Java Runtime Library
+
+The Java runtime library contains implementations of built-in functions, routines to run CSS/regex pattern-action blocks, utilities for file reading, and a class for HAWK tables. 
+
+
+
 
 ## 6. Test Plan
 ### 6.1 Source to Target
@@ -1572,7 +1587,7 @@ regex_sequence:
 regex_set:
 	REGEX_STRING {RegexStringSet($1)}
 	| REGEX_STRING MINUS REGEX_STRING{RegexRangeSet($1,$3)}
-	| CARROT regex_set {RegexComplementSet($2)}
+	| uARROT regex_set {RegexComplementSet($2)}
 	| LBRACK regex_set_sequence RBRACK {RegexNestedSet($2)}
 
 regex_set_sequence:
@@ -5249,4 +5264,4 @@ END{
 
 
 
-
+
