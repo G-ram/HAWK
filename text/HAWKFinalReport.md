@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-<br></br>
 
 ->![HAWK](http://static.greatbigcanvas.com/images/square/national-geographic/a-red-tail-hawk,1407681.jpg?max=128)<-
 <center>
@@ -962,7 +960,7 @@ We used OCaml to write our compiler, including OCamlyacc and OCamllex. We also u
 
 ## 5. Architectural Design
 ### 5.1 Block Diagram
-![Diagram](http://i.imgur.com/9v5bD3I.png)
+![Diagram](http://i.imgur.com/tG2ImRu.png?1)
 
 ### 5.2 Lexical Scanner
 
