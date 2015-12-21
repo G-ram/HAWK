@@ -1,5 +1,5 @@
 
-->![HAWK](http://static.greatbigcanvas.com/images/square/national-geographic/a-red-tail-hawk,1407681.jpg?max=128)<-
+![HAWK](http://static.greatbigcanvas.com/images/square/national-geographic/a-red-tail-hawk,1407681.jpg?max=128)
 <center>
 <h1>HAWK Final Report</h1>
 <h2>HTML is All We Know<h2>
