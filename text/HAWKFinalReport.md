@@ -1252,7 +1252,9 @@ The testing script is included in the Appendix.
 
 ### 7.3 Ethan Benjamin
 
-* 
+* OCaml is practical even in a team full of functional programming novices, and the unique benefits of functional programming become more and more apparent as the size of a codebase increases. Before starting my Master's I worked in industry for four years and have seen many of the problems that arise in large software projects. In my experience, fixing bugs consumes most of a developer's time, and many bugs in traditional imperative languages come from code that fails to account for a particular object taking a particular state. OCaml's default purity, discriminated unions and lack of nullable types, combined with pattern matching, greatly reduce the risk of encountering exceptional behavior that was unaccounted for. I found that the pure functions we wrote rarely ever had to be rewritten, and if they did, it was due to a genuine change in feature requirements rather than due to an unexpected bug. To a novice like me OCaml can feel frustratingly strict in that it makes you explicity account for every use case, but this turns out to be a form tough love that encourages you to get things right immediately and yields great benefits down the line.
+
+* An effective leader has an outsize effect in improving team productivity. Our project manager did an outstanding job of identifying outstanding issues and assigning responsbilities. He portioned tasks in a way that maximized our ability to work independently and was always quick to address problems which blocked progress. Because he took a birds eye view of the project he was also effective in helping team mates working on different components effectively communicate with each other. 
 
 ### 7.4 Justin Chang
 
