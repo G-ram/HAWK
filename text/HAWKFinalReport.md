@@ -489,7 +489,7 @@ And one parameterized type:
 
 Where T can be any type.
 
-Integers are 32-bit signed two's complement integer. Doubles are double-precision 64-bit IEEE 754 floating point. We will refer to doubles and integers arithmetic type. 
+Integers are 32-bit signed two's complement integer. Doubles are double-precision 64-bit IEEE 754 floating point. We will refer to doubles and integers  as arithmetic types. 
 
 Strings are a sequence of 0 or more unicode characters. They are guaranteed to occupy O(n) space in memory, where n is the number of characters in the string.
 
@@ -962,6 +962,32 @@ We used OCaml to write our compiler, including OCamlyacc and OCamllex. We also u
 ## 5. Architectural Design
 ### 5.1 Block Diagram
 ![Diagram](http://i.imgur.com/9v5bD3I.png)
+
+### 5.2 Lexical Scanner
+
+The lexical scanner takes a HAWK program as input and generates a stream of lexical tokens. It has four states of operation depending on what part of code it is reading: action code scanning, CSS pattern scanning, regex pattern scanning, and comment scanning. Action code produces a stream of identifiers, keywords, and numerical constants and operators. CSS and regex code produce a stream of pattern-relevant operators and identifiers. Comments are treated as whitespace and ignored.
+
+### 5.3 Parser 
+
+The parser takes a stream of lexical tokens as input and produces an abstract syntax tree (AST) as output. 
+
+### 5.4 Semantic Analyzer
+
+The semantic analyzer takes in an AST and produced a type-checked SAST. 
+
+### 5.5 The Translation Environment
+
+The translation environment contains information about a program which is used for identifier resolution (variables as well as functions) and type inference. 
+
+Firstly, the translation environment contains a symbol table for every scope found by the semantic analyzer. This symbol table stores a type for each variable in a scope. In cases where a table of unresolvable type is assigned to a variable (which happens when we assign an empty table literal or nested empty table literal such as {} or {{{}}} ) we denote this with a special type called EmptyTable that is invisible to the user and only used during semantic analysis. 
+
+Additionally, the translation environment stores "update table type links" for each variable, which allow variables referring to the same underlying empty table to share information about unresolved table types and aid type inference. When the fortunes of two variables storing empty tables become linked (such as through an assignment like a=b), each adds a table type link to the other. When a concrete table is finally assigned to a variable storing an empty table (either directly or implicitly through table index assignment or function argument behavior) this information propagates through a graph of table links using depth first search. 
+
+The translation environment contains mutable state. After the semantic analysis stage, the translation environment is complete and will no longer be changed. However, certain objects in the SAST contain closures which refer to objects in the translation environment. These closures assume that the translation environment is complete and thus that all type information that can be known, is known. In the generation stage we call certain closures and therefore read from the filled out translation environment, but do not write to it.
+
+### 5.6 The Code Generator
+
+### 5.7 The Java Runtime Library
 
 ## 6. Test Plan
 ### 6.1 Source to Target
