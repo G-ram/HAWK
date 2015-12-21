@@ -1,5 +1,5 @@
-
-![HAWK](http://static.greatbigcanvas.com/images/square/national-geographic/a-red-tail-hawk,1407681.jpg?max=128)
+<br></br>
+->![HAWK](http://static.greatbigcanvas.com/images/square/national-geographic/a-red-tail-hawk,1407681.jpg?max=128)<-
 <center>
 <h1>HAWK Final Report</h1>
 <h2>HTML is All We Know<h2>
@@ -1289,6 +1289,9 @@ The testing script is included in the Appendix.
 * Use branches when implementing a new feature and then merge the branch onto the master when all tests are passing. Do not commit broken code to the master.
 
 ### 7.2 George Yu
+* Understand OCaml. Writing a compiler is already difficult; it’s even more so without some understanding of the language it’s being written in.
+* Have weekly group meetings. Group hack sessions made sure group members could understand/catch up with any updates and also tackle and understand what to do next. Group meetings help to break down next steps and figure out how to tackle problems.
+* Constant communication. Knowing when something’s finished or when something works helped push development evenly through the process, so that most of the features we wanted to have in our language were eventually implemented.
 
 ### 7.3 Ethan Benjamin
 
